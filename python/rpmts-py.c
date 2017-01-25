@@ -7,6 +7,7 @@
 #include <rpm/rpmpgp.h>
 #include <rpm/rpmdb.h>
 #include <rpm/rpmbuild.h>
+#include <rpm/rpmchecksig.h>
 
 #include "header-py.h"
 #include "rpmds-py.h"	/* XXX for rpmdsNew */
@@ -169,6 +170,24 @@ static void die(PyObject *cb)
 	    	      pyfn ? pyfn : "???");
     exit(EXIT_FAILURE);
 }
+
+static PyObject *
+rpmts_VerifySigs(rpmtsObject * s, PyObject * args)
+{
+    int rc;
+    char *fn;
+
+    if (!PyArg_ParseTuple(args, "s", &fn))
+	return NULL;
+
+    rpmKeyring keyring = rpmtsGetKeyring(s->ts, 1);
+    rpmVerifyFlags verifyFlags = (VERIFY_DIGEST|VERIFY_SIGNATURE);
+    FD_t fd = Fopen(fn, "r.ufdio");
+
+    rc = rpmpkgVerifySigs(keyring, verifyFlags, fd, fn);
+    return PyBool_FromLong((rc == 0));
+}
+
 
 static PyObject *
 rpmts_AddInstall(rpmtsObject * s, PyObject * args)
@@ -691,6 +710,8 @@ exit:
 }
 
 static struct PyMethodDef rpmts_methods[] = {
+ {"verifySigs",	(PyCFunction) rpmts_VerifySigs,	METH_VARARGS,
+  "blah"},
  {"addInstall",	(PyCFunction) rpmts_AddInstall,	METH_VARARGS,
   "ts.addInstall(hdr, data, mode) --  Add transaction element(s)\n"
   "representing an installation or update of a package.\n\n"

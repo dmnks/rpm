@@ -31,7 +31,7 @@ librpm_la_SOURCES = \
 	cpio.c cpio.h depends.c order.c formats.c tagexts.c fsm.c fsm.h \
 	manifest.c manifest.h package.c \
 	poptALL.c poptI.c poptQV.c psm.c query.c \
-	rpmal.c rpmal.h rpmchecksig.c rpmds.c rpmds_internal.h \
+	rpmal.c rpmal.h rpmchecksig.c rpmchecksig.h rpmds.c rpmds_internal.h \
 	rpmfi.c rpmfi_internal.h \
 	rpmgi.h rpmgi.c rpminstall.c rpmts_internal.h \
 	rpmlead.c rpmlead.h rpmps.c rpmprob.c rpmrc.c \

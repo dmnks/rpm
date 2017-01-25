@@ -62,6 +62,10 @@ include/rpm/rpmdb.h: lib/rpmdb.h include/rpm/$(dirstamp)
 	$(INSTALL_DATA) $(top_srcdir)/lib/rpmdb.h include/rpm/rpmdb.h
 BUILT_SOURCES += include/rpm/rpmdb.h
 CLEANFILES += include/rpm/rpmdb.h
+include/rpm/rpmchecksig.h: lib/rpmchecksig.h include/rpm/$(dirstamp)
+	$(INSTALL_DATA) $(top_srcdir)/lib/rpmchecksig.h include/rpm/rpmchecksig.h
+BUILT_SOURCES += include/rpm/rpmchecksig.h
+CLEANFILES += include/rpm/rpmchecksig.h
 include/rpm/rpmcallback.h: lib/rpmcallback.h include/rpm/$(dirstamp)
 	$(INSTALL_DATA) $(top_srcdir)/lib/rpmcallback.h include/rpm/rpmcallback.h
 BUILT_SOURCES += include/rpm/rpmcallback.h
