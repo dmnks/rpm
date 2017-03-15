@@ -261,6 +261,17 @@ int showVerifyPackage(QVA_t qva, rpmts ts, Header h);
  */
 int rpmVerifySignatures(QVA_t qva, rpmts ts, FD_t fd, const char * fn);
 
+/**
+ * Check package and header signatures.
+ * @param keyring	keyring handle
+ * @param flags		flags to control what to verify
+ * @param fd		package file handle
+ * @param fn		package file name
+ * @return		0 on success, 1 on failure
+ */
+int rpmpkgVerifySigs(rpmKeyring keyring, rpmQueryFlags flags, FD_t fd,
+                     const char *fn);
+
 /** \ingroup rpmcli
  * Verify package install.
  * @todo hack: RPMQV_ALL can pass char ** arglist = NULL, not char * arg. Union?

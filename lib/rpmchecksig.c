@@ -225,8 +225,8 @@ static void formatResult(rpmTagVal sigtag, rpmRC sigres, const char *result,
     free(msg);
 }
 
-static int rpmpkgVerifySigs(rpmKeyring keyring, rpmQueryFlags flags,
-			   FD_t fd, const char *fn)
+int rpmpkgVerifySigs(rpmKeyring keyring, rpmQueryFlags flags, FD_t fd,
+                     const char *fn)
 {
 
     char *buf = NULL;

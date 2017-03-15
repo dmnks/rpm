@@ -7,6 +7,7 @@
 #include <rpm/rpmpgp.h>
 #include <rpm/rpmdb.h>
 #include <rpm/rpmbuild.h>
+#include <rpm/rpmcli.h>
 
 #include "header-py.h"
 #include "rpmds-py.h"	/* XXX for rpmdsNew */
@@ -690,6 +691,24 @@ exit:
     return mio;
 }
 
+static PyObject *
+rpmts_VerifySigs(rpmtsObject * s, PyObject * args)
+{
+    rpmfdObject *fdo = NULL;
+    char *fn = NULL;
+    rpmQueryFlags flags = (VERIFY_DIGEST|VERIFY_SIGNATURE);
+    int rc = 1;
+
+    if (!PyArg_ParseTuple(args, "O&s|i:VerifySigs", rpmfdFromPyObject, &fdo,
+                          &fn, &flags))
+        return NULL;
+
+    rpmKeyring keyring = rpmtsGetKeyring(s->ts, 1);
+    rc = rpmpkgVerifySigs(keyring, flags, rpmfdGetFd(fdo), fn);
+    rpmKeyringFree(keyring);
+    return PyBool_FromLong(rc == 0);
+}
+
 static struct PyMethodDef rpmts_methods[] = {
  {"addInstall",	(PyCFunction) rpmts_AddInstall,	METH_VARARGS,
   "ts.addInstall(hdr, data, mode) --  Add transaction element(s)\n"
@@ -796,6 +815,14 @@ Remove all elements from the transaction set\n" },
  {"dbIndex",     (PyCFunction) rpmts_index,	METH_VARARGS|METH_KEYWORDS,
 "ts.dbIndex(TagN) -> ii\n\
 - Create a key iterator for the default transaction rpmdb.\n" },
+ {"_verifySigs",         (PyCFunction) rpmts_VerifySigs, METH_VARARGS,
+  "ts._verifySigs(fdno, fn, [flags]) -- Verify package signature\n\n"
+  "Returns True if it verifies, False otherwise.\n\n"
+  "Args:\n"
+  "  fdno  : file descriptor of the package to verify\n"
+  "  fn    : package file name (just for logging purposes)\n"
+  "  flags : bitfield to control what to verify\n"
+  "          (default is rpm.VERIFY_SIGNATURE | rpm.VERIFY_DIGEST)"},
     {NULL,		NULL}		/* sentinel */
 };
 
