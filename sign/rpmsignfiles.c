@@ -33,7 +33,7 @@ static const char *hash_algo_name[] = {
 #define ARRAY_SIZE(a)  (sizeof(a) / sizeof(a[0]))
 
 static char *signFile(const char *algo, const char *fdigest, int diglen,
-const char *key, char *keypass)
+const char *key, char *keypass, uint32_t *siglenp)
 {
     char *fsignature;
     unsigned char digest[diglen];
@@ -60,24 +60,10 @@ const char *key, char *keypass)
 	return NULL;
     }
 
+    *siglenp = siglen + 1;
     /* convert file signature binary to hex */
     fsignature = pgpHexStr(signature, siglen+1);
     return fsignature;
-}
-
-static uint32_t signatureLength(const char *algo, int diglen, const char *key,
-char *keypass)
-{
-    unsigned char digest[diglen];
-    unsigned char signature[MAX_SIGNATURE_LENGTH];
-
-    memset(digest, 0, diglen);
-    memset(signature, 0, MAX_SIGNATURE_LENGTH);
-    signature[0] = '\x03';
-
-    uint32_t siglen = sign_hash(algo, digest, diglen, key, keypass,
-				signature+1);
-    return siglen + 1;
 }
 
 rpmRC rpmSignFiles(Header h, const char *key, char *keypass)
@@ -85,7 +71,7 @@ rpmRC rpmSignFiles(Header h, const char *key, char *keypass)
     struct rpmtd_s digests;
     int algo;
     int diglen;
-    uint32_t siglen;
+    uint32_t siglen = 0;
     const char *algoname;
     const char *digest;
     char *signature;
@@ -109,12 +95,10 @@ rpmRC rpmSignFiles(Header h, const char *key, char *keypass)
 
     headerDel(h, RPMTAG_FILESIGNATURELENGTH);
     headerDel(h, RPMTAG_FILESIGNATURES);
-    siglen = signatureLength(algoname, diglen, key, keypass);
-    headerPutUint32(h, RPMTAG_FILESIGNATURELENGTH, &siglen, 1);
 
     headerGet(h, RPMTAG_FILEDIGESTS, &digests, HEADERGET_MINMEM);
     while ((digest = rpmtdNextString(&digests))) {
-	signature = signFile(algoname, digest, diglen, key, keypass);
+	signature = signFile(algoname, digest, diglen, key, keypass, &siglen);
 	if (!signature) {
 	    rpmlog(RPMLOG_ERR, _("signFile failed\n"));
 	    rc = RPMRC_FAIL;
@@ -128,6 +112,9 @@ rpmRC rpmSignFiles(Header h, const char *key, char *keypass)
 	}
 	free(signature);
     }
+
+    if (siglen > 0)
+	headerPutUint32(h, RPMTAG_FILESIGNATURELENGTH, &siglen, 1);
 
 exit:
     rpmtdFreeData(&digests);
