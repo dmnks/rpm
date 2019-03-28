@@ -26,11 +26,14 @@ RUN dnf -y install \
   libarchive-devel \
   libdb-devel \
   lmdb-devel \
+  sqlite-devel \
   libselinux-devel \
   ima-evm-utils-devel \
   libcap-devel \
   libacl-devel \
+  audit-libs-devel \
   lua-devel readline-devel \
+  python3-devel \
   dbus-devel \
   fakechroot which \
   elfutils binutils \
@@ -38,8 +41,6 @@ RUN dnf -y install \
   tar unzip gzip bzip2 cpio xz \
   pkgconfig \
   /usr/bin/gdb-add-index \
-  /usr/bin/python2 \
-  python2-devel \
   dwz \
   && dnf clean all
 COPY . .
@@ -50,6 +51,7 @@ RUN ./configure \
   --with-cap \
   --with-acl \
   --with-lua \
+  --with-audit \
   --enable-silent-rules \
   --enable-python \
   --enable-werror

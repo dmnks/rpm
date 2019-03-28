@@ -216,6 +216,7 @@ AT_SETUP([rpm -qf on non-installed file])
 AT_KEYWORDS([query])
 AT_CHECK([
 RPMDB_INIT
+runroot rpm -e hello-1.0-1.i386
 runroot rpm \
   --nodeps \
   --excludedocs \
@@ -233,6 +234,7 @@ AT_SETUP([rpm -q --path on non-installed file])
 AT_KEYWORDS([query])
 AT_CHECK([
 RPMDB_INIT
+runroot rpm -e hello-1.0-1.i386
 runroot rpm \
   --nodeps \
   --excludedocs \
