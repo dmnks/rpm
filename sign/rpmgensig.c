@@ -10,6 +10,7 @@
 #include <popt.h>
 #include <libgen.h>
 #include <fcntl.h>
+#include <signal.h>
 
 #include <rpm/rpmlib.h>			/* RPMSIGTAG & related */
 #include <rpm/rpmmacro.h>
@@ -239,11 +240,25 @@ exit:
     return sigtd;
 }
 
+static pid_t gpgPid = 0;
+
+static void handleGPGSignal(int sig, siginfo_t *info, void *ucontext) {
+    if (sig == SIGCHLD && info->si_pid == gpgPid)
+        gpgPid = 0;  /* indicate the GPG process exited */
+}
+
+/*
+ * Spawn a GPG subprocess to sign a target passed via a named pipe.
+ * Register a SIGCHLD handler without SA_RESTART to make Fopen() unblock if GPG
+ * exits without ever opening the pipe (such as due to expired keys).
+ */
 static int runGPG(sigTarget sigt, const char *sigfile)
 {
-    int pid = 0, status;
+    int status;
     FD_t fnamedPipe = NULL;
     char *namedPipeName = NULL;
+    struct sigaction act;
+    struct sigaction oldact;
     unsigned char buf[BUFSIZ];
     ssize_t count;
     ssize_t wantCount;
@@ -255,7 +270,12 @@ static int runGPG(sigTarget sigt, const char *sigfile)
     rpmPushMacro(NULL, "__plaintext_filename", NULL, namedPipeName, -1);
     rpmPushMacro(NULL, "__signature_filename", NULL, sigfile, -1);
 
-    if (!(pid = fork())) {
+    memset(&act, 0, sizeof(act));
+    act.sa_sigaction = &handleGPGSignal;
+    act.sa_flags = SA_SIGINFO | SA_NOCLDSTOP;
+    sigaction(SIGCHLD, &act, &oldact);
+
+    if (!(gpgPid = fork())) {
 	char *const *av;
 	char *cmd = NULL;
 	const char *gpg_path = rpmExpand("%{?_gpg_path}", NULL);
@@ -277,7 +297,17 @@ static int runGPG(sigTarget sigt, const char *sigfile)
     rpmPopMacro(NULL, "__plaintext_filename");
     rpmPopMacro(NULL, "__signature_filename");
 
-    fnamedPipe = Fopen(namedPipeName, "w");
+    while (1) {
+        errno = 0;
+        fnamedPipe = Fopen(namedPipeName, "w");
+        if (errno != EINTR)
+            break;
+        if (gpgPid)
+            continue;
+        rpmlog(RPMLOG_ERR, _("gpg terminated prematurely\n"));
+        goto exit;
+    }
+
     if (!fnamedPipe) {
 	rpmlog(RPMLOG_ERR, _("Fopen failed\n"));
 	goto exit;
@@ -308,8 +338,8 @@ static int runGPG(sigTarget sigt, const char *sigfile)
     Fclose(fnamedPipe);
     fnamedPipe = NULL;
 
-    (void) waitpid(pid, &status, 0);
-    pid = 0;
+    (void) waitpid(gpgPid, &status, 0);
+    gpgPid = 0;
     if (!WIFEXITED(status) || WEXITSTATUS(status)) {
 	rpmlog(RPMLOG_ERR, _("gpg exec failed (%d)\n"), WEXITSTATUS(status));
     } else {
@@ -318,11 +348,13 @@ static int runGPG(sigTarget sigt, const char *sigfile)
 
 exit:
 
+    sigaction(SIGCHLD, &oldact, NULL);
+
     if (fnamedPipe)
 	Fclose(fnamedPipe);
 
-    if (pid)
-	waitpid(pid, &status, 0);
+    if (gpgPid)
+	waitpid(gpgPid, &status, 0);
 
     if (namedPipeName) {
 	rpmRmTempFifo(namedPipeName);
