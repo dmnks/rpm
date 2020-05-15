@@ -1607,6 +1607,43 @@ FD_t Fopen(const char *path, const char *fmode)
     return fd;
 }
 
+FD_t Fopen2(const char *path, const char *fmode)
+{
+    char stdio[20], other[20];
+    const char *end = NULL;
+    mode_t perms = 0666;
+    int flags = 0;
+    FD_t fd = NULL;
+
+    if (path == NULL || fmode == NULL)
+	return NULL;
+
+    stdio[0] = '\0';
+    cvtfmode(fmode, stdio, sizeof(stdio), other, sizeof(other), &end, &flags);
+    flags |= O_NONBLOCK;
+    if (stdio[0] == '\0')
+	return NULL;
+
+    if (end == NULL || rstreq(end, "fdio")) {
+	if (_rpmio_debug)
+	    fprintf(stderr, "*** Fopen fdio path %s fmode %s\n", path, fmode);
+	fd = fdOpen(path, flags, perms);
+    } else {
+	if (_rpmio_debug)
+	    fprintf(stderr, "*** Fopen ufdio path %s fmode %s\n", path, fmode);
+	fd = ufdOpen(path, flags, perms);
+    }
+
+    /* Open compressed stream if necessary */
+    if (fd)
+	fd = Fdopen(fd, fmode);
+
+    DBGIO(fd, (stderr, "==>\tFopen(\"%s\",%x,0%o) %s\n",
+	  path, (unsigned)flags, (unsigned)perms, fdbg(fd)));
+
+    return fd;
+}
+
 int Fflush(FD_t fd)
 {
     int rc = -1;

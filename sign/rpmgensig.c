@@ -299,11 +299,14 @@ static int runGPG(sigTarget sigt, const char *sigfile)
 
     while (1) {
         errno = 0;
-        fnamedPipe = Fopen(namedPipeName, "w");
-        if (errno != EINTR)
+        fnamedPipe = Fopen2(namedPipeName, "w");
+        printf(">>> ERROR: %i\n", errno);
+        if (errno != ENXIO)
             break;
-        if (gpgPid)
+        if (gpgPid) {
+            sleep(1);
             continue;
+        }
         rpmlog(RPMLOG_ERR, _("gpg terminated prematurely\n"));
         goto exit;
     }
