@@ -239,6 +239,29 @@ exit:
     return sigtd;
 }
 
+static pid_t forkGPG(const char *path)
+{
+    pid_t pid;
+    if ((pid = fork()))
+        return pid;
+
+    int rc = 1;
+    char *const *av;
+    char *cmd = NULL;
+
+    if (path && *path != '\0')
+        (void) setenv("GNUPGHOME", path, 1);
+
+    unsetenv("MALLOC_CHECK_");
+    cmd = rpmExpand("%{?__gpg_sign_cmd}", NULL);
+    rc = poptParseArgvString(cmd, NULL, (const char ***)&av);
+    if (!rc)
+        rc = execve(av[0], av+1, environ);
+
+    rpmlog(RPMLOG_ERR, _("Could not exec %s: %s\n"), "gpg", strerror(errno));
+    _exit(EXIT_FAILURE);
+}
+
 static int runGPG(sigTarget sigt, const char *sigfile)
 {
     pid_t pid = 0;
@@ -256,24 +279,7 @@ static int runGPG(sigTarget sigt, const char *sigfile)
     rpmPushMacro(NULL, "__plaintext_filename", NULL, namedPipeName, -1);
     rpmPushMacro(NULL, "__signature_filename", NULL, sigfile, -1);
 
-    if (!(pid = fork())) {
-	char *const *av;
-	char *cmd = NULL;
-	const char *gpg_path = rpmExpand("%{?_gpg_path}", NULL);
-
-	if (gpg_path && *gpg_path != '\0')
-	    (void) setenv("GNUPGHOME", gpg_path, 1);
-
-	unsetenv("MALLOC_CHECK_");
-	cmd = rpmExpand("%{?__gpg_sign_cmd}", NULL);
-	rc = poptParseArgvString(cmd, NULL, (const char ***)&av);
-	if (!rc)
-	    rc = execve(av[0], av+1, environ);
-
-	rpmlog(RPMLOG_ERR, _("Could not exec %s: %s\n"), "gpg",
-			strerror(errno));
-	_exit(EXIT_FAILURE);
-    }
+    pid = forkGPG(rpmExpand("%{?_gpg_path}", NULL));
 
     rpmPopMacro(NULL, "__plaintext_filename");
     rpmPopMacro(NULL, "__signature_filename");
