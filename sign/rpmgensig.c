@@ -241,7 +241,8 @@ exit:
 
 static int runGPG(sigTarget sigt, const char *sigfile)
 {
-    int pid = 0, status;
+    pid_t pid = 0;
+    int status;
     FD_t fnamedPipe = NULL;
     char *namedPipeName = NULL;
     unsigned char buf[BUFSIZ];
