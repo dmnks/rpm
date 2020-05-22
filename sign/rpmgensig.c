@@ -239,11 +239,14 @@ exit:
     return sigtd;
 }
 
-static pid_t forkGPG(const char *path)
+static pid_t forkGPG(const char *path, const char *fifo)
 {
     pid_t pid;
     if ((pid = fork()))
         return pid;
+
+    /* open(fifo, O_RDONLY); */
+    /* _exit(EXIT_FAILURE); */
 
     int rc = 1;
     char *const *av;
@@ -279,11 +282,19 @@ static int runGPG(sigTarget sigt, const char *sigfile)
     rpmPushMacro(NULL, "__plaintext_filename", NULL, namedPipeName, -1);
     rpmPushMacro(NULL, "__signature_filename", NULL, sigfile, -1);
 
-    pid = forkGPG(rpmExpand("%{?_gpg_path}", NULL));
+    if (!(pid = fork())) {
+        pid = forkGPG(rpmExpand("%{?_gpg_path}", NULL), namedPipeName);
+        waitpid(pid, &status, 0);
+        if (WIFEXITED(status) && !WEXITSTATUS(status))
+            _exit(EXIT_SUCCESS);
+        close(open(namedPipeName, O_RDONLY | O_NONBLOCK));
+        _exit(EXIT_FAILURE);
+    }
 
     rpmPopMacro(NULL, "__plaintext_filename");
     rpmPopMacro(NULL, "__signature_filename");
 
+    /* sleep(1); /1* race cond trigger *1/ */
     fnamedPipe = Fopen(namedPipeName, "w");
     if (!fnamedPipe) {
 	rpmlog(RPMLOG_ERR, _("Fopen failed\n"));
