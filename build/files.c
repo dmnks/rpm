@@ -2585,9 +2585,10 @@ static rpmRC processPackageFiles(rpmSpec spec, rpmBuildPkgFlags pkgFlags,
 
     pkg->cpioList = NULL;
 
+    #pragma omp critical
     for (ARGV_const_t fp = pkg->fileFile; fp && *fp != NULL; fp++) {
-	if (readFilesManifest(spec, pkg, *fp))
-	    return RPMRC_FAIL;
+	if (readFilesManifest(spec, pkg, *fp)) {}
+	    /* return RPMRC_FAIL; */
     }
     /* Init the file list structure */
     memset(&fl, 0, sizeof(fl));
@@ -3163,11 +3164,10 @@ rpmRC processBinaryFiles(rpmSpec spec, rpmBuildPkgFlags pkgFlags,
 	    addPackageDeps(dbgpkg, dbgsrcpkg, RPMTAG_RECOMMENDNAME);
     }
 
+    #pragma omp parallel
+    #pragma omp single
     for (pkg = spec->packages; pkg != NULL; pkg = pkg->next) {
 	char *nvr;
-	const char *a;
-	int header_color;
-	int arch_color;
 
 	if (pkg == maindbg) {
 	    /* if there is just one debuginfo package, we put our extra stuff
@@ -3192,8 +3192,14 @@ rpmRC processBinaryFiles(rpmSpec spec, rpmBuildPkgFlags pkgFlags,
 	rpmlog(RPMLOG_NOTICE, _("Processing files: %s\n"), nvr);
 	free(nvr);
 
-	if ((rc = processPackageFiles(spec, pkgFlags, pkg, didInstall, test)) != RPMRC_OK)
-	    goto exit;
+        #pragma omp task
+	rc = processPackageFiles(spec, pkgFlags, pkg, didInstall, test);
+    }
+
+    for (pkg = spec->packages; pkg != NULL; pkg = pkg->next) {
+	const char *a;
+	int header_color;
+	int arch_color;
 
 	if (maindbg)
 	    filterDebuginfoPackage(spec, pkg, maindbg, dbgsrcpkg,
@@ -3201,8 +3207,7 @@ rpmRC processBinaryFiles(rpmSpec spec, rpmBuildPkgFlags pkgFlags,
 	else if (deplink && pkg != deplink)
 	    addPackageDeps(pkg, deplink, RPMTAG_REQUIRENAME);
 
-        if ((rc = rpmfcGenerateDepends(spec, pkg)) != RPMRC_OK)
-	    goto exit;
+        rc = rpmfcGenerateDepends(spec, pkg);
 
 	a = headerGetString(pkg->header, RPMTAG_ARCH);
 	header_color = headerGetNumber(pkg->header, RPMTAG_HEADERCOLOR);
@@ -3220,7 +3225,7 @@ rpmRC processBinaryFiles(rpmSpec spec, rpmBuildPkgFlags pkgFlags,
 		   _("Arch dependent binaries in noarch package\n"));
 	    if (terminate) {
 		rc = RPMRC_FAIL;
-		goto exit;
+		/* goto exit; */
 	    }
 	}
     }
