@@ -792,3 +792,28 @@ read
 [])
 AT_CLEANUP
 
+<<<<<<< HEAD
+=======
+
+AT_SETUP([%if, %else, %elif test 4])
+AT_KEYWORDS([if, else, elif])
+AT_CHECK([
+runroot rpmbuild -ba --quiet      \
+ --define "testif 1"              \
+ --define "variable1 0"           \
+ --define "variable2 rubbish:4-3" \
+ --define "variable3 1"           \
+ --define "action1 exit 1"        \
+ --define "action2 echo 0"        \
+ --define "action3 exit 1"        \
+ --define "action4 exit 1"        \
+   /data/SPECS/eliftest.spec
+],
+[1],
+[],
+[error: parse error in expression
+error: /data/SPECS/eliftest.spec:40: bad %elif condition:  rubbish:4-3
+
+])
+AT_CLEANUP
+>>>>>>> parent of 5f4fdce30... Parse multiline conditional and %include parameters correctly (#775)
