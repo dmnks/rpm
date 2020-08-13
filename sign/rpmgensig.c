@@ -401,12 +401,19 @@ static void unloadImmutableRegion(Header *hdrp, rpmTagVal tag)
 
     if (headerGet(*hdrp, tag, utd, HEADERGET_DEFAULT)) {
 	oh = headerCopyLoad(utd->data);
-	nh = headerCopy(oh);
-	headerFree(oh);
 	rpmtdFreeData(utd);
+    } else {
+	/* XXX should we warn if the immutable region is corrupt/missing? */
+	oh = headerLink(*hdrp);
+    }
+
+    if (oh) {
+	/* Perform a copy to eliminate crud from buggy signing tools etc */
+	nh = headerCopy(oh);
 	headerFree(*hdrp);
 	*hdrp = headerLink(nh);
 	headerFree(nh);
+	headerFree(oh);
     }
 }
 
