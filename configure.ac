@@ -983,6 +983,14 @@ AS_IF([test "$enable_inhibit_plugin" = yes],[
 ])
 AM_CONDITIONAL(ENABLE_INHIBIT_PLUGIN,[test "$enable_inhibit_plugin" = yes])
 
+#=================
+# Check for fapolicyd support
+AC_ARG_WITH(fapolicyd,
+AS_HELP_STRING([--with-fapolicyd],[build with File Access Policy Daemon support]),
+with_fapolicyd=$withval,
+with_fapolicyd=auto)
+AM_CONDITIONAL(FAPOLICYD,[test "$with_fapolicyd" = yes])
+
 with_dbus=no
 AS_IF([test "$enable_plugins" != no],[
  AS_IF([test "$enable_inhibit_plugin" != no],[
