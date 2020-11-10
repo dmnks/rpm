@@ -41,6 +41,7 @@ typedef enum rpmlogLvl_e {
 				/* extract priority */
 #define	RPMLOG_PRI(p)	((p) & RPMLOG_PRIMASK)
 #define	RPMLOG_MAKEPRI(fac, pri)	((((unsigned)(fac)) << 3) | (pri))
+#define	RPMLOG_NPRIS	(RPMLOG_DEBUG + 1)
 
 /** \ingroup rpmlog
  * facility codes
@@ -131,6 +132,13 @@ typedef void * rpmlogCallbackData;
   * 			0 to return after callback
   */
 typedef int (*rpmlogCallback) (rpmlogRec rec, rpmlogCallbackData data);
+
+/** \ingroup rpmlog
+ * Return number of rpmError() messages matching a log mask.
+ * @param mask		log mask to filter by (0 is no filtering)
+ * @return		number of messages matching the mask
+ */
+int rpmlogGetNrecsByMask(unsigned mask);
 
 /** \ingroup rpmlog
  * Return number of rpmError() ressages.
