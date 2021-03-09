@@ -101,17 +101,15 @@ rpmlogLvl rpmlogRecPriority(rpmlogRec rec)
 static void printLinesPrefixed(FILE *f, const char *prefix, const char *str)
 {
     const char *p = str;
-    ptrdiff_t nchars;
     while (str && *str) {
+        fputs(prefix, f);
         p = strchr(str, '\n');
         if (p) {
             p++;
-            nchars = p - str;
+            fwrite(str, sizeof(char), (size_t)(p - str), f);
         } else {
-            nchars = -1;
+            fprintf(f, "%s", str);
         }
-        fputs(prefix, f);
-        fwrite(str, sizeof(char), (size_t)nchars, f);
         str = p;
     }
 }
