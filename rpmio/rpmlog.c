@@ -100,14 +100,15 @@ rpmlogLvl rpmlogRecPriority(rpmlogRec rec)
 
 static void printIndentedBlock(FILE *f, const char *str, int amount)
 {
-    const char *p;
-    while (str && *str) {
-        fprintf(f, "%*s", amount, "");
-        if ((p = strchr(str, '\n')))
-            fwrite(str, sizeof(char), (++p) - str, f);
-        else
-            fprintf(f, "%s", str);
-        str = p;
+    char c;
+    int i = 0;
+    int indent = 1;
+    while ((c = str[i++])) {
+        if (indent)
+            for (int j = 0; j < amount; j++)
+                fputc(' ', f);
+        fputc(c, f);
+        indent = (c == '\n');
     }
 }
 
