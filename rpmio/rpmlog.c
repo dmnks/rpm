@@ -98,18 +98,15 @@ rpmlogLvl rpmlogRecPriority(rpmlogRec rec)
     return (rec != NULL) ? rec->pri : (rpmlogLvl)-1;
 }
 
-static void printLinesPrefixed(FILE *f, const char *prefix, const char *str)
+static void printIndentedBlock(FILE *f, const char *str, int amount)
 {
-    const char *p = str;
+    const char *p;
     while (str && *str) {
-        fputs(prefix, f);
-        p = strchr(str, '\n');
-        if (p) {
-            p++;
-            fwrite(str, sizeof(char), (size_t)(p - str), f);
-        } else {
+        fprintf(f, "%*s", amount, "");
+        if ((p = strchr(str, '\n')))
+            fwrite(str, sizeof(char), (++p) - str, f);
+        else
             fprintf(f, "%s", str);
-        }
         str = p;
     }
 }
@@ -127,7 +124,7 @@ void rpmlogPrint(FILE *f)
     for (int i = 0; i < ctx->nrecs; i++) {
 	rpmlogRec rec = ctx->recs + i;
 	if (rec->message && *rec->message)
-	    printLinesPrefixed(f, "    ", rec->message);
+	    printIndentedBlock(f, rec->message, 4);
     }
 
     rpmlogCtxRelease(ctx);
