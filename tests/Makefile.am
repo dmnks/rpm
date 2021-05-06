@@ -87,6 +87,9 @@ EXTRA_DIST += data/SPECS/hello-config-buildid.spec
 EXTRA_DIST += data/SPECS/hello-cd.spec
 EXTRA_DIST += data/keys/rpm.org-rsa-2048-test.pub
 EXTRA_DIST += data/keys/rpm.org-rsa-2048-test.secret
+EXTRA_DIST += data/keys/CVE-2021-3521-badbind.asc
+EXTRA_DIST += data/keys/CVE-2021-3521-nosubsig.asc
+EXTRA_DIST += data/keys/CVE-2021-3521-nosubsig-last.asc
 EXTRA_DIST += data/macros.testfile
 
 # testsuite voodoo
