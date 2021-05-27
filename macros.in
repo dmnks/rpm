@@ -82,6 +82,8 @@
 %__remsh		%{__rsh}
 %__strip		@__STRIP@
 
+%__find_debuginfo	%{_rpmconfigdir}/find-debuginfo.sh
+
 # XXX avoid failures if tools are not installed when rpm is built.
 %__libtoolize		libtoolize
 %__aclocal		aclocal
@@ -177,7 +179,7 @@
 #	the script.  See the script for details.
 #
 %__debug_install_post   \
-    %{_rpmconfigdir}/find-debuginfo.sh \\\
+    %{__find_debuginfo} \\\
     %{?_smp_mflags} \\\
     %{?_missing_build_ids_terminate_build:--strict-build-id} \\\
     %{?_no_recompute_build_ids:-n} \\\
