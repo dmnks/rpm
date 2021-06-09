@@ -739,7 +739,8 @@ static rpmRC parseForLang(char * buf, FileEntry cur)
     const char *name;
     rpmRC rc = RPMRC_FAIL;
 
-  while ((p = strstr(buf, (name = "%lang"))) != NULL) {
+    if ((p = strstr(buf, (name = "%lang"))) == NULL)
+	return RPMRC_OK;
 
     for (pe = p; (pe-p) < strlen(name); pe++)
 	*pe = ' ';
@@ -777,7 +778,6 @@ static rpmRC parseForLang(char * buf, FileEntry cur)
 
 	if (*pe == ',') pe++;	/* skip , if present */
     }
-  }
 
     rc = RPMRC_OK;
 
