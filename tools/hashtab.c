@@ -173,7 +173,7 @@ htab_try_create (size, hash_f, eq_f, del_f)
   result->hash_f = hash_f;
   result->eq_f = eq_f;
   result->del_f = del_f;
-  result->return_allocation_failure = 1;
+  /* result->return_allocation_failure = 1; */
   return result;
 }
 
@@ -265,7 +265,8 @@ htab_expand (htab)
 
   htab->size = higher_prime_number (htab->size * 2);
 
-  if (htab->return_allocation_failure)
+  /* if (htab->return_allocation_failure) */
+  if (1)
     {
       void **nentries = (void **) calloc (htab->size, sizeof (void **));
       if (nentries == NULL)

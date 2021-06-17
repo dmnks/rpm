@@ -99,7 +99,7 @@ struct htab
 
   /* This is non-zero if we are allowed to return NULL for function calls
      that allocate memory.  */
-  int return_allocation_failure;
+  /* int return_allocation_failure; */
 };
 
 typedef struct htab *htab_t;
