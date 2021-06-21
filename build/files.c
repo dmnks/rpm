@@ -2141,9 +2141,9 @@ static int generateBuildIDs(FileList fl, ARGV_t *files)
 	free(mainiddir);
 	free(debugiddir);
 	free(vra);
-	free(paths);
-	free(ids);
     }
+    free(paths);
+    free(ids);
     return rc;
 }
 #endif
