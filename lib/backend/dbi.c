@@ -49,6 +49,11 @@ dbDetectBackend(rpmdb rdb)
 	rdb->db_ops = &ndb_dbops;
     } else
 #endif
+#ifdef WITH_SQLITE
+    if (!strcmp(db_backend, "sqlite")) {
+	rdb->db_ops = &sqlite_dbops;
+    } else
+#endif
     {
 	rdb->db_ops = &db3_dbops;
 	if (*db_backend == '\0') {
@@ -71,6 +76,15 @@ dbDetectBackend(rpmdb rdb)
     if (access(path, F_OK) == 0 && rdb->db_ops != &ndb_dbops) {
 	rdb->db_ops = &ndb_dbops;
 	rpmlog(RPMLOG_WARNING, _("Found NDB Packages.db database while attempting %s backend: using ndb backend.\n"), db_backend);
+    }
+    free(path);
+#endif
+
+#ifdef WITH_SQLITE
+    path = rstrscat(NULL, dbhome, "/rpmdb.sqlite", NULL);
+    if (access(path, F_OK) == 0 && rdb->db_ops != &sqlite_dbops) {
+	rdb->db_ops = &sqlite_dbops;
+	rpmlog(RPMLOG_WARNING, _("Found SQLITE rpmdb.sqlite database while attempting %s backend: using sqlite backend.\n"), db_backend);
     }
     free(path);
 #endif
