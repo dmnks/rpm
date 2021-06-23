@@ -76,6 +76,12 @@ librpm_la_SOURCES += \
 	backend/ndb/rpmxdb.h
 endif
 
+if SQLITE
+AM_CPPFLAGS += $(SQLITE_CFLAGS)
+librpm_la_LIBADD += $(SQLITE_LIBS)
+librpm_la_SOURCES += backend/sqlite.c
+endif
+
 if LMDB
 AM_CPPFLAGS += $(LMDB_CFLAGS)
 librpm_la_LIBADD += $(LMDB_LIBS)

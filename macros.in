@@ -625,6 +625,7 @@ package or when debugging this package.\
 # bdb Berkeley DB
 # lmdb Lightning Memory-mapped Database
 # ndb new data base format
+# sqlite Sqlite database (read-only in this version!)
 #
 %_db_backend	      bdb
 
