@@ -45,6 +45,8 @@ rpm	alias --scripts --qf '\
 
 rpm	alias --setperms -q --qf '[\[ -L %{FILENAMES:shescape} \] || \
         ( \[ $((%{FILEFLAGS} & 2#1001000)) != 0 \] && \[ ! -e %{FILENAMES:shescape} \] ) || \
+        \[ $(( 16#0$(stat -c "%%f" %{FILENAMES:shescape}) & 8#170000 )) != \
+           $((  8#%{FILEMODES:octal} & 8#170000 )) \] || \
         chmod %7{FILEMODES:octal} %{FILENAMES:shescape}\n]' \
 		   --pipe "grep -v \(none\) | grep '^. -L ' | sed 's/chmod .../chmod /' | sh" \
 	--POPTdesc=$"set permissions of files in a package"
