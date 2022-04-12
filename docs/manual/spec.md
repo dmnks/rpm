@@ -646,9 +646,12 @@ Supported modifiers are:
 ### Shell Globbing
 
 The usual rules for shell globbing apply.  Metacharacters can be escaped by
-prefixing them with a backslash (`\`).  A backslash or percent sign can be
-escaped with an extra `\` or `%`, respectively.  Spaces are used to separate
-file names and must be escaped by enclosing the file name in quotes.
+prefixing them with a backslash (`\`).  Spaces are used to separate file names
+and must also be escaped.  Enclosing a file name in single or double quotes
+preserves the literal value of all characters within the file name, with the
+exception of the backslash and percent sign (`%`).  A backslash or percent sign
+can be escaped with an extra `\` or `%`, respectively.  A quote can be escaped
+with a backslash.
 
 The metacharacters supported are wildcards (`*` and `?`), square brackets
 (`[]`), and curly braces (`{}`).
@@ -669,9 +672,10 @@ a shell script like this:
 ```
 	rm -f filelist.txt
 	find %{buildroot}%{_prefix} -type f -print | \
-	perl -pe 's!%{buildroot}!!g;'		\
-	     -pe 's/(%)/%$1/g;'			\
-	     -pe 's/([*?{}\[\]\\])/\\$1/g;'	\
+	perl -pe 's!%{buildroot}!!g;'	\
+	     -pe 's/(%)/%$1/g;'		\
+	     -pe 's/(["\\])/\\$1/g;'	\
+	     -pe 's/(^.*$)/"$1"/g;'	\
 	> filelist.txt
 
 	%files -f filelist.txt
