@@ -2177,13 +2177,14 @@ static rpmRC processBinaryFile(Package pkg, FileList fl, const char * fileName,
     
     /* Copy file name or glob pattern removing multiple "/" chars. */
     /*
-     * Note: rpmGetPath should guarantee a "canonical" path. That means
+     * Note: rpmCleanPath should guarantee a "canonical" path. That means
      * that the following pathologies should be weeded out:
      *		//bin//sh
      *		//usr//bin/
      *		/.././../usr/../bin//./sh
      */
-    diskPath = rpmGenPath(fl->buildRoot, NULL, fileName);
+    diskPath = rpmCleanPath(rstrscat(NULL, fl->buildRoot, "/", fileName, NULL));
+
     /* Arrange trailing slash on directories */
     if (fl->cur.isDir)
 	diskPath = rstrcat(&diskPath, "/");
@@ -2413,7 +2414,7 @@ static void processSpecialDir(rpmSpec spec, Package pkg, FileList fl,
     files = sd->files;
     fi = 0;
     while (*files != NULL) {
-	char *origfile = rpmGenPath(basepath, *files, NULL);
+	char *origfile = rpmCleanPath(rstrscat(NULL, basepath, "/", *files, NULL));
 	ARGV_t globFiles;
 	int globFilesCount, i;
 	char *newfile;
