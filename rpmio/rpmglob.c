@@ -30,6 +30,7 @@
 
 #include <rpm/rpmfileutil.h>
 #include <rpm/rpmurl.h>
+#include <rpm/rpmlog.h>
 
 #include "debug.h"
 
@@ -51,7 +52,7 @@ static int ismagic(const char *pattern)
 
 /* librpmio exported interfaces */
 
-int rpmGlob(const char * pattern, int * argcPtr, ARGV_t * argvPtr)
+int rpmGlob(const char * pattern, int flags, int * argcPtr, ARGV_t * argvPtr)
 {
     int argc = 0;
     ARGV_t argv = NULL;
@@ -61,7 +62,7 @@ int rpmGlob(const char * pattern, int * argcPtr, ARGV_t * argvPtr)
     size_t plen = strlen(path);
     int dir_only = (plen > 0 && path[plen-1] == '/');
     glob_t gl;
-    int flags = 0;
+    int check = 1;
     int i;
     int rc = 0;
 
@@ -80,7 +81,10 @@ int rpmGlob(const char * pattern, int * argcPtr, ARGV_t * argvPtr)
 	goto exit;
     }
 
-    flags |= GLOB_BRACE;
+    if (flags & GLOB_NOCHECK)
+	check = 0;
+
+    flags = GLOB_BRACE;
     if (home != NULL && strlen(home) > 0) 
 	flags |= GLOB_TILDE;
     if (dir_only)
@@ -101,6 +105,14 @@ int rpmGlob(const char * pattern, int * argcPtr, ARGV_t * argvPtr)
     gl.gl_pathv = NULL;
     
     rc = glob(pattern, flags, NULL, &gl);
+    if (rc == GLOB_NOMATCH && !check) {
+	rpmlog(RPMLOG_DEBUG,
+	       _("File not found by glob: %s. Trying without globbing.\n"),
+	       pattern);
+	argvAdd(argvPtr, pattern);
+	rc = 0;
+	goto exit;
+    }
     if (rc)
 	goto exit;
 
