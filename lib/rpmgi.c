@@ -180,7 +180,7 @@ static void rpmgiGlobArgv(rpmgi gi, ARGV_const_t argv)
 	while ((arg = *argv++) != NULL) {
 	    char ** av = NULL;
 
-	    if (rpmGlob(arg, NULL, &av) == 0) {
+	    if (rpmGlob(arg, 0, NULL, &av) == 0) {
 		argvAppend(&gi->argv, av);
 		argvFree(av);
 	    }
