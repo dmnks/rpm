@@ -140,23 +140,39 @@ the range related to the version specified in the version tag.
 
 ### Hard dependencies
 
+#### Provides
+
 Tag Name       | Value| Type
 ---------------|------|--------------
 Providename    | 1047 | string array
 Provideversion | 1113 | string array
 Provideflags   | 1112 | int32 array
 
+#### Requires
+
+Tag Name       | Value| Type
+---------------|------|--------------
 Requirename    | 1049 | string array
 Requireversion | 1050 | string array
 Requireflags   | 1048 | int32 array
 
+#### Conflicts
+
+Tag Name       | Value| Type
+---------------|------|--------------
 Conflictname    | 1054 | string array
 Conflictversion | 1055 | string array
 Conflictflags   | 1053 | int32 array
 
+#### Obsoletes
+
+Tag Name       | Value| Type
+---------------|------|--------------
 Obsoletename    | 1090 | string array
 Obsoleteversion | 1115 | string array
 Obsoleteflags   | 1114 | int32 array
+
+
 
 ### Soft dependencies
 
