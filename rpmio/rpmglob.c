@@ -89,7 +89,14 @@ int rpmGlob(const char * pattern, int * argcPtr, ARGV_t * argvPtr)
     int argc = 0;
     ARGV_t argv = NULL;
     char * globRoot = NULL;
+    char * globURL;
     const char *home = getenv("HOME");
+    const char *path;
+    int ut = urlPath(pattern, &path);
+    int local = (ut == URL_IS_PATH) || (ut == URL_IS_UNKNOWN);
+    size_t plen = strlen(path);
+    int dir_only = (plen > 0 && path[plen-1] == '/');
+    glob_t gl;
     int gflags = 0;
 #ifdef ENABLE_NLS
     char * old_collate = NULL;
@@ -116,14 +123,7 @@ int rpmGlob(const char * pattern, int * argcPtr, ARGV_t * argvPtr)
     (void) setlocale(LC_CTYPE, "C");
 #endif
 
-    char * globURL;
-    const char * path;
-    int ut = urlPath(pattern, &path);
-    int local = (ut == URL_IS_PATH) || (ut == URL_IS_UNKNOWN);
-    size_t plen = strlen(path);
     int flags = gflags;
-    int dir_only = (plen > 0 && path[plen-1] == '/');
-    glob_t gl;
 
     if (!local || (!rpmIsGlob(pattern, 0) && strchr(path, '~') == NULL)) {
 	argvAdd(&argv, pattern);
