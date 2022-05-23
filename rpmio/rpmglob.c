@@ -88,7 +88,6 @@ static int __glob_pattern_p(const char *pattern, int quote)
 int rpmGlob(const char * pattern, int * argcPtr, ARGV_t * argvPtr)
 {
     int argc = 0;
-    ARGV_t argv = NULL;
     char * globRoot = NULL;
     const char *home = getenv("HOME");
     int gflags = 0;
@@ -127,7 +126,7 @@ int rpmGlob(const char * pattern, int * argcPtr, ARGV_t * argvPtr)
     glob_t gl;
 
     if (!local || (!rpmIsGlob(pattern, 0) && strchr(path, '~') == NULL)) {
-	argvAdd(&argv, pattern);
+	argvAdd(argvPtr, pattern);
 	goto exit;
     }
 
@@ -181,16 +180,15 @@ int rpmGlob(const char * pattern, int * argcPtr, ARGV_t * argvPtr)
 	if (globRoot > globURL && globRoot[-1] == '/')
 	    while (*globFile == '/') globFile++;
 	strcpy(globRoot, globFile);
-	argvAdd(&argv, globURL);
+	argvAdd(argvPtr, globURL);
     }
     globfree(&gl);
     free(globURL);
 
 exit:
-    argc = argvCount(argv);
+    if (argvPtr)
+	argc = argvCount(*argvPtr);
     if (argc > 0) {
-	if (argvPtr)
-	    *argvPtr = argv;
 	if (argcPtr)
 	    *argcPtr = argc;
 	rc = 0;
@@ -208,9 +206,7 @@ exit:
 	free(old_ctype);
     }
 #endif
-    if (rc || argvPtr == NULL) {
-	argvFree(argv);
-    }
+
     return rc;
 }
 
