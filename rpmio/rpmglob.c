@@ -81,6 +81,9 @@ int rpmGlob(const char * pattern, int * argcPtr, ARGV_t * argvPtr)
     if (home != NULL && strlen(home) > 0) 
 	flags |= GLOB_TILDE;
 
+    if (argvPtr == NULL)
+	argvPtr = &argv;
+
 #ifdef ENABLE_NLS
     t = setlocale(LC_COLLATE, NULL);
     if (t)
@@ -93,7 +96,7 @@ int rpmGlob(const char * pattern, int * argcPtr, ARGV_t * argvPtr)
 #endif
 
     if (!local) {
-	argvAdd(&argv, pattern);
+	argvAdd(argvPtr, pattern);
 	goto exit;
     }
 
@@ -147,16 +150,14 @@ int rpmGlob(const char * pattern, int * argcPtr, ARGV_t * argvPtr)
 	if (globRoot > globURL && globRoot[-1] == '/')
 	    while (*globFile == '/') globFile++;
 	strcpy(globRoot, globFile);
-	argvAdd(&argv, globURL);
+	argvAdd(argvPtr, globURL);
     }
     globfree(&gl);
     free(globURL);
 
 exit:
-    argc = argvCount(argv);
+    argc = argvCount(*argvPtr);
     if (argc > 0) {
-	if (argvPtr)
-	    *argvPtr = argv;
 	if (argcPtr)
 	    *argcPtr = argc;
 	rc = 0;
@@ -174,7 +175,7 @@ exit:
 	free(old_ctype);
     }
 #endif
-    if (rc || argvPtr == NULL) {
+    if (argvPtr == NULL) {
 	argvFree(argv);
     }
     return rc;
