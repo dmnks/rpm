@@ -173,8 +173,10 @@ int rpmGlob(const char * pattern, int * argcPtr, ARGV_t * argvPtr)
 
 	if (dir_only) {
 	    struct stat sb;
-	    if (lstat(gl.gl_pathv[i], &sb) || !S_ISDIR(sb.st_mode))
-		continue;
+	    if (lstat(gl.gl_pathv[i], &sb) || !S_ISDIR(sb.st_mode)) {
+		rc = GLOB_NOMATCH;
+		break;
+	    }
 	}
 	    
 	if (globRoot > globURL && globRoot[-1] == '/')
@@ -188,13 +190,8 @@ int rpmGlob(const char * pattern, int * argcPtr, ARGV_t * argvPtr)
 exit:
     if (argvPtr)
 	argc = argvCount(*argvPtr);
-    if (argc > 0) {
-	if (argcPtr)
-	    *argcPtr = argc;
-	rc = 0;
-    } else if (rc == 0)
-	rc = 1;
-
+    if (argcPtr && argc > 0)
+	*argcPtr = argc;
 
 #ifdef ENABLE_NLS	
     if (old_collate) {
