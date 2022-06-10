@@ -87,7 +87,6 @@ static int __glob_pattern_p(const char *pattern, int quote)
 
 int rpmGlob(const char * pattern, int * argcPtr, ARGV_t * argvPtr)
 {
-    int argc = 0;
     char * globRoot = NULL;
     const char *home = getenv("HOME");
     int gflags = 0;
@@ -188,10 +187,8 @@ int rpmGlob(const char * pattern, int * argcPtr, ARGV_t * argvPtr)
     free(globURL);
 
 exit:
-    if (argvPtr)
-	argc = argvCount(*argvPtr);
-    if (argcPtr && argc > 0)
-	*argcPtr = argc;
+    if (argcPtr && argvPtr)
+	*argcPtr = argvCount(*argvPtr);
 
 #ifdef ENABLE_NLS	
     if (old_collate) {
