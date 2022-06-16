@@ -97,7 +97,7 @@ int rpmGlob(const char * pattern, int * argcPtr, ARGV_t * argvPtr)
     size_t plen = strlen(path);
     int dir_only = (plen > 0 && path[plen-1] == '/');
     glob_t gl;
-    int gflags = 0;
+    int flags = 0;
 #ifdef ENABLE_NLS
     char * old_collate = NULL;
     char * old_ctype = NULL;
@@ -107,10 +107,10 @@ int rpmGlob(const char * pattern, int * argcPtr, ARGV_t * argvPtr)
     int i;
     int rc = 0;
 
-    gflags |= GLOB_BRACE;
+    flags |= GLOB_BRACE;
 
     if (home != NULL && strlen(home) > 0) 
-	gflags |= GLOB_TILDE;
+	flags |= GLOB_TILDE;
 
 #ifdef ENABLE_NLS
     t = setlocale(LC_COLLATE, NULL);
@@ -122,8 +122,6 @@ int rpmGlob(const char * pattern, int * argcPtr, ARGV_t * argvPtr)
     (void) setlocale(LC_COLLATE, "C");
     (void) setlocale(LC_CTYPE, "C");
 #endif
-
-    int flags = gflags;
 
     if (!local || (!rpmIsGlob(pattern, 0) && strchr(path, '~') == NULL)) {
 	argvAdd(&argv, pattern);
