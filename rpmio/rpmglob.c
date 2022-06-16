@@ -61,7 +61,7 @@ static int ismagic(const char *pattern)
 
 /* librpmio exported interfaces */
 
-int rpmGlob(const char * pattern, int * argcPtr, ARGV_t * argvPtr)
+int rpmGlob(const char * pattern, int flags, int * argcPtr, ARGV_t * argvPtr)
 {
     int argc = 0;
     ARGV_t argv = NULL;
@@ -72,7 +72,6 @@ int rpmGlob(const char * pattern, int * argcPtr, ARGV_t * argvPtr)
     size_t plen = strlen(path);
     int dir_only = (plen > 0 && path[plen-1] == '/');
     glob_t gl;
-    int flags = 0;
     int i;
     int rc = 0;
 
@@ -82,7 +81,7 @@ int rpmGlob(const char * pattern, int * argcPtr, ARGV_t * argvPtr)
     const char * t;
 #endif
 
-    if (!local || !ismagic(pattern)) {
+    if (!local || (flags & GLOB_NOMAGIC && !ismagic(pattern))) {
 	argvAdd(argvPtr, pattern);
 	goto exit;
     }
