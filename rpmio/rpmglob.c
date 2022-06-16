@@ -154,13 +154,10 @@ int rpmGlob(const char * pattern, int * argcPtr, ARGV_t * argvPtr)
 exit:
     if (argvPtr)
 	argc = argvCount(*argvPtr);
-    if (argc > 0) {
-	if (argcPtr)
-	    *argcPtr = argc;
-	rc = 0;
-    } else if (rc == 0)
+    if (argcPtr)
+	*argcPtr = argc;
+    if (rc == 0 && argc == 0)
 	rc = 1;
-
 
 #ifdef ENABLE_NLS	
     if (old_collate) {
