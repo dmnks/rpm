@@ -5,6 +5,7 @@
  */
 
 #include "system.h"
+#include <glob.h>
 
 #define	MYALLPERMS	07777
 
@@ -2200,7 +2201,7 @@ static rpmRC processBinaryFile(Package pkg, FileList fl, const char * fileName,
 	    goto exit;
 	}
 
-	if (rpmGlob(diskPath, &argc, &argv) == 0) {
+	if (rpmGlob(diskPath, GLOB_NOMAGIC, &argc, &argv) == 0) {
 	    for (i = 0; i < argc; i++) {
 		rc = addFile(fl, argv[i], NULL);
 	    }
@@ -2425,7 +2426,7 @@ static void processSpecialDir(rpmSpec spec, Package pkg, FileList fl,
 	copyFileEntry(&sd->entries[fi].defEntry, &fl->def);
 	fi++;
 
-	if (rpmGlob(origfile, &globFilesCount, &globFiles) == 0) {
+	if (rpmGlob(origfile, GLOB_NOMAGIC, &globFilesCount, &globFiles) == 0) {
 	    for (i = 0; i < globFilesCount; i++) {
 		rasprintf(&newfile, "%s/%s", sd->dirname, basename(globFiles[i]));
 		processBinaryFile(pkg, fl, newfile, 0);
