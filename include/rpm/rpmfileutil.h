@@ -111,11 +111,13 @@ char * rpmGetPath (const char * path, ...) RPM_GNUC_NULL_TERMINATED;
  * Return URL path(s) from a (URL prefixed) pattern glob.
  * @param pattern	glob pattern
  * @param flags		GNU glob(3) flags, supports: GLOB_NOCHECK
+ * @param warn		use RPMLOG_WARNING for GLOB_NOCHECK log message
  * @param[out] *argcPtr	no. of paths
  * @param[out] *argvPtr	ARGV_t array of paths
  * @return		0 on success
  */
-int rpmGlob(const char * pattern, int flags, int * argcPtr, ARGV_t * argvPtr);
+int rpmGlob(const char * pattern, int flags, int warn,
+	    int * argcPtr, ARGV_t * argvPtr);
 
 /** \ingroup rpmfileutil
  * Escape isspace(3) characters in string.

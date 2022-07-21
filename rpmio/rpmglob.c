@@ -52,7 +52,8 @@ static int ismagic(const char *pattern)
 
 /* librpmio exported interfaces */
 
-int rpmGlob(const char * pattern, int flags, int * argcPtr, ARGV_t * argvPtr)
+int rpmGlob(const char * pattern, int flags, int warn,
+	    int * argcPtr, ARGV_t * argvPtr)
 {
     int argc = 0;
     ARGV_t argv = NULL;
@@ -106,7 +107,7 @@ int rpmGlob(const char * pattern, int flags, int * argcPtr, ARGV_t * argvPtr)
     
     rc = glob(pattern, flags, NULL, &gl);
     if (rc == GLOB_NOMATCH && !check) {
-	rpmlog(RPMLOG_DEBUG,
+	rpmlog(warn ? RPMLOG_WARNING : RPMLOG_DEBUG,
 	       _("File not found by glob: %s. Trying without globbing.\n"),
 	       pattern);
 	argvAdd(argvPtr, pattern);
