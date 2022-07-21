@@ -34,24 +34,6 @@
 
 #include "debug.h"
 
-/* Find the end of the sub-pattern in a brace expression.  We define
-   this as an inline function if the compiler permits.  */
-static inline const char *next_brace_sub(const char *begin)
-{
-    unsigned int depth = 0;
-    const char *cp = begin;
-
-    while (*cp != '\0') {
-	if ((*cp == '}' && depth-- == 0) || (*cp == ',' && depth == 0))
-	    break;
-
-	if (*cp++ == '{')
-	    depth++;
-    }
-
-    return *cp != '\0' ? cp : NULL;
-}
-
 static int ismagic(const char *pattern)
 {
     const char *p = pattern;
