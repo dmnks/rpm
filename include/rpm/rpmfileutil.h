@@ -36,6 +36,7 @@ typedef enum rpmCompressedMagic_e {
 typedef enum rpmglobFlags_e {
     RPMGLOB_NONE		= 0,
     RPMGLOB_NOCHECK		= (1 << 0), /*!< like GLOB_NOCHECK */
+    RPMGLOB_WARN		= (1 << 1), /*!< print warning on RPMGLOB_NOCHECK */
 } rpmglobFlags;
 
 /** \ingroup rpmfileutil

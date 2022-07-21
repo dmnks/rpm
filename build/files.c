@@ -2200,7 +2200,7 @@ static rpmRC processBinaryFile(Package pkg, FileList fl, const char * fileName,
 	    goto exit;
 	}
 
-	if (rpmGlob(diskPath, RPMGLOB_NOCHECK,
+	if (rpmGlob(diskPath, RPMGLOB_NOCHECK | RPMGLOB_WARN,
 		    &argc, &argv) == 0) {
 	    for (i = 0; i < argc; i++) {
 		rc = addFile(fl, argv[i], NULL);
@@ -2418,7 +2418,7 @@ static void processSpecialDir(rpmSpec spec, Package pkg, FileList fl,
 	copyFileEntry(&sd->entries[fi].defEntry, &fl->def);
 	fi++;
 
-	if (rpmGlob(origfile, RPMGLOB_NOCHECK,
+	if (rpmGlob(origfile, RPMGLOB_NOCHECK | RPMGLOB_WARN,
 		    &globFilesCount, &globFiles) == 0) {
 	    for (i = 0; i < globFilesCount; i++) {
 		rasprintf(&newfile, "%s/%s", sd->dirname, basename(globFiles[i]));

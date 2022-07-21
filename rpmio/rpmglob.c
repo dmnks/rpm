@@ -104,7 +104,7 @@ int rpmGlob(const char * pattern, rpmglobFlags flags,
     
     rc = glob(pattern, gflags, NULL, &gl);
     if (rc == GLOB_NOMATCH && (flags & RPMGLOB_NOCHECK)) {
-	rpmlog(RPMLOG_DEBUG,
+	rpmlog((flags & RPMGLOB_WARN) ? RPMLOG_WARNING : RPMLOG_DEBUG,
 	       _("File not found by glob: %s. Trying without globbing.\n"),
 	       pattern);
 	argvAdd(argvPtr, pattern);

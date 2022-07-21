@@ -495,7 +495,10 @@ runroot rpm -qpl /build/RPMS/noarch/globesctest-1.0-1.noarch.rpm
 /opt/share/licenses/globesctest-1.0
 /opt/share/licenses/globesctest-1.0/licfb[[123]]
 ],
-[],
+[warning: File not found by glob: /build/BUILDROOT/globesctest-1.0-1.x86_64/opt/foo[[123]]. Trying without globbing.
+warning: File not found by glob: /build/BUILD/docfb[[123]]. Trying without globbing.
+warning: File not found by glob: /build/BUILD/licfb[[123]]. Trying without globbing.
+],
 )
 AT_CLEANUP
 
@@ -1941,14 +1944,17 @@ runroot rpmbuild -bb --quiet /data/SPECS/filemiss.spec
 [],
 [error: File not found: /build/BUILDROOT/filemisstest-1.0-1.x86_64/opt/share/doc/filemisstest-1.0/CREDITS
 error: File not found: /build/BUILDROOT/filemisstest-1.0-1.x86_64/opt/foo
+warning: File not found by glob: /build/BUILDROOT/filemisstest-1.0-1.x86_64/opt/bar{a,b}. Trying without globbing.
 error: File not found: /build/BUILDROOT/filemisstest-1.0-1.x86_64/opt/bar{a,b}
 cp: cannot stat 'INSTALL': No such file or directory
 cp: cannot stat 'README*': No such file or directory
 error: File not found: /build/BUILDROOT/filemisstest-1.0-1.x86_64/opt/share/doc/filemisstest-1.0/INSTALL
+warning: File not found by glob: /build/BUILD/README*. Trying without globbing.
 error: File not found: /build/BUILDROOT/filemisstest-1.0-1.x86_64/opt/share/doc/filemisstest-1.0/README*
 cp: cannot stat 'LICENSE': No such file or directory
 cp: cannot stat 'OTHERLICENSE?': No such file or directory
 error: File not found: /build/BUILDROOT/filemisstest-1.0-1.x86_64/opt/share/licenses/filemisstest-1.0/LICENSE
+warning: File not found by glob: /build/BUILD/OTHERLICENSE?. Trying without globbing.
 error: File not found: /build/BUILDROOT/filemisstest-1.0-1.x86_64/opt/share/licenses/filemisstest-1.0/OTHERLICENSE?
 ],
 )
