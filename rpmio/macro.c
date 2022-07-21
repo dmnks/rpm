@@ -1933,7 +1933,7 @@ rpmInitMacros(rpmMacroContext mc, const char * macrofiles)
 	ARGV_t path, files = NULL;
     
 	/* Glob expand the macro file path element, expanding ~ to $HOME. */
-	if (rpmGlob(*pattern, 0, NULL, &files) != 0) {
+	if (rpmGlob(*pattern, 0, 0, NULL, &files) != 0) {
 	    continue;
 	}
 

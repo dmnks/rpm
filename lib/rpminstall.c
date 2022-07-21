@@ -462,7 +462,7 @@ int rpmInstall(rpmts ts, struct rpmInstallArguments_s * ia, ARGV_t fileArgv)
 	if (giFlags & RPMGI_NOGLOB) {
 	    rc = rpmNoGlob(*eiu->fnp, &ac, &av);
 	} else {
-	    rc = rpmGlob(*eiu->fnp, GLOB_NOCHECK, &ac, &av);
+	    rc = rpmGlob(*eiu->fnp, GLOB_NOCHECK, 0, &ac, &av);
 	}
 	if (rc || ac == 0) {
 	    if (giFlags & RPMGI_NOGLOB) {
