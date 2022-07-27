@@ -65,18 +65,25 @@ int rpmGlob(const char * pattern, int * argcPtr, ARGV_t * argvPtr)
     int dir_only = (plen > 0 && path[plen-1] == '/');
     glob_t gl;
     int flags = GLOB_NOMAGIC;
+    int i;
+    int rc = 0;
+
 #ifdef ENABLE_NLS
     char * old_collate = NULL;
     char * old_ctype = NULL;
     const char * t;
 #endif
-    int i;
-    int rc = 0;
+
+    if (!local) {
+	argvAdd(argvPtr, pattern);
+	goto exit;
+    }
 
     flags |= GLOB_BRACE;
-
     if (home != NULL && strlen(home) > 0) 
 	flags |= GLOB_TILDE;
+    if (dir_only)
+	flags |= GLOB_ONLYDIR;
 
     if (argvPtr == NULL)
 	/* Use local arglist for counting purposes (argc) */
@@ -92,14 +99,6 @@ int rpmGlob(const char * pattern, int * argcPtr, ARGV_t * argvPtr)
     (void) setlocale(LC_COLLATE, "C");
     (void) setlocale(LC_CTYPE, "C");
 #endif
-
-    if (!local) {
-	argvAdd(argvPtr, pattern);
-	goto exit;
-    }
-
-    if (dir_only)
-	flags |= GLOB_ONLYDIR;
     
     gl.gl_pathc = 0;
     gl.gl_pathv = NULL;
@@ -122,9 +121,10 @@ exit:
     argc = argvCount(*argvPtr);
     if (argcPtr)
 	*argcPtr = argc;
+    if (argvPtr == &argv)
+	argvFree(argv);
     if (argc == 0 && rc == 0)
 	rc = GLOB_NOMATCH;
-
 
 #ifdef ENABLE_NLS	
     if (old_collate) {
@@ -136,8 +136,6 @@ exit:
 	free(old_ctype);
     }
 #endif
-    if (argvPtr == &argv) {
-	argvFree(argv);
-    }
+
     return rc;
 }
