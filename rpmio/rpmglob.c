@@ -162,7 +162,7 @@ exit:
 	    *argcPtr = argc;
 	rc = 0;
     } else if (rc == 0)
-	rc = 1;
+	rc = GLOB_NOMATCH;
 
 
 #ifdef ENABLE_NLS	
