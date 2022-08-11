@@ -49,6 +49,38 @@ runroot rpm \
 AT_CLEANUP
 
 # ------------------------------
+AT_SETUP([rpm -qp <glob>])
+AT_KEYWORDS([query])
+AT_CHECK([
+RPMDB_INIT
+runroot rpm \
+  -qp '/data/RPMS/hello-2.0-1.{i686,x86_64}.rpm'
+],
+[0],
+[hello-2.0-1.i686
+hello-2.0-1.x86_64
+],
+[ignore])
+AT_CLEANUP
+
+# ------------------------------
+AT_SETUP([rpm -qp <glob with no match>])
+AT_KEYWORDS([query])
+AT_CHECK([
+RPMDB_INIT
+runroot rpm \
+  -qp '/data/RPMS/hello-not-there-*.x86_64.rpm' \
+      /data/RPMS/hello-not-there-1.0-1.x86_64.rpm \
+      /data/RPMS/hello-not-there-2.0-1.x86_64.rpm
+],
+[2],
+[],
+[error: open of /data/RPMS/hello-not-there-1.0-1.x86_64.rpm failed: No such file or directory
+error: open of /data/RPMS/hello-not-there-2.0-1.x86_64.rpm failed: No such file or directory
+])
+AT_CLEANUP
+
+# ------------------------------
 AT_SETUP([rpm -ql -p *.src.rpm])
 AT_KEYWORDS([query])
 AT_CHECK([
