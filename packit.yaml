@@ -17,6 +17,5 @@ upstream_ref: master
 
 jobs:
 - job: copr_build
-  owner: mdomonko
   trigger: pull_request
   targets: [fedora-stable]
