@@ -19,8 +19,3 @@ jobs:
 - job: copr_build
   trigger: pull_request
   targets: [fedora-stable]
-
-actions:
-  create-archive:
-    - make distcheck
-    - bash -c "ls -1t rpm-*.tar.bz2 | head -n 1"
