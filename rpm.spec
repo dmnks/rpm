@@ -36,11 +36,6 @@ Release: %{?snapver:0.%{snapver}.}%{baserelease}%{?dist}
 Url: http://www.rpm.org/
 Source0: http://ftp.rpm.org/releases/%{srcdir}/rpm-%{srcver}.tar.bz2
 
-Source10: rpmdb-rebuild.service
-
-Source20: rpmdb-migrate.service
-Source21: rpmdb_migrate
-
 # Set rpmdb path to /usr/lib/sysimage/rpm
 Patch0: rpm-4.17.x-rpm_dbpath.patch
 # Disable autoconf config.site processing (#962837)
@@ -430,12 +425,6 @@ if [ -d /var/lib/rpm ]; then
     done
 fi
 
-%triggerun -- rpm < 4.17.0-7
-# Handle rpmdb migrate service on erasure of old to avoid ordering issues
-if [ -x /usr/bin/systemctl ]; then
-    systemctl --no-reload preset rpmdb-migrate ||:
-fi
-
 %posttrans
 if [ -d /var/lib/rpm ]; then
     touch /var/lib/rpm/.migratedb
@@ -448,9 +437,6 @@ fi
 %files -f rpm.lang
 %license COPYING
 %doc CREDITS docs/manual/[a-z]*
-
-%{_unitdir}/rpmdb-rebuild.service
-%{_unitdir}/rpmdb-migrate.service
 
 %dir %{_sysconfdir}/rpm
 
