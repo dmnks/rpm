@@ -28,9 +28,9 @@
 
 %define rpmhome /usr/lib/rpm
 
-%global rpmver 4.17.1
-#global snapver rc1
-%global baserelease 3
+%global rpmver 4.18.0
+%global snapver beta1
+%global baserelease 4
 %global sover 9
 
 %global srcver %{rpmver}%{?snapver:-%{snapver}}
@@ -565,11 +565,13 @@ fi
 %{_bindir}/rpmbuild
 %{_bindir}/gendiff
 %{_bindir}/rpmspec
+%{_bindir}/rpmlua
 
 %{_mandir}/man1/gendiff.1*
 %{_mandir}/man8/rpmbuild.8*
 %{_mandir}/man8/rpmdeps.8*
 %{_mandir}/man8/rpmspec.8*
+%{_mandir}/man8/rpmlua.8*
 
 %{rpmhome}/brp-*
 %{rpmhome}/check-*
@@ -582,6 +584,7 @@ fi
 %{rpmhome}/mkinstalldirs
 %{rpmhome}/fileattrs/*
 %{rpmhome}/find-debuginfo.sh
+%{rpmhome}/rpmuncompress
 
 %files sign
 %{_bindir}/rpmsign
@@ -607,14 +610,44 @@ fi
 %doc docs/librpm/html/*
 
 %changelog
-* Tue Aug 02 2022 Michal Domonkos <mdomonko@redhat.com> - 4.17.1-3
+* Tue Aug 02 2022 Michal Domonkos <mdomonko@redhat.com> - 4.18.0-0.beta1.4
 - Revert %%autosetup -S git patch due to another regression
 
-* Mon Jul 11 2022 Michal Domonkos <mdomonko@redhat.com> - 4.17.1-2
+* Sat Jul 23 2022 Fedora Release Engineering <releng@fedoraproject.org> - 4.18.0-0.beta1.3
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_37_Mass_Rebuild
+
+* Mon Jul 11 2022 Michal Domonkos <mdomonko@redhat.com> - 4.18.0-0.beta1.2
+- Fix check-buildroot regression wrt bundled SRPM (#2104150)
 - Fix %%autosetup -S git regression wrt default git branch
 
-* Fri Jul 01 2022 Michal Domonkos <mdomonko@redhat.com> - 4.17.1-1
-- Rebase to rpm 4.17.1 (http://rpm.org/wiki/Releases/4.17.1)
+* Tue Jun 28 2022 Panu Matilainen <pmatilai@redhat.com> - 4.18.0-0.beta1.1
+- Rebase to 4.18.0-beta1 (https://rpm.org/wiki/Releases/4.18.0)
+
+* Mon Jun 13 2022 Python Maint <python-maint@redhat.com> - 4.18.0-0.alpha2.2
+- Rebuilt for Python 3.11
+
+* Mon May 23 2022 Panu Matilainen <pmatilai@redhat.com> - 4.18.0-0.alpha2.1
+- Rebase to 4.18.0-0.alpha2
+- Prevent uncontrolled sqlite WAL growth during large transactions
+
+* Thu Apr 28 2022 Panu Matilainen <pmatilai@redhat.com> - 4.18.0-0.alpha1.6
+- Fix rubygem unpack regression, causing rubygem builds to fail
+
+* Wed Apr 27 2022 Panu Matilainen <pmatilai@redhat.com> - 4.18.0-0.alpha1.5
+- Fix verbose source uncompress regression (#2079127)
+
+* Tue Apr 26 2022 Panu Matilainen <pmatilai@redhat.com> - 4.18.0-0.alpha1.4
+- Further dynamic buildrequires cli switch regression fixes (#2078744)
+
+* Tue Apr 26 2022 Panu Matilainen <pmatilai@redhat.com> - 4.18.0-0.alpha1.3
+- Fix rpmbuild -ba --nodeps regression wrt dynamic buildrequires (#2078744)
+
+* Tue Apr 26 2022 Panu Matilainen <pmatilai@redhat.com> - 4.18.0-0.alpha1.2
+- Fix rpmbuild -br not producing a src.rpm regression (#2078744)
+
+* Mon Apr 25 2022 Panu Matilainen <pmatilai@redhat.com> - 4.18.0-0.alpha1.1
+- Rebase to 4.18.0 alpha (https://fedoraproject.org/wiki/Changes/RPM-4.18)
+- Add patches for two late discovered regressions
 
 * Mon Mar 21 2022 Neal Gompa <ngompa@fedoraproject.org> - 4.17.0-10
 - Create rpmdb directory symlink in posttrans by default (#2066427)
