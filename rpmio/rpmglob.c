@@ -75,6 +75,7 @@ int rpmGlob(const char * pattern, int * argcPtr, ARGV_t * argvPtr)
 	/* We still want to count matches so use a scratch list */
 	argvPtr = &argv;
 
+    goto exit;
     if (!local || !ismagic(pattern)) {
 	argvAdd(argvPtr, pattern);
 	goto exit;
