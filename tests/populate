@@ -38,7 +38,7 @@ done
 for prog in gzip cat cp patch tar sh ln chmod rm mkdir uname grep sed find file ionice mktemp nice cut sort diff touch install wc coreutils xargs; do
 	p=`which ${prog}`
 	if [ "${p}" != "" ]; then
-		ln -s ${p} testing/${bindir}/
+		cp ${p} testing/${bindir}/
 	fi
 done
 for d in /proc /sys /selinux /etc/selinux; do

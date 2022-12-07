@@ -100,7 +100,14 @@ function rundebug()
 function runroot()
 {
     setup_env
-    (cd ${RPMTEST} && MAGIC="/magic/magic" "$@" --root "${RPMTEST}" --define "_buildhost testhost" --define "_topdir ${TOPDIR}" --noplugins --nouserns)
+    (cd ${RPMTEST} && MAGIC="/magic/magic" bwrap --ro-bind /usr/bin /usr/bin \
+                                                 --ro-bind /usr/lib64 /usr/lib64 \
+                                                 --symlink usr/lib64 /lib64 \
+                                                 --proc /proc --dev /dev \
+                                                 --unshare-pid bash"$@" "${RPMTEST}" \
+                                                 --define "_buildhost testhost" \
+                                                 --define "_topdir ${TOPDIR}" \
+                                                 --noplugins --nouserns)
 }
 
 function runroot_other()
