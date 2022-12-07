@@ -23,6 +23,7 @@ fi
 	  ${MAKE} DESTDIR=${abs_builddir}/testing install)
 
 cp -r ${srcdir}/data/ testing/
+ln -s ${srcdir}/data/ /data
 for d in dev etc magic tmp var; do
 	if [ ! -d testing/${d} ]; then
 		mkdir testing/${d}
