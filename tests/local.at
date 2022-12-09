@@ -2,8 +2,9 @@ AT_TESTED([rpm rpmbuild rpmquery])
 
 m4_define([RPMTEST_SETUP],[[
 if ! [ -d testing/ ]; then
-    cp -aP "${RPMTEST}" .
-    chmod -R u+w testing/
+    #cp -aP "${RPMTEST}" .
+    btrfs -q subvolume snapshot ${RPMTEST} testing
+    #chmod -R u+w testing/
     mkdir -p testing/build
     ln -s ../data/SOURCES testing/build/
 fi
@@ -42,6 +43,16 @@ AT_SETUP([$1])
 AT_KEYWORDS([python])
 RPMDB_INIT
 RPMPY_CHECK([$2], [$3], [$4])
+AT_CLEANUP
+])
+
+m4_define([RPMTEST_CHECK],[
+RPMTEST_SETUP
+AT_CHECK($@)
+])
+
+m4_define([RPMTEST_CLEANUP],[
+btrfs -q subvolume delete testing
 AT_CLEANUP
 ])
 
