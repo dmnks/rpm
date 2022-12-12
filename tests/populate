@@ -18,6 +18,8 @@ btrfs subvolume snapshot /root/tree testing
 (cd ${top_builddir} && \
 	  ${MAKE} DESTDIR=${abs_builddir}/testing install)
 
+sed -i 's,^%_dbpath\t.*$,%_dbpath /usr/lib/sysimage/rpm,' ${abs_builddir}/testing/usr/lib/rpm/macros
+
 cp -r ${srcdir}/data/ testing/
 for d in magic; do
 	if [ ! -d testing/${d} ]; then
