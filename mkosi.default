@@ -1,0 +1,71 @@
+[Distribution]
+Distribution=fedora
+Release=36
+
+[Output]
+Format=raw_btrfs
+Bootable=yes
+
+[Packages]
+Packages=
+    passwd
+    dnf
+    fedora-release
+    vim-minimal
+    systemd
+    systemd-networkd
+BuildPackages=
+    autoconf
+    cmake
+    gettext-devel
+    debugedit
+    doxygen
+    make
+    gcc
+    git-core
+    glibc-gconv-extra
+    zlib-devel
+    bzip2-devel
+    xz-devel
+    libzstd-devel
+    elfutils-libelf-devel
+    elfutils-devel
+    openssl-devel
+    libgcrypt-devel
+    rpm-sequoia-devel
+    file-devel
+    popt-devel
+    libarchive-devel
+    sqlite-devel
+    libselinux-devel
+    ima-evm-utils-devel
+    libcap-devel
+    libacl-devel
+    audit-libs-devel
+    lua-devel
+    readline-devel
+    python3-devel
+    dbus-devel
+    fakechroot
+    which
+    elfutils
+    binutils
+    findutils
+    sed
+    grep
+    gawk
+    diffutils
+    file
+    patch
+    tar
+    unzip
+    gzip
+    bzip2
+    cpio
+    xz
+    pkgconfig
+    /usr/bin/gdb-add-index
+    dwz
+    fsverity-utils
+    fsverity-utils-devel
+    pandoc
