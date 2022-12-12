@@ -40,8 +40,7 @@ AT_SETUP([rpm library version])
 AT_KEYWORDS([basic])
 AT_SKIP_IF(test -f "${RPMTEST}/${RPMLIBDIR}/librpm.a")
 RPMTEST_CHECK([
-cd ${RPMTEST}/${RPMLIBDIR}
-ls lib*.so.*.*
+runroot_other sh -c 'ls /usr/lib64/librpm*.so.*.* -1 | xargs -n1 basename'
 ],
 [0],
 [librpm.so.9.3.0
