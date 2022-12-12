@@ -499,10 +499,9 @@ timestamp=97445
 
 runroot rpm -i --ignorearch --ignoreos --nodeps \
 	/data/RPMS/foo-1.0-1.noarch.rpm
-export SOURCE_DATE_EPOCH=$timestamp
-runroot rpm -i --ignorearch --ignoreos --nodeps \
+runroot -E SOURCE_DATE_EPOCH=$timestamp \
+        rpm -i --ignorearch --ignoreos --nodeps \
 	/data/RPMS/hello-2.0-1.x86_64.rpm
-unset SOURCE_DATE_EPOCH
 runroot rpm -q --tid $timestamp
 runroot rpm -qi $pkg | grep "Install Date"
 runroot rpm -qa
@@ -858,7 +857,7 @@ for e in 1 2; do
     runroot_other cp /build/RPMS/noarch/versiontest-1.0-1.noarch.rpm /tmp/epoch${e}.rpm
 done
 # for testing sanity
-runroot_other echo '%_query_all_fmt %%{nevra}' > ${HOME}/.rpmmacros
+echo '%_query_all_fmt %%{nevra}' > ${RPMTEST}/root/.rpmmacros
 
 RPMTEST_CHECK([
 RPMDB_INIT
