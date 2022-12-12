@@ -14,7 +14,7 @@ Packages=
     vim-minimal
     systemd
     systemd-networkd
-BuildPackages=
+# Build packages
     autoconf
     cmake
     gettext-devel
