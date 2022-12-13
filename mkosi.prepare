@@ -1,0 +1,46 @@
+#!/bin/sh
+
+[ "$1" != "final" ] && exit
+
+btrfs subvolume create /tree
+dnf install -y --setopt=install_weak_deps=False --releasever=37 --installroot=/tree \
+bash \
+coreutils \
+curl \
+findutils \
+glibc \
+file \
+diffutils \
+rpm-sequoia \
+lua-libs \
+libarchive \
+sed \
+audit \
+bzip2 \
+libacl \
+libcap \
+libzstd \
+openssl-libs \
+sqlite-libs \
+xz-libs \
+zlib \
+elfutils-libelf \
+elfutils-libs \
+file-libs \
+libfsverity \
+python3 \
+binutils \
+cpio \
+gawk \
+gdb-headless \
+gdb-minimal \
+grep \
+gzip \
+patch \
+pkgconf-pkg-config \
+tar \
+unzip \
+xz \
+zstd \
+libgcc \
+libgomp

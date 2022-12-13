@@ -8,16 +8,7 @@ Bootable=yes
 
 [Packages]
 Packages=
-    passwd
-    dnf
-    fedora-release
-    vim-minimal
-    systemd
     systemd-container
-    systemd-networkd
-    openssl
-    strace
-# Build packages
     autoconf
     cmake
     gettext-devel
@@ -72,9 +63,6 @@ Packages=
     fsverity-utils
     fsverity-utils-devel
     pandoc
-
-[Host]
-Ssh=yes
 
 [Content]
 SourceFileTransfer=copy-all
