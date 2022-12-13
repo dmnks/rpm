@@ -1,9 +1,9 @@
 [Distribution]
 Distribution=fedora
-Release=36
+Release=37
 
 [Output]
-Format=raw_btrfs
+Format=gpt_btrfs
 Bootable=yes
 
 [Packages]
@@ -16,6 +16,7 @@ Packages=
     systemd-container
     systemd-networkd
     openssl
+    strace
 # Build packages
     autoconf
     cmake
@@ -77,3 +78,7 @@ Ssh=yes
 
 [Content]
 SourceFileTransfer=copy-all
+
+[Validation]
+Password=
+Autologin=yes
