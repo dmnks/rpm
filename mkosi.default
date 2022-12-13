@@ -13,7 +13,9 @@ Packages=
     fedora-release
     vim-minimal
     systemd
+    systemd-container
     systemd-networkd
+    openssl
 # Build packages
     autoconf
     cmake
@@ -69,3 +71,9 @@ Packages=
     fsverity-utils
     fsverity-utils-devel
     pandoc
+
+[Host]
+Ssh=yes
+
+#[Content]
+#SourceFileTransferFinal=copy-all
