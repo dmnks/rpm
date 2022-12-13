@@ -8,6 +8,49 @@ Bootable=yes
 
 [Packages]
 Packages=
+    bash
+    coreutils
+    curl
+    findutils
+    glibc
+    file
+    diffutils
+    rpm-sequoia
+    lua-libs
+    libarchive
+    sed
+    audit
+    bzip2
+    libacl
+    libcap
+    libzstd
+    openssl-libs
+    sqlite-libs
+    xz-libs
+    zlib
+    elfutils-libelf
+    elfutils-libs
+    file-libs
+    libfsverity
+    python3
+    binutils
+    cpio
+    gawk
+    gdb-headless
+    gdb-minimal
+    grep
+    gzip
+    patch
+    pkgconf-pkg-config
+    tar
+    unzip
+    xz
+    zstd
+    libgcc
+    libgomp
+    systemd-udev
+
+BuildPackages=
     systemd-container
     autoconf
     cmake
@@ -65,6 +108,7 @@ Packages=
     pandoc
 
 [Content]
+#BasePackages=false
 SourceFileTransfer=copy-all
 
 [Validation]
