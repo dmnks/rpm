@@ -75,5 +75,5 @@ Packages=
 [Host]
 Ssh=yes
 
-#[Content]
-#SourceFileTransferFinal=copy-all
+[Content]
+SourceFileTransfer=copy-all
