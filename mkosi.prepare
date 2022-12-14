@@ -2,19 +2,19 @@
 
 [ "$1" != "final" ] && exit
 
-rpm --nodeps -e \
-    rpm \
-    rpm-libs \
-    python3-rpm \
-    rpm-build-libs \
-    rpm-sign-libs \
-    dnf \
-    dnf-data \
-    libdnf \
-    libsolv \
-    libmodulemd \
-    python3-dnf \
-    python3-hawkey \
-    python3-libdnf
+# rpm --nodeps -e \
+#     rpm \
+#     rpm-libs \
+#     python3-rpm \
+#     rpm-build-libs \
+#     rpm-sign-libs \
+#     dnf \
+#     dnf-data \
+#     libdnf \
+#     libsolv \
+#     libmodulemd \
+#     python3-dnf \
+#     python3-hawkey \
+#     python3-libdnf
 
 btrfs subvolume snapshot / /root/base
