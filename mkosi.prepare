@@ -9,6 +9,7 @@ rpm --nodeps -e \
     rpm-build-libs \
     rpm-sign-libs \
     dnf \
+    dnf-data \
     libdnf \
     libsolv \
     libmodulemd \
