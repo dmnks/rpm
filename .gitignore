@@ -10,3 +10,4 @@
 /ci/image
 /image*
 /mkosi.builddir
+/mkosi.installdir

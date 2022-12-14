@@ -13,10 +13,12 @@ fi
 rm -rf testing
 
 #cp -r /root/tree testing
-btrfs subvolume snapshot /root/base testing
+btrfs subvolume create testing
+cp -r /src/source/topic/image/* testing/
+#btrfs subvolume snapshot /root/base testing
 
-(cd ${top_builddir} && \
-	  ${MAKE} DESTDIR=${abs_builddir}/testing install)
+# (cd ${top_builddir} && \
+# 	  ${MAKE} DESTDIR=${abs_builddir}/testing install)
 
 sed -i 's,^%_dbpath\t.*$,%_dbpath /usr/lib/sysimage/rpm,' ${abs_builddir}/testing/usr/lib/rpm/macros
 
