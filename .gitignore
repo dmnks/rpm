@@ -8,3 +8,5 @@
 /_build
 /docs/_site
 /ci/image
+/image*
+/mkosi.builddir

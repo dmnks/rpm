@@ -3,8 +3,7 @@ Distribution=fedora
 Release=37
 
 [Output]
-Format=gpt_btrfs
-Bootable=yes
+Format=directory
 
 [Packages]
 Packages=
@@ -98,7 +97,7 @@ BuildPackages=
 
 [Content]
 BasePackages=false
-SourceFileTransfer=copy-all
+SourceFileTransfer=mount
 
 [Validation]
 Password=

@@ -1,12 +1,11 @@
 #!/bin/sh
-mkdir binary
-cd binary
+cd $BUILDDIR
 cmake -DCMAKE_INSTALL_PREFIX:PATH=/usr \
       -DENABLE_PLUGINS=OFF \
       -DENABLE_WERROR=ON \
       -DENABLE_BDB_RO=ON \
       -DWITH_FSVERITY=ON \
       -DWITH_IMAEVM=ON \
-      ..
+      $SRCDIR
 make
 make install
