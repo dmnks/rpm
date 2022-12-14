@@ -1,6 +1,12 @@
 #!/bin/sh
 
-[ "$1" != "final" ] && exit 0
+[ "$1" != "final" ] && exit
 
-rpm -e --nodeps rpm rpm-libs python3-rpm rpm-build-libs rpm-sign-libs
+rpm -e --nodeps \
+    rpm \
+    rpm-libs \
+    python3-rpm \
+    rpm-build-libs \
+    rpm-sign-libs
+
 btrfs subvolume snapshot / /root/base

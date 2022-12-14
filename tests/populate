@@ -13,7 +13,7 @@ fi
 rm -rf testing
 
 #cp -r /root/tree testing
-btrfs subvolume snapshot /tree testing
+btrfs subvolume snapshot /root/base testing
 
 (cd ${top_builddir} && \
 	  ${MAKE} DESTDIR=${abs_builddir}/testing install)
