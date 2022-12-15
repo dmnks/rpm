@@ -7,50 +7,48 @@ Format=directory
 
 [Packages]
 Packages=
-    kernel-core
-    grub2-common
-    btrfs-progs
-    systemd-container
-    bash
-    coreutils
-    curl
-    findutils
-    glibc
-    file
-    diffutils
-    rpm-sequoia
-    lua-libs
-    libarchive
-    sed
     audit
+    bash
+    binutils
     bzip2
-    libacl
-    libcap
-    libzstd
-    openssl-libs
-    sqlite-libs
-    xz-libs
-    zlib
+    coreutils
+    cpio
+    curl
+    diffutils
     elfutils-libelf
     elfutils-libs
+    file
     file-libs
-    libfsverity
-    python3
-    binutils
-    cpio
+    findutils
     gawk
     gdb-headless
     gdb-minimal
+    glibc
     grep
+    grub2-common
     gzip
+    kernel-core
+    libacl
+    libarchive
+    libcap
+    libfsverity
+    libgcc
+    libgomp
+    libzstd
+    lua-libs
+    openssl-libs
     patch
     pkgconf-pkg-config
+    python3
+    rpm-sequoia
+    sed
+    sqlite-libs
     tar
     unzip
     xz
+    xz-libs
+    zlib
     zstd
-    libgcc
-    libgomp
 
 BuildPackages=
     /usr/bin/gdb-add-index
