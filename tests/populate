@@ -14,7 +14,7 @@ rm -rf testing
 
 #cp -r /root/tree testing
 btrfs subvolume create testing
-cp -r /src/source/topic/image/* testing/
+cp -r /image/* testing/
 #btrfs subvolume snapshot /root/base testing
 
 # (cd ${top_builddir} && \

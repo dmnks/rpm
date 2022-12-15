@@ -50,7 +50,7 @@ Packages=
     zlib
     zstd
 
-BuildPackages=
+@BuildPackages@
     /usr/bin/gdb-add-index
     audit-libs-devel
     autoconf

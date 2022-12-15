@@ -17,6 +17,7 @@ option(ENABLE_SQLITE "Enable sqlite rpmdb support" ON)
 option(ENABLE_NDB "Enable ndb rpmdb support" ON)
 option(ENABLE_BDB_RO "Enable read-only Berkeley DB rpmdb support (EXPERIMENTAL)" OFF)
 option(ENABLE_TESTSUITE "Enable test-suite" ON)
+option(ENABLE_TEST_ONLY "Enable test-suite only" OFF)
 option(ENABLE_CI "Enable local CI (containerized test-suite)" OFF)
 
 option(WITH_INTERNAL_OPENPGP "Use internal OpenPGP parse (DEPRECATED)" OFF)
@@ -44,6 +45,9 @@ set(CMAKE_C_EXTENSIONS ON)
 set(CMAKE_SHARED_LIBRARY_PREFIX "")
 set(CMAKE_SHARED_MODULE_PREFIX "")
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
+if (NOT ENABLE_TEST_ONLY)
+
 include(GNUInstallDirs)
 add_compile_definitions(_GNU_SOURCE)
 
@@ -251,12 +255,16 @@ add_compile_definitions(HAVE_CONFIG_H)
 
 add_compile_definitions(MAJOR_IN_SYSMACROS)
 
+endif() # ENABLE_TEST_ONLY
+
 add_compile_definitions(RPMCONFIGDIR="${RPMCONFIGDIR}")
 add_compile_definitions(LOCALEDIR="${CMAKE_INSTALL_FULL_LOCALEDIR}")
 add_compile_definitions(LOCALSTATEDIR="${CMAKE_INSTALL_FULL_LOCALSTATEDIR}")
 add_compile_definitions(SYSCONFDIR="${CMAKE_INSTALL_FULL_SYSCONFDIR}")
 add_compile_definitions(LIBRPMALIAS_FILENAME="rpmpopt-${PROJECT_VERSION}")
 add_compile_definitions(LIBRPMALIAS_EXECPATH="${CMAKE_INSTALL_FULL_BINDIR}")
+
+if (NOT ENABLE_TEST_ONLY)
 
 add_compile_options(-Wall -Wpointer-arith -Wmissing-prototypes -Wstrict-prototypes -Wempty-body)
 if (ENABLE_WERROR)
@@ -347,6 +355,8 @@ foreach(f macros rpmrc rpmpopt-${PROJECT_VERSION})
 	install(FILES ${CMAKE_BINARY_DIR}/${f} DESTINATION ${RPMCONFIGDIR})
 endforeach()
 
+endif() # ENABLE_TEST_ONLY
+
 if (ENABLE_TESTSUITE)
 	find_program(AUTOM4TE autom4te REQUIRED)
 	find_program(FAKECHROOT fakechroot REQUIRED)
@@ -356,6 +366,8 @@ if (ENABLE_TESTSUITE)
 		add_subdirectory(ci)
 	endif()
 endif()
+
+if (NOT ENABLE_TEST_ONLY)
 
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/rpm.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
 install(DIRECTORY DESTINATION ${RPMCONFIGDIR}/lua)
@@ -374,3 +386,5 @@ add_custom_command(OUTPUT ${distname}
 		HEAD
 )
 add_custom_target(dist DEPENDS ${distname})
+
+endif() # ENABLE_TEST_ONLY
