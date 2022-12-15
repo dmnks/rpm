@@ -9,5 +9,4 @@
 /docs/_site
 /ci/image
 /image*
-/mkosi.builddir
-/mkosi.installdir
+/mkosi.*
