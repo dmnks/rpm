@@ -6,19 +6,9 @@ srcdir="$3"
 bindir="$4"
 MAKE="$5"
 
-# The chmod is needed when copying from read-only sources (eg in distcheck)
-if [ -d testing ]; then
-	chmod -R u+w testing/;
-fi
-rm -rf testing
-
-#cp -r /root/tree testing
+btrfs subvolume delete testing
 btrfs subvolume create testing
 cp -r ../../rpm/image/* testing/
-#btrfs subvolume snapshot /root/base testing
-
-# (cd ${top_builddir} && \
-# 	  ${MAKE} DESTDIR=${abs_builddir}/testing install)
 
 sed -i 's,^%_dbpath\t.*$,%_dbpath /usr/lib/sysimage/rpm,' ${abs_builddir}/testing/usr/lib/rpm/macros
 
