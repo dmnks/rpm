@@ -1,9 +1,8 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.10)
 
 project(rpm
 	VERSION 4.18.90
 	DESCRIPTION "The RPM Package Manager"
-	HOMEPAGE_URL "http://rpm.org"
 	LANGUAGES C
 )
 
@@ -49,7 +48,6 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 if (NOT ENABLE_TEST_ONLY)
 
 include(GNUInstallDirs)
-add_compile_definitions(_GNU_SOURCE)
 
 function(makemacros)
 	set(prefix ${CMAKE_INSTALL_PREFIX})
@@ -251,18 +249,9 @@ endforeach()
 
 configure_file(config.h.in config.h)
 
-add_compile_definitions(HAVE_CONFIG_H)
 
-add_compile_definitions(MAJOR_IN_SYSMACROS)
 
 endif() # ENABLE_TEST_ONLY
-
-add_compile_definitions(RPMCONFIGDIR="${RPMCONFIGDIR}")
-add_compile_definitions(LOCALEDIR="${CMAKE_INSTALL_FULL_LOCALEDIR}")
-add_compile_definitions(LOCALSTATEDIR="${CMAKE_INSTALL_FULL_LOCALSTATEDIR}")
-add_compile_definitions(SYSCONFDIR="${CMAKE_INSTALL_FULL_SYSCONFDIR}")
-add_compile_definitions(LIBRPMALIAS_FILENAME="rpmpopt-${PROJECT_VERSION}")
-add_compile_definitions(LIBRPMALIAS_EXECPATH="${CMAKE_INSTALL_FULL_BINDIR}")
 
 if (NOT ENABLE_TEST_ONLY)
 

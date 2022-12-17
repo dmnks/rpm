@@ -3,8 +3,7 @@ AT_TESTED([rpm rpmbuild rpmquery])
 m4_define([RPMTEST_SETUP],[[
 if ! [ -d testing/ ]; then
     #cp -aP "${RPMTEST}" .
-    btrfs -q subvolume snapshot ${RPMTEST} testing
-    rm -rf testing/var
+    btrfs subvolume snapshot ${RPMTEST} testing >/dev/null
     #chmod -R u+w testing/
     mkdir -p testing/build
     ln -s ../data/SOURCES testing/build/
@@ -53,7 +52,7 @@ AT_CHECK($@)
 ])
 
 m4_define([RPMTEST_CLEANUP],[
-btrfs -q subvolume delete testing
+btrfs subvolume delete testing >/dev/null
 AT_CLEANUP
 ])
 
