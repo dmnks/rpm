@@ -1023,7 +1023,7 @@ RPMTEST_CLEANUP
 AT_SETUP([macro file errors])
 AT_KEYWORDS([macros])
 RPMTEST_CHECK([
-cat << EOF > macros.bad
+cat << EOF > ${RPMTEST}/macros.bad
 %1 foo
 
 %multi \\
@@ -1034,7 +1034,7 @@ thing
 %bad-name 123
 EOF
 
-runroot rpm --macros "macros.bad" --eval "%foo"
+runroot rpm --macros "/macros.bad" --eval "%foo"
 ],
 [0],
 [bar
