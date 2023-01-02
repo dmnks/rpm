@@ -6,7 +6,8 @@ if ! [ -d testing/ ]; then
     btrfs subvolume snapshot ${RPMTEST} testing >/dev/null
     #chmod -R u+w testing/
     mkdir -p testing/build
-    ln -s ../data/SOURCES testing/build/
+    #ln -s ../data/SOURCES testing/build/
+    cp -r ../data/SOURCES testing/build/
 fi
 export RPMTEST="${PWD}/testing"
 export TOPDIR="${RPMTEST}/build"
