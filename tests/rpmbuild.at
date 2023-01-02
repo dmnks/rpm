@@ -25,8 +25,8 @@ AT_KEYWORDS([build])
 RPMDB_INIT
 RPMTEST_CHECK([
 
-run rpmbuild \
-  -ba "${abs_srcdir}"/data/SPECS/hello.spec
+runroot rpmbuild \
+  -ba /data/SPECS/hello.spec
 ],
 [0],
 [ignore],
@@ -157,8 +157,8 @@ AT_KEYWORDS([build])
 RPMDB_INIT
 RPMTEST_CHECK([
 
-run rpmbuild \
-  -ba "${abs_srcdir}"/data/SPECS/hello-auto.spec
+runroot rpmbuild \
+  -ba /data/SPECS/hello-auto.spec
 ],
 [0],
 [ignore],
@@ -170,8 +170,8 @@ AT_KEYWORDS([build])
 RPMDB_INIT
 RPMTEST_CHECK([
 
-run rpmbuild \
-  -ba "${abs_srcdir}"/data/SPECS/hello-autopatch.spec
+runroot rpmbuild \
+  -ba /data/SPECS/hello-autopatch.spec
 ],
 [0],
 [ignore],
@@ -185,8 +185,8 @@ AT_KEYWORDS([build])
 RPMDB_INIT
 RPMTEST_CHECK([
 
-run rpmbuild \
-  --rebuild "${abs_srcdir}"/data/SRPMS/hello-1.0-1.src.rpm
+runroot rpmbuild \
+  --rebuild /data/SRPMS/hello-1.0-1.src.rpm
 ],
 [0],
 [ignore],
@@ -198,8 +198,8 @@ AT_KEYWORDS([build])
 RPMDB_INIT
 RPMTEST_CHECK([
 
-run rpmbuild -bi "${abs_srcdir}"/data/SPECS/hello.spec &> /dev/null
-run rpmbuild --quiet -bl --short-circuit "${abs_srcdir}"/data/SPECS/hello.spec
+runroot rpmbuild -bi /data/SPECS/hello.spec &> /dev/null
+runroot rpmbuild --quiet -bl --short-circuit /data/SPECS/hello.spec
 ],
 [0],
 [],
@@ -290,7 +290,7 @@ AT_KEYWORDS([build])
 RPMDB_INIT
 RPMTEST_CHECK([
 
-run rpmbuild \
+runroot rpmbuild \
   -ta "${RPMDATA}/SOURCES/hello-2.0.tar.gz"
 ],
 [0],
@@ -1904,8 +1904,8 @@ AT_KEYWORDS([build])
 RPMDB_INIT
 RPMTEST_CHECK([
 
-run rpmbuild \
-  --quiet -bd "${abs_srcdir}"/data/SPECS/hello.spec
+runroot rpmbuild \
+  --quiet -bd /data/SPECS/hello.spec
 ls ls ${RPMTEST}/build/*/*.rpm | wc --lines
 ],
 [0],

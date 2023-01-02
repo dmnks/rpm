@@ -15,7 +15,7 @@ export HOME="${RPMTEST}"
 
 m4_define([RPMDB_INIT],[
 RPMTEST_SETUP
-rm -rf "${RPMTEST}"`rpm --eval '%_dbpath'`/*
+rm -rf "${RPMTEST}"`runroot rpm --eval '%_dbpath'`/*
 runroot rpm --initdb
 ])
 
