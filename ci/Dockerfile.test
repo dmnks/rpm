@@ -77,6 +77,7 @@ RUN dnf install --setopt=install_weak_deps=False --disablerepo=\* --enablerepo=f
     libgomp \
     libzstd \
     lua-libs \
+    make \
     openssl-libs \
     patch \
     pkgconf-pkg-config \
