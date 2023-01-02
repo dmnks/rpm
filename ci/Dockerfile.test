@@ -64,6 +64,7 @@ RUN dnf install --setopt=install_weak_deps=False --disablerepo=\* --enablerepo=f
     file-libs \
     findutils \
     gawk \
+    gcc \
     gdb-headless \
     gdb-minimal \
     glibc \
