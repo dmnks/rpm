@@ -68,7 +68,7 @@ RUN dnf install --setopt=install_weak_deps=False --disablerepo=\* --enablerepo=f
     gcc \
     gdb-headless \
     gdb-minimal \
-    glibc-headers \
+    glibc \
     grep \
     gzip \
     ima-evm-utils \
