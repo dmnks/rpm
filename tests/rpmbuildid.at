@@ -28,7 +28,7 @@ RPMDB_INIT
 # Build, contains one ELF which should have a buildid.
 rundebug rpmbuild \
   --define="_build_id_links none" \
-  --quiet -ba "${abs_srcdir}"/data/SPECS/hello.spec
+  --quiet -ba /data/SPECS/hello.spec
 
 # There should be zero build-id files in both the main and debuginfo package
 echo -n "hello build-id files: "
@@ -60,7 +60,7 @@ rundebug rpmbuild \
   --define="_build_id_links alldebug" \
   --undefine "_unique_debug_names" \
   --undefine "_unique_debug_srcs" \
-  --quiet -ba "${abs_srcdir}"/data/SPECS/hello.spec
+  --quiet -ba /data/SPECS/hello.spec
 
 # There should be zero build-id files in the main package
 # Main and debug should be in the debuginfo package,
@@ -147,7 +147,7 @@ RPMDB_INIT
 rundebug rpmbuild \
   --define="_build_id_links alldebug" \
   --define="_unique_debug_names 1" \
-  --quiet -ba "${abs_srcdir}"/data/SPECS/hello.spec
+  --quiet -ba /data/SPECS/hello.spec
 
 # There should be zero build-id files in the main package
 # Main and debug should be in the debuginfo package,
@@ -235,7 +235,7 @@ rundebug rpmbuild \
   --define="_build_id_links separate" \
   --undefine "_unique_debug_names" \
   --undefine "_unique_debug_srcs" \
-  --quiet -ba "${abs_srcdir}"/data/SPECS/hello.spec
+  --quiet -ba /data/SPECS/hello.spec
 
 # There should be one build-id files in the main and debuginfo package
 # plus the .build-id/xx subdir, 2 in total.
@@ -321,7 +321,7 @@ RPMDB_INIT
 rundebug rpmbuild \
   --define="_build_id_links separate" \
   --define="_unique_debug_names 1" \
-  --quiet -ba "${abs_srcdir}"/data/SPECS/hello.spec
+  --quiet -ba /data/SPECS/hello.spec
 
 # There should be one build-id files in the main and debuginfo package
 # plus the .build-id/xx subdir, 2 in total.
@@ -408,7 +408,7 @@ rundebug rpmbuild \
   --define="_build_id_links compat" \
   --undefine "_unique_debug_names" \
   --undefine "_unique_debug_srcs" \
-  --quiet -ba "${abs_srcdir}"/data/SPECS/hello.spec
+  --quiet -ba /data/SPECS/hello.spec
 
 # There should be one build-id files in the main and debuginfo package.
 # the debuginfo package has one extra main build-id compat symlink
@@ -507,7 +507,7 @@ RPMDB_INIT
 rundebug rpmbuild \
   --define="_build_id_links compat" \
   --define="_unique_debug_names 1" \
-  --quiet -ba "${abs_srcdir}"/data/SPECS/hello.spec
+  --quiet -ba /data/SPECS/hello.spec
 
 # There should be one build-id files in the main and debuginfo package.
 # the debuginfo package has one extra main build-id compat symlink
@@ -605,7 +605,7 @@ RPMDB_INIT
 # Should create two warnings
 rundebug rpmbuild --quiet \
   --define="_build_id_links alldebug" \
-  -ba "${abs_srcdir}"/data/SPECS/hello2cp.spec 2>&1 | grep "^warning: " \
+  -ba /data/SPECS/hello2cp.spec 2>&1 | grep "^warning: " \
   | cut -f1-3 -d' '
 
 rpm2cpio ${RPMTEST}/build/RPMS/*/hello2-1.0-1.*.rpm \
@@ -669,7 +669,7 @@ RPMDB_INIT
 # No warnings for hard links
 rundebug rpmbuild --quiet \
   --define="_build_id_links alldebug" \
-  -ba "${abs_srcdir}"/data/SPECS/hello2ln.spec 2>&1 | grep "^warning: " \
+  -ba /data/SPECS/hello2ln.spec 2>&1 | grep "^warning: " \
   | cut -f1-3 -d' '
 
 rpm2cpio ${RPMTEST}/build/RPMS/*/hello2-1.0-1.*.rpm \
@@ -730,7 +730,7 @@ RPMDB_INIT
 # Should create two warnings
 rundebug rpmbuild --quiet \
   --define="_build_id_links separate" \
-  -ba "${abs_srcdir}"/data/SPECS/hello2cp.spec 2>&1 | grep "^warning: " \
+  -ba /data/SPECS/hello2cp.spec 2>&1 | grep "^warning: " \
   | cut -f1-3 -d' '
 
 rpm2cpio ${RPMTEST}/build/RPMS/*/hello2-1.0-1.*.rpm \
@@ -791,7 +791,7 @@ RPMDB_INIT
 # No warnings for hard links
 rundebug rpmbuild --quiet \
   --define="_build_id_links separate" \
-  -ba "${abs_srcdir}"/data/SPECS/hello2ln.spec 2>&1 | grep "^warning: " \
+  -ba /data/SPECS/hello2ln.spec 2>&1 | grep "^warning: " \
   | cut -f1-3 -d' '
 
 rpm2cpio ${RPMTEST}/build/RPMS/*/hello2-1.0-1.*.rpm \
@@ -849,7 +849,7 @@ RPMDB_INIT
 # Should create two warnings
 rundebug rpmbuild --quiet \
   --define="_build_id_links compat" \
-  -ba "${abs_srcdir}"/data/SPECS/hello2cp.spec 2>&1 | grep "^warning: " \
+  -ba /data/SPECS/hello2cp.spec 2>&1 | grep "^warning: " \
   | cut -f1-3 -d' '
 
 rpm2cpio ${RPMTEST}/build/RPMS/*/hello2-1.0-1.*.rpm \
@@ -922,7 +922,7 @@ RPMDB_INIT
 # No warnings for hard links
 rundebug rpmbuild --quiet \
   --define="_build_id_links compat" \
-  -ba "${abs_srcdir}"/data/SPECS/hello2ln.spec 2>&1 | grep "^warning: " \
+  -ba /data/SPECS/hello2ln.spec 2>&1 | grep "^warning: " \
   | cut -f1-3 -d' '
 
 rpm2cpio ${RPMTEST}/build/RPMS/*/hello2-1.0-1.*.rpm \
@@ -995,7 +995,7 @@ export CFLAGS="-g"
 rundebug rpmbuild --quiet \
   --define="_unique_build_ids 1" \
   --undefine="_no_recompute_build_ids" \
-  -ba "${abs_srcdir}"/data/SPECS/hello.spec
+  -ba /data/SPECS/hello.spec
 
 rpm2cpio ${RPMTEST}/build/RPMS/*/hello-1.0-1.*.rpm \
   | cpio -diu --quiet
@@ -1014,7 +1014,7 @@ rm $hello_file
 rundebug rpmbuild --quiet \
   --define="_unique_build_ids 1" \
   --undefine="_no_recompute_build_ids" \
-  -ba "${abs_srcdir}"/data/SPECS/hello-r2.spec
+  -ba /data/SPECS/hello-r2.spec
 
 rpm2cpio ${RPMTEST}/build/RPMS/*/hello-1.0-2.*.rpm \
   | cpio -diu --quiet
@@ -1039,7 +1039,7 @@ rundebug rpmbuild --quiet \
   --undefine="_unique_debug_names" \
   --undefine="_unique_debug_srcs" \
   --define="_no_recompute_build_ids 1" \
-  -ba "${abs_srcdir}"/data/SPECS/hello.spec
+  -ba /data/SPECS/hello.spec
 
 rpm2cpio ${RPMTEST}/build/RPMS/*/hello-1.0-1.*.rpm \
   | cpio -diu --quiet
@@ -1067,7 +1067,7 @@ rundebug rpmbuild --quiet \
   --undefine="_unique_debug_names" \
   --undefine="_unique_debug_srcs" \
   --define="_no_recompute_build_ids 1" \
-  -ba "${abs_srcdir}"/data/SPECS/hello-r2.spec
+  -ba /data/SPECS/hello-r2.spec
 
 rpm2cpio ${RPMTEST}/build/RPMS/*/hello-1.0-2.*.rpm \
   | cpio -diu --quiet
@@ -1101,7 +1101,7 @@ RPMDB_INIT
 # No warnings for hard links
 rundebug rpmbuild --quiet \
   --define="_unique_build_ids 1" \
-  -ba "${abs_srcdir}"/data/SPECS/hello.spec
+  -ba /data/SPECS/hello.spec
 
 rpm2cpio ${RPMTEST}/build/RPMS/*/hello-1.0-1.*.rpm \
   | cpio -diu --quiet
@@ -1118,7 +1118,7 @@ rm $hello_file
 # Build the "next" release, which has no changes except for the release update.
 rundebug rpmbuild --quiet \
   --define="_unique_build_ids 1" \
-  -ba "${abs_srcdir}"/data/SPECS/hello-r2.spec
+  -ba /data/SPECS/hello-r2.spec
 
 rpm2cpio ${RPMTEST}/build/RPMS/*/hello-1.0-2.*.rpm \
   | cpio -diu --quiet
@@ -1147,7 +1147,7 @@ rundebug rpmbuild --quiet \
   --undefine="_unique_build_ids" \
   --undefine="_unique_debug_names" \
   --undefine="_unique_debug_srcs" \
-  -ba "${abs_srcdir}"/data/SPECS/hello.spec
+  -ba /data/SPECS/hello.spec
 
 rpm2cpio ${RPMTEST}/build/RPMS/*/hello-1.0-1.*.rpm \
   | cpio -diu --quiet
@@ -1166,7 +1166,7 @@ rundebug rpmbuild --quiet \
   --undefine="_unique_build_ids" \
   --undefine="_unique_debug_names" \
   --undefine="_unique_debug_srcs" \
-  -ba "${abs_srcdir}"/data/SPECS/hello-r2.spec
+  -ba /data/SPECS/hello-r2.spec
 
 rpm2cpio ${RPMTEST}/build/RPMS/*/hello-1.0-2.*.rpm \
   | cpio -diu --quiet
@@ -1196,7 +1196,7 @@ rundebug rpmbuild \
   --define="_build_id_links compat" \
   --define "_unique_debug_names 1" \
   --define "_unique_debug_srcs 1" \
-  --quiet -ba "${abs_srcdir}"/data/SPECS/hello-attr-buildid.spec
+  --quiet -ba /data/SPECS/hello-attr-buildid.spec
 
 runroot rpm -qp --qf "[[%{filenames} %{filemodes:perms}\n]]" \
         /build/RPMS/*/test-1.0-1*rpm \
@@ -1226,7 +1226,7 @@ rundebug rpmbuild \
   --define="_build_id_links compat" \
   --define "_unique_debug_names 1" \
   --define "_unique_debug_srcs 1" \
-  --quiet -ba "${abs_srcdir}"/data/SPECS/hello-config-buildid.spec
+  --quiet -ba /data/SPECS/hello-config-buildid.spec
 
 # Should contain one config file.
 runroot rpm -c -qp /build/RPMS/*/test-1.0-1*rpm
