@@ -551,9 +551,9 @@ ts = rpm.ts()
 ts.setFlags(rpm.RPMTRANS_FLAG_NOPLUGINS)
 ts.openDB()
 c1 = ts.dbCookie()
-c2 = open("dbcookie", "r").read()
+c2 = open("/dbcookie", "r").read()
 myprint(c1 != c2)
-open("dbcookie", "w+").write(c1)
+open("/dbcookie", "w+").write(c1)
 ],
 [True
 ],
@@ -575,7 +575,7 @@ ts = rpm.ts()
 ts.setFlags(rpm.RPMTRANS_FLAG_NOPLUGINS)
 ts.openDB()
 c1 = ts.dbCookie()
-c2 = open("dbcookie", "r").read()
+c2 = open("/dbcookie", "r").read()
 myprint(c1 != c2)
 ],
 [True
