@@ -69,7 +69,7 @@ for iot in [ 'fpio', 'fdio', 'ufdio', 'gzdio' ]:
 
 RPMPY_TEST([spec parse 1],[
 # TODO: add a better test spec with sub-packages etc
-spec = rpm.spec('${RPMDATA}/SPECS/hello.spec')
+spec = rpm.spec('/data/SPECS/hello.spec')
 for (name, num, flags) in spec.sources:
     myprint('src %s %d %d' % (name, num, flags))
 for pkg in spec.packages:
@@ -83,7 +83,7 @@ hello-1.0-1
 ])
 
 RPMPY_TEST([spec parse 2],[
-spec = rpm.spec('${RPMDATA}/SPECS/mini.spec')
+spec = rpm.spec('/data/SPECS/mini.spec')
 rpm.reloadConfig()
 ])
 
@@ -213,7 +213,7 @@ myprint('%s %s %s' % (hex(dlv), hex(olv), hex(nlv)))
 
 RPMPY_TEST([reading a package file],[
 ts = rpm.ts()
-h = ts.hdrFromFdno('${RPMDATA}/RPMS/hello-1.0-1.ppc64.rpm')
+h = ts.hdrFromFdno('/data/RPMS/hello-1.0-1.ppc64.rpm')
 myprint(h['arch'])
 ],
 [ppc64]
@@ -225,7 +225,7 @@ ts = rpm.ts()
 sink = open('/dev/null', 'w')
 rpm.setLogFile(sink)
 try:
-    h = ts.hdrFromFdno('${RPMDATA}/RPMS/hello-2.0-1.x86_64-signed.rpm')
+    h = ts.hdrFromFdno('/data/RPMS/hello-2.0-1.x86_64-signed.rpm')
     myprint(h['arch'])
 except rpm.error as e:
     myprint(e)
@@ -236,7 +236,7 @@ except rpm.error as e:
 
 RPMPY_TEST([reading a signed package file 2],[
 
-keydata = open('${RPMDATA}/keys/rpm.org-rsa-2048-test.pub', 'rb').read()
+keydata = open('/data/keys/rpm.org-rsa-2048-test.pub', 'rb').read()
 pubkey = rpm.pubkey(keydata)
 keyring = rpm.keyring()
 keyring.addKey(pubkey)
@@ -244,7 +244,7 @@ keyring.addKey(pubkey)
 ts = rpm.ts()
 ts.setKeyring(keyring)
 try:
-    h = ts.hdrFromFdno('${RPMDATA}/RPMS/hello-2.0-1.x86_64-signed.rpm')
+    h = ts.hdrFromFdno('/data/RPMS/hello-2.0-1.x86_64-signed.rpm')
     myprint(h['arch'])
 except rpm.error as e:
     myprint(e)
@@ -254,7 +254,7 @@ except rpm.error as e:
 
 RPMPY_TEST([add package to transaction],[
 ts = rpm.ts()
-ts.addInstall('${RPMDATA}/RPMS/foo-1.0-1.noarch.rpm', 'u')
+ts.addInstall('/data/RPMS/foo-1.0-1.noarch.rpm', 'u')
 for e in ts:
     myprint(e.NEVRA())
 ts.clear()
@@ -346,8 +346,8 @@ for e in ts:
 RPMPY_TEST([transaction element userdata],[
 mydata = { 'foo': 'bar', 'capstest': 'lock' }
 ts = rpm.ts()
-ts.addInstall('${RPMDATA}/RPMS/foo-1.0-1.noarch.rpm', 'u')
-ts.addInstall('${RPMDATA}/RPMS/capstest-1.0-1.noarch.rpm', 'u')
+ts.addInstall('/data/RPMS/foo-1.0-1.noarch.rpm', 'u')
+ts.addInstall('/data/RPMS/capstest-1.0-1.noarch.rpm', 'u')
 for e in ts:
     e.SetUserdata(mydata[e.N()])
 for e in ts:
@@ -368,7 +368,7 @@ def ncb(arg, what, amount, total, data):
 
 cbd = "mine"
 ts = rpm.ts()
-ts.addInstall('${RPMDATA}/RPMS/foo-1.0-1.noarch.rpm', 'mykey', 'u')
+ts.addInstall('/data/RPMS/foo-1.0-1.noarch.rpm', 'mykey', 'u')
 ts.setFlags(rpm.RPMTRANS_FLAG_TEST)
 print("- old -")
 ts.run(callback=ocb, data=cbd)
@@ -562,7 +562,7 @@ RPMTEST_CLEANUP
 
 RPMPY_TEST([dependency sets 1],[
 ts = rpm.ts()
-h = ts.hdrFromFdno('${RPMDATA}/RPMS/hello-1.0-1.ppc64.rpm')
+h = ts.hdrFromFdno('/data/RPMS/hello-1.0-1.ppc64.rpm')
 for dep in rpm.ds(h, 'requires'):
     myprint(dep.DNEVR())
 ],
@@ -579,7 +579,7 @@ R rtld(GNU_HASH)]
 
 RPMPY_TEST([dependency sets 2],[
 ts = rpm.ts()
-h = ts.hdrFromFdno('${RPMDATA}/RPMS/hello-2.0-1.i686.rpm')
+h = ts.hdrFromFdno('/data/RPMS/hello-2.0-1.i686.rpm')
 ds = rpm.ds(h, 'provides')
 myprint('%d %d' % (ds.Instance(), ds.Count()))
 ],
@@ -609,7 +609,7 @@ S (foo if bar) True True True
 
 RPMPY_TEST([file info sets 1],[
 ts = rpm.ts()
-h = ts.hdrFromFdno('${RPMDATA}/RPMS/hello-2.0-1.i686.rpm')
+h = ts.hdrFromFdno('/data/RPMS/hello-2.0-1.i686.rpm')
 fi = rpm.files(h)
 myprint(len(fi))
 for f in fi:
@@ -627,7 +627,7 @@ for f in fi:
 RPMPY_TEST([file sets 1],[
 ts = rpm.ts()
 for p in ['imatest-1.0-1.fc34.noarch.rpm', 'capstest-1.0-1.noarch.rpm']:
-  h = ts.hdrFromFdno('${RPMDATA}/RPMS/%s' % p)
+  h = ts.hdrFromFdno('/data/RPMS/%s' % p)
   files = rpm.files(h)
   for f in files:
      sig = f.imasig
@@ -679,7 +679,7 @@ P bar = 2.0
 RPMPY_TEST([archive 1],[
 import hashlib
 ts = rpm.ts()
-fd = rpm.fd.open('${RPMDATA}/SRPMS/hello-1.0-1.src.rpm')
+fd = rpm.fd.open('/data/SRPMS/hello-1.0-1.src.rpm')
 h = ts.hdrFromFdno(fd)
 payload = rpm.fd.open(fd, flags=h['payloadcompressor'])
 files = rpm.files(h)
@@ -698,7 +698,7 @@ for f in archive:
 
 RPMPY_TEST([header unload],[
 ts = rpm.ts()
-h = ts.hdrFromFdno('${RPMDATA}/RPMS/hello-2.0-1.i686.rpm')
+h = ts.hdrFromFdno('/data/RPMS/hello-2.0-1.i686.rpm')
 # Add some garbage to header to make it non-sorted
 h['installtime'] = 0
 # RhBug:1061730 causes export of non-sorted header to be larger than it should
