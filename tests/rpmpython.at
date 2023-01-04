@@ -530,7 +530,7 @@ ts.closeDB()
 ts.openDB()
 c2 = ts.dbCookie()
 myprint(c1 == c2 != None)
-open("dbcookie", "w+").write(c1)
+open("/dbcookie", "w+").write(c1)
 ],
 [True
 ],
