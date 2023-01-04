@@ -923,7 +923,8 @@ RPMTEST_CLEANUP
 AT_SETUP([rpmsign --addsign])
 AT_KEYWORDS([rpmsign signature])
 RPMDB_INIT
-runroot_other gpg2 --import /data/keys/*.secret
+export GNUPGHOME=/root
+runroot_other sh -c "gpg2 --import /data/keys/*.secret"
 # Our keys have no passphrases to be asked, silence GPG_TTY warning
 export GPG_TTY=""
 
@@ -1019,7 +1020,7 @@ echo $?
 1
 ],
 [])
-gpgconf --kill gpg-agent
+runroot_other gpgconf --kill gpg-agent
 RPMTEST_CLEANUP
 
 # ------------------------------
