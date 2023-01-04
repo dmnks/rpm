@@ -72,11 +72,6 @@ add_custom_target(check COMMAND
 	DEPENDS rpmtests
 )
 
-set(BuildPackages "BuildPackages:")
-configure_file(${CMAKE_SOURCE_DIR}/mkosi.default.in mkosi.default @ONLY)
-set(BuildPackages "# BuildPackages:")
-configure_file(${CMAKE_SOURCE_DIR}/mkosi.default.in mkosi.dev @ONLY)
-
 #add_custom_command(TARGET populate_testing POST_BUILD
 #	COMMAND chmod -R u-w testing
 #)
