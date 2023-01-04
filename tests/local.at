@@ -20,7 +20,7 @@ runroot rpm --initdb
 ])
 
 m4_define([RPMPY_RUN],[[
-cat << EOF > test.py
+cat << EOF > ${RPMTEST}/test.py
 # coding=utf-8
 import rpm, sys, os
 dbpath=rpm.expandMacro('%_dbpath')
@@ -30,7 +30,7 @@ def myprint(msg = ''):
     sys.stdout.write('%s\n' % msg)
 $1
 EOF
-runroot_other python3 test.py
+runroot_other python3 /test.py
 ]])
 
 m4_define([RPMPY_CHECK],[
