@@ -1,4 +1,4 @@
-AT_TESTED([])
+AT_TESTED([rpm rpmbuild rpmquery])
 
 m4_define([RPMTEST_SETUP],[[
 if ! [ -d testing/ ]; then
