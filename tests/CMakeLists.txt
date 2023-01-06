@@ -118,12 +118,12 @@ add_custom_command(
 		install &&
 
 		sed -i 's,^%_dbpath\t.*$$,%_dbpath /usr/lib/sysimage/rpm,'
-		${CMAKE_CURRENT_BINARY_DIR}/testing/usr/local/lib/rpm/macros &&
+		${CMAKE_CURRENT_BINARY_DIR}/testing/${CMAKE_INSTALL_PREFIX}/lib/rpm/macros &&
 
 		cp -r ${CMAKE_CURRENT_SOURCE_DIR}/data/
 		${CMAKE_CURRENT_BINARY_DIR}/testing/ &&
 
-		echo "/usr/local/lib64" >
+		echo "${CMAKE_INSTALL_PREFIX}/lib64" >
 		${CMAKE_CURRENT_BINARY_DIR}/testing/etc/ld.so.conf.d/rpm.conf &&
 
 		ldconfig -r ${CMAKE_CURRENT_BINARY_DIR}/testing
