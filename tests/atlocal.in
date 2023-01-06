@@ -1,6 +1,8 @@
+PREFIX="@prefix@"
 RPMLIBDIR="@usrlibdir@"
 #LD_LIBRARY_PATH="${abs_builddir}/testing/${RPMLIBDIR}${LD_LIBRARY_PATH+:${LD_LIBRARY_PATH}}"
 #export LD_LIBRARY_PATH
+export PREFIX
 export RPMLIBDIR
 #PATH="${abs_builddir}/testing@usrbindir@:$PATH"
 #export PATH
@@ -76,10 +78,11 @@ fi
 function setup_env()
 {
     if [ -d testing ]; then
+	PREFIX=${PREFIX}
         RPMTEST=${PWD}/testing
         HOME=${RPMTEST}
         RPM_CONFIGDIR=${RPMTEST}/@RPMCONFIGDIR@
-        export RPMTEST HOME RPM_CONFIGDIR
+        export PREFIX RPMTEST HOME RPM_CONFIGDIR
     fi
 }
 

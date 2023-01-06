@@ -769,9 +769,9 @@ RPMDB_INIT
 
 RPMTEST_CHECK([
 runroot_other chmod a-x /data/misc/libhello.so
-runroot_other /usr/lib/rpm/elfdeps -R /data/misc/libhello.so
+runroot_other ${PREFIX}/lib/rpm/elfdeps -R /data/misc/libhello.so
 runroot_other chmod a+x /data/misc/libhello.so
-runroot_other /usr/lib/rpm/elfdeps -R /data/misc/libhello.so
+runroot_other ${PREFIX}/lib/rpm/elfdeps -R /data/misc/libhello.so
 ],
 [0],
 [libc.so.6(GLIBC_2.2.5)(64bit)
@@ -785,9 +785,9 @@ rtld(GNU_HASH)
 
 RPMTEST_CHECK([
 runroot_other chmod a-x /data/misc/libhello.so
-runroot_other /usr/lib/rpm/elfdeps -P /data/misc/libhello.so
+runroot_other ${PREFIX}/lib/rpm/elfdeps -P /data/misc/libhello.so
 runroot_other chmod a+x /data/misc/libhello.so
-runroot_other /usr/lib/rpm/elfdeps -P /data/misc/libhello.so
+runroot_other ${PREFIX}/lib/rpm/elfdeps -P /data/misc/libhello.so
 ],
 [0],
 [libhello.so()(64bit)
@@ -797,9 +797,9 @@ libhello.so()(64bit)
 
 RPMTEST_CHECK([
 runroot_other chmod a-x /data/misc/helloexe
-runroot_other /usr/lib/rpm/elfdeps -R /data/misc/helloexe
+runroot_other ${PREFIX}/lib/rpm/elfdeps -R /data/misc/helloexe
 runroot_other chmod a+x /data/misc/helloexe
-runroot_other /usr/lib/rpm/elfdeps -R /data/misc/helloexe
+runroot_other ${PREFIX}/lib/rpm/elfdeps -R /data/misc/helloexe
 ],
 [0],
 [libc.so.6(GLIBC_2.2.5)(64bit)
@@ -811,9 +811,9 @@ rtld(GNU_HASH)
 
 RPMTEST_CHECK([
 runroot_other chmod a-x /data/misc/hellopie
-runroot_other /usr/lib/rpm/elfdeps -R /data/misc/hellopie
+runroot_other ${PREFIX}/lib/rpm/elfdeps -R /data/misc/hellopie
 runroot_other chmod a+x /data/misc/hellopie
-runroot_other /usr/lib/rpm/elfdeps -R /data/misc/hellopie
+runroot_other ${PREFIX}/lib/rpm/elfdeps -R /data/misc/hellopie
 ],
 [0],
 [libc.so.6(GLIBC_2.2.5)(64bit)

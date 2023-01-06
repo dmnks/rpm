@@ -1,4 +1,5 @@
 set(PYTHON ${Python3_EXECUTABLE})
+set(prefix ${CMAKE_INSTALL_PREFIX})
 set(pyexecdir ${Python3_SITEARCH})
 set(usrbindir ${CMAKE_INSTALL_FULL_BINDIR})
 set(usrlibdir ${CMAKE_INSTALL_FULL_LIBDIR})
@@ -50,15 +51,15 @@ add_custom_target(rpmtests COMMAND
 	${AUTOTEST} -I ${CMAKE_CURRENT_SOURCE_DIR} -o rpmtests rpmtests.at
 	DEPENDS ${TESTSUITE_AT}
 )
-add_custom_target(populate_testing COMMAND
-	${CMAKE_CURRENT_SOURCE_DIR}/populate
+add_custom_command(
+	OUTPUT testing
+	COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/image
+		${CMAKE_MAKE_PROGRAM}
 		${CMAKE_BINARY_DIR}
 		${CMAKE_CURRENT_BINARY_DIR}
 		${CMAKE_CURRENT_SOURCE_DIR}
-		${CMAKE_INSTALL_FULL_BINDIR}
-		${CMAKE_MAKE_PROGRAM}
-	SOURCES populate
 )
+add_custom_target(image DEPENDS testing)
 
 include(ProcessorCount)
 ProcessorCount(nproc)
