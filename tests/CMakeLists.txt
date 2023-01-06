@@ -52,12 +52,82 @@ add_custom_target(rpmtests COMMAND
 	DEPENDS ${TESTSUITE_AT}
 )
 add_custom_command(
+	OUTPUT base
+	COMMAND btrfs subvolume create
+		${CMAKE_CURRENT_BINARY_DIR}/base &&
+
+		dnf -y install
+		--disablerepo=\* --enablerepo=fedora,updates
+		--releasever=37
+		--installroot=${CMAKE_CURRENT_BINARY_DIR}/base
+		audit
+		bash
+		binutils
+		bzip2
+		coreutils
+		cpio
+		curl
+		debugedit
+		diffutils
+		elfutils-libelf
+		elfutils-libs
+		file
+		file-libs
+		findutils
+		gawk
+		gcc
+		gdb-headless
+		gdb-minimal
+		glibc
+		gpg
+		grep
+		gzip
+		ima-evm-utils
+		libacl
+		libarchive
+		libcap
+		libfsverity
+		libgcc
+		libgomp
+		libzstd
+		lua-libs
+		make
+		openssl-libs
+		patch
+		pkgconf-pkg-config
+		python3
+		rpm-sequoia
+		sed
+		sqlite-libs
+		tar
+		unzip
+		xz
+		xz-libs
+		zlib
+		zstd
+)
+add_custom_command(
 	OUTPUT testing
-	COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/image
+	COMMAND btrfs subvolume snapshot
+		${CMAKE_CURRENT_BINARY_DIR}/base
+		${CMAKE_CURRENT_BINARY_DIR}/testing &&
+
 		${CMAKE_MAKE_PROGRAM}
-		${CMAKE_BINARY_DIR}
-		${CMAKE_CURRENT_BINARY_DIR}
-		${CMAKE_CURRENT_SOURCE_DIR}
+		-C ${CMAKE_BINARY_DIR}
+		DESTDIR=${CMAKE_CURRENT_BINARY_DIR}/testing
+		install &&
+
+		sed -i 's,^%_dbpath\t.*$$,%_dbpath /usr/lib/sysimage/rpm,'
+		${CMAKE_CURRENT_BINARY_DIR}/testing/usr/local/lib/rpm/macros &&
+
+		cp -r ${CMAKE_CURRENT_SOURCE_DIR}/data/
+		${CMAKE_CURRENT_BINARY_DIR}/testing/ &&
+
+		echo "/usr/local/lib64" >
+		${CMAKE_CURRENT_BINARY_DIR}/testing/etc/ld.so.conf.d/rpm.conf &&
+
+		ldconfig -r ${CMAKE_CURRENT_BINARY_DIR}/testing
+	DEPENDS base
 )
 add_custom_target(image DEPENDS testing)
 
