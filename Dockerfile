@@ -50,4 +50,5 @@ RUN dnf -y install \
     zlib-devel \
     pandoc
 
+WORKDIR _build
 CMD cmake -DENABLE_PLUGINS=off .. && make rpmtests
