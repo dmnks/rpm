@@ -48,18 +48,29 @@ set(TESTSUITE_AT
 
 set(AUTOTEST ${AUTOM4TE} --language=autotest)
 add_custom_target(rpmtests COMMAND
-	${AUTOTEST} -I ${CMAKE_CURRENT_SOURCE_DIR} -o rpmtests rpmtests.at
+	${AUTOTEST} -I ${CMAKE_CURRENT_SOURCE_DIR} -o ${CMAKE_CURRENT_BINARY_DIR}/image/rpmtests rpmtests.at &&
+        cp ${CMAKE_CURRENT_SOURCE_DIR}/data/macros.debug ${CMAKE_CURRENT_BINARY_DIR}/image/ &&
+        cp atlocal atconfig ${CMAKE_CURRENT_BINARY_DIR}/image/
 	DEPENDS ${TESTSUITE_AT}
+	DEPENDS image
+)
+add_custom_target(rpmtests.img COMMAND
+        truncate -s10G ${CMAKE_CURRENT_BINARY_DIR}/rpmtests.img &&
+        mkfs -t btrfs ${CMAKE_CURRENT_BINARY_DIR}/rpmtests.img &&
+        mkdir ${CMAKE_CURRENT_BINARY_DIR}/image &&
+        mount -t btrfs -o loop ${CMAKE_CURRENT_BINARY_DIR}/rpmtests.img
+                               ${CMAKE_CURRENT_BINARY_DIR}/image &&
+        btrfs filesystem resize max ${CMAKE_CURRENT_BINARY_DIR}/image
 )
 add_custom_command(
 	OUTPUT base
 	COMMAND btrfs subvolume create
-		${CMAKE_CURRENT_BINARY_DIR}/base &&
+		${CMAKE_CURRENT_BINARY_DIR}/image/base &&
 
 		dnf -y install
 		--disablerepo=\* --enablerepo=fedora,updates
 		--releasever=37
-		--installroot=${CMAKE_CURRENT_BINARY_DIR}/base
+		--installroot=${CMAKE_CURRENT_BINARY_DIR}/image/base
 		audit
 		bash
 		binutils
@@ -105,28 +116,29 @@ add_custom_command(
 		xz-libs
 		zlib
 		zstd
+        DEPENDS rpmtests.img
 )
 add_custom_command(
 	OUTPUT testing
 	COMMAND btrfs subvolume snapshot
-		${CMAKE_CURRENT_BINARY_DIR}/base
-		${CMAKE_CURRENT_BINARY_DIR}/testing &&
+		${CMAKE_CURRENT_BINARY_DIR}/image/base
+		${CMAKE_CURRENT_BINARY_DIR}/image/testing &&
 
 		${CMAKE_MAKE_PROGRAM}
 		-C ${CMAKE_BINARY_DIR}
-		DESTDIR=${CMAKE_CURRENT_BINARY_DIR}/testing
+		DESTDIR=${CMAKE_CURRENT_BINARY_DIR}/image/testing
 		install &&
 
 		sed -i 's,^%_dbpath\t.*$$,%_dbpath /usr/lib/sysimage/rpm,'
-		${CMAKE_CURRENT_BINARY_DIR}/testing/${CMAKE_INSTALL_PREFIX}/lib/rpm/macros &&
+		${CMAKE_CURRENT_BINARY_DIR}/image/testing/${CMAKE_INSTALL_PREFIX}/lib/rpm/macros &&
 
 		cp -r ${CMAKE_CURRENT_SOURCE_DIR}/data/
-		${CMAKE_CURRENT_BINARY_DIR}/testing/ &&
+		${CMAKE_CURRENT_BINARY_DIR}/image/testing/ &&
 
 		echo "${CMAKE_INSTALL_PREFIX}/lib64" >
-		${CMAKE_CURRENT_BINARY_DIR}/testing/etc/ld.so.conf.d/rpm.conf &&
+		${CMAKE_CURRENT_BINARY_DIR}/image/testing/etc/ld.so.conf.d/rpm.conf &&
 
-		ldconfig -r ${CMAKE_CURRENT_BINARY_DIR}/testing
+		ldconfig -r ${CMAKE_CURRENT_BINARY_DIR}/image/testing
 	DEPENDS base
 )
 add_custom_target(image DEPENDS testing)

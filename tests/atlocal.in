@@ -29,8 +29,10 @@ else
     exit
 fi
 
-RPMTEST="${abs_builddir}/testing"
-RPMDATA="${abs_srcdir}/data/"
+# RPMTEST="${abs_builddir}/testing"
+# RPMDATA="${abs_srcdir}/data/"
+RPMTEST="${PWD}/testing"
+RPMDATA="${PWD}/"
 
 RPM_CONFIGDIR="${RPMTEST}/@RPMCONFIGDIR@"
 RPM_POPTEXEC_PATH="${RPMTEST}/@usrbindir@"
@@ -61,11 +63,11 @@ if test "${PYTHON}"; then
 else
     PYTHON_DISABLED=true;
 fi
-if grep -q '#define WITH_CAP 1' "${abs_top_builddir}/config.h"; then
+#if grep -q '#define WITH_CAP 1' "${abs_top_builddir}/config.h"; then
     CAP_DISABLED=false;
-else
+#else
     CAP_DISABLED=true;
-fi
+#fi
 
 MALLOC_DEBUG=libc_malloc_debug.so.0
 if ! LD_PRELOAD=${MALLOC_DEBUG} /bin/true 2>&1 | grep -q ERROR; then
