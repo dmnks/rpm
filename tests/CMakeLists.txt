@@ -54,20 +54,9 @@ add_custom_target(rpmtests COMMAND
 	DEPENDS ${TESTSUITE_AT}
 	DEPENDS image
 )
-add_custom_target(rpmtests.img COMMAND
-        truncate -s10G ${CMAKE_CURRENT_BINARY_DIR}/rpmtests.img &&
-        mkfs -t btrfs ${CMAKE_CURRENT_BINARY_DIR}/rpmtests.img &&
-        mkdir ${CMAKE_CURRENT_BINARY_DIR}/image &&
-        mount -t btrfs -o loop ${CMAKE_CURRENT_BINARY_DIR}/rpmtests.img
-                               ${CMAKE_CURRENT_BINARY_DIR}/image &&
-        btrfs filesystem resize max ${CMAKE_CURRENT_BINARY_DIR}/image
-)
 add_custom_command(
 	OUTPUT base
-	COMMAND btrfs subvolume create
-		${CMAKE_CURRENT_BINARY_DIR}/image/base &&
-
-		dnf -y install
+	COMMAND dnf -y install
 		--disablerepo=\* --enablerepo=fedora,updates
 		--releasever=37
 		--installroot=${CMAKE_CURRENT_BINARY_DIR}/image/base
@@ -115,12 +104,13 @@ add_custom_command(
 		xz
 		xz-libs
 		zlib
-		zstd
-        DEPENDS rpmtests.img
+		zstd &&
+
+		rm -rf ${CMAKE_CURRENT_BINARY_DIR}/image/base/usr/lib/sysimage/*
 )
 add_custom_command(
 	OUTPUT testing
-	COMMAND btrfs subvolume snapshot
+	COMMAND cp -r
 		${CMAKE_CURRENT_BINARY_DIR}/image/base
 		${CMAKE_CURRENT_BINARY_DIR}/image/testing &&
 
