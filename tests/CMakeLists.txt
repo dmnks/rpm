@@ -55,7 +55,7 @@ add_custom_target(rpmtests COMMAND
 	DEPENDS image
 )
 add_custom_command(
-	OUTPUT base
+	OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/image/base
 	COMMAND dnf -y install
 		--disablerepo=\* --enablerepo=fedora,updates
 		--releasever=37
@@ -109,12 +109,8 @@ add_custom_command(
 		rm -rf ${CMAKE_CURRENT_BINARY_DIR}/image/base/usr/lib/sysimage/*
 )
 add_custom_command(
-	OUTPUT testing
-	COMMAND cp -r
-		${CMAKE_CURRENT_BINARY_DIR}/image/base
-		${CMAKE_CURRENT_BINARY_DIR}/image/testing &&
-
-		${CMAKE_MAKE_PROGRAM}
+	OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/image/testing
+	COMMAND ${CMAKE_MAKE_PROGRAM}
 		-C ${CMAKE_BINARY_DIR}
 		DESTDIR=${CMAKE_CURRENT_BINARY_DIR}/image/testing
 		install &&
@@ -125,13 +121,22 @@ add_custom_command(
 		cp -r ${CMAKE_CURRENT_SOURCE_DIR}/data/
 		${CMAKE_CURRENT_BINARY_DIR}/image/testing/ &&
 
-		echo "${CMAKE_INSTALL_PREFIX}/lib64" >
-		${CMAKE_CURRENT_BINARY_DIR}/image/testing/etc/ld.so.conf.d/rpm.conf &&
+		mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/image/testing/etc/ld.so.conf.d/ &&
 
-		ldconfig -r ${CMAKE_CURRENT_BINARY_DIR}/image/testing
-	DEPENDS base
+		echo "${CMAKE_INSTALL_PREFIX}/lib64" >
+		${CMAKE_CURRENT_BINARY_DIR}/image/testing/etc/ld.so.conf.d/rpm.conf
+	DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/image/base
 )
-add_custom_target(image DEPENDS testing)
+add_custom_command(
+	OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/image/postinst
+	COMMAND mkdir image/postinst work merged &&
+		mount -t overlay overlay -o lowerdir=image/base:image/testing,upperdir=image/postinst,workdir=work merged &&
+		sudo ldconfig -r merged &&
+		umount -l merged &&
+		rm -rf work merged
+	DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/image/testing
+)
+add_custom_target(image DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/image/postinst)
 
 include(ProcessorCount)
 ProcessorCount(nproc)

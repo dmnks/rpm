@@ -4,7 +4,7 @@ m4_define([RPMTEST_SETUP],[[
 if ! [ -d testing/ ]; then
     #cp -aP "${RPMTEST}" .
     mkdir temp work testing
-    mount -t overlay overlay -o lowerdir=${RPMTEST},upperdir=temp,workdir=work testing >/dev/null
+    mount -t overlay overlay -o lowerdir=${RPMTEST}/../postinst:${RPMTEST}/../base:${RPMTEST},upperdir=temp,workdir=work testing >/dev/null
     #chmod -R u+w testing/
     mkdir -p testing/build
     ln -s ../data/SOURCES testing/build/
