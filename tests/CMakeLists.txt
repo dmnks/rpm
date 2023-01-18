@@ -54,19 +54,19 @@ add_custom_target(rpmtests
 	DEPENDS ${TESTSUITE_AT}
 )
 add_custom_target(image
-	COMMAND rm -rf image/testing &&
+	COMMAND rm -rf image/inst &&
 		${CMAKE_MAKE_PROGRAM} -C ${CMAKE_BINARY_DIR}
-		    DESTDIR=${CMAKE_CURRENT_BINARY_DIR}/image/testing install &&
+		    DESTDIR=${CMAKE_CURRENT_BINARY_DIR}/image/inst install &&
 		sed -i 's,^%_dbpath\t.*$$,%_dbpath /usr/lib/sysimage/rpm,'
-		    image/testing/${CMAKE_INSTALL_PREFIX}/lib/rpm/macros &&
-		cp -r ${CMAKE_CURRENT_SOURCE_DIR}/data image/testing/ &&
-		mkdir -p image/testing/etc/ld.so.conf.d/ &&
+		    image/inst/${CMAKE_INSTALL_PREFIX}/lib/rpm/macros &&
+		cp -r ${CMAKE_CURRENT_SOURCE_DIR}/data image/inst/ &&
+		mkdir -p image/inst/etc/ld.so.conf.d/ &&
 		echo "${CMAKE_INSTALL_PREFIX}/lib64" >
-		    image/testing/etc/ld.so.conf.d/rpm.conf &&
+		    image/inst/etc/ld.so.conf.d/rpm.conf &&
 
 		mkdir work merged &&
 		mount -t overlay overlay
-		      -o lowerdir=image/base,upperdir=image/testing,workdir=work
+		      -o lowerdir=image/base,upperdir=image/inst,workdir=work
 		      merged &&
 		sudo ldconfig -r merged &&
 		umount -l merged &&
