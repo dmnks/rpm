@@ -51,4 +51,3 @@ RUN dnf -y install \
     pandoc
 
 WORKDIR /srv/_build
-CMD cmake -DENABLE_PLUGINS=off /srv && make rpmtests
