@@ -47,6 +47,9 @@ set(TESTSUITE_AT
 )
 
 set(AUTOTEST ${AUTOM4TE} --language=autotest)
+add_custom_target(tests
+	DEPENDS rpmtests image
+)
 add_custom_target(rpmtests
 	COMMAND ${AUTOTEST} -I ${CMAKE_CURRENT_SOURCE_DIR}
 		    -o rpmtests rpmtests.at &&
