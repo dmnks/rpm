@@ -52,7 +52,6 @@ add_custom_target(rpmtests
 		    -o rpmtests rpmtests.at &&
 		cp ${CMAKE_CURRENT_SOURCE_DIR}/data/macros.debug .
 	DEPENDS ${TESTSUITE_AT}
-	DEPENDS image
 )
 add_custom_target(image
 	COMMAND rm -rf image/testing &&
