@@ -52,11 +52,11 @@ add_custom_target(rpmtests
 		    -o rpmtests rpmtests.at &&
 		cp ${CMAKE_CURRENT_SOURCE_DIR}/data/macros.debug .
 	DEPENDS ${TESTSUITE_AT}
-	DEPENDS image/testing
+	DEPENDS image
 )
-add_custom_command(
-	OUTPUT image/testing
-	COMMAND ${CMAKE_MAKE_PROGRAM} -C ${CMAKE_BINARY_DIR}
+add_custom_target(image
+	COMMAND rm -rf image/testing &&
+		${CMAKE_MAKE_PROGRAM} -C ${CMAKE_BINARY_DIR}
 		    DESTDIR=${CMAKE_CURRENT_BINARY_DIR}/image/testing install &&
 		sed -i 's,^%_dbpath\t.*$$,%_dbpath /usr/lib/sysimage/rpm,'
 		    image/testing/${CMAKE_INSTALL_PREFIX}/lib/rpm/macros &&
