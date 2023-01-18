@@ -31,11 +31,11 @@ fi
 
 # RPMTEST="${abs_builddir}/testing"
 # RPMDATA="${abs_srcdir}/data/"
-RPMTEST="${PWD}/testing"
+RPMTEST="${PWD}/image"
 RPMDATA="${PWD}/"
 
-RPM_CONFIGDIR="${RPMTEST}/@RPMCONFIGDIR@"
-RPM_POPTEXEC_PATH="${RPMTEST}/@usrbindir@"
+RPM_CONFIGDIR="${RPMTEST}/testing/@RPMCONFIGDIR@"
+RPM_POPTEXEC_PATH="${RPMTEST}/testing/@usrbindir@"
 export RPM_CONFIGDIR RPM_POPTEXEC_PATH
 
 DBFORMAT=$(awk '/^%_db_backend/{print $2}' "${RPM_CONFIGDIR}/macros")

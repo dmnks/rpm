@@ -47,15 +47,35 @@ set(TESTSUITE_AT
 )
 
 set(AUTOTEST ${AUTOM4TE} --language=autotest)
-add_custom_target(rpmtests COMMAND
-	${AUTOTEST} -I ${CMAKE_CURRENT_SOURCE_DIR} -o ${CMAKE_CURRENT_BINARY_DIR}/image/rpmtests rpmtests.at &&
-        cp ${CMAKE_CURRENT_SOURCE_DIR}/data/macros.debug ${CMAKE_CURRENT_BINARY_DIR}/image/ &&
-        cp atlocal atconfig ${CMAKE_CURRENT_BINARY_DIR}/image/
+add_custom_target(rpmtests
+	COMMAND ${AUTOTEST} -I ${CMAKE_CURRENT_SOURCE_DIR}
+		    -o rpmtests rpmtests.at &&
+		cp ${CMAKE_CURRENT_SOURCE_DIR}/data/macros.debug .
 	DEPENDS ${TESTSUITE_AT}
-	DEPENDS image
+	DEPENDS image/testing
 )
 add_custom_command(
-	OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/image/base
+	OUTPUT image/testing
+	COMMAND ${CMAKE_MAKE_PROGRAM} -C ${CMAKE_BINARY_DIR}
+		    DESTDIR=${CMAKE_CURRENT_BINARY_DIR}/image/testing install &&
+		sed -i 's,^%_dbpath\t.*$$,%_dbpath /usr/lib/sysimage/rpm,'
+		    image/testing/${CMAKE_INSTALL_PREFIX}/lib/rpm/macros &&
+		cp -r ${CMAKE_CURRENT_SOURCE_DIR}/data image/testing/ &&
+		mkdir -p image/testing/etc/ld.so.conf.d/ &&
+		echo "${CMAKE_INSTALL_PREFIX}/lib64" >
+		    image/testing/etc/ld.so.conf.d/rpm.conf &&
+
+		mkdir work merged &&
+		mount -t overlay overlay
+		      -o lowerdir=image/base,upperdir=image/testing,workdir=work
+		      merged &&
+		sudo ldconfig -r merged &&
+		umount -l merged &&
+		rm -rf work merged
+	DEPENDS image/base
+)
+add_custom_command(
+	OUTPUT image/base
 	COMMAND dnf -y install
 		--disablerepo=\* --enablerepo=fedora,updates
 		--releasever=37
@@ -106,37 +126,8 @@ add_custom_command(
 		zlib
 		zstd &&
 
-		rm -rf ${CMAKE_CURRENT_BINARY_DIR}/image/base/usr/lib/sysimage/*
+		rm -rf image/base/usr/lib/sysimage/*
 )
-add_custom_command(
-	OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/image/testing
-	COMMAND ${CMAKE_MAKE_PROGRAM}
-		-C ${CMAKE_BINARY_DIR}
-		DESTDIR=${CMAKE_CURRENT_BINARY_DIR}/image/testing
-		install &&
-
-		sed -i 's,^%_dbpath\t.*$$,%_dbpath /usr/lib/sysimage/rpm,'
-		${CMAKE_CURRENT_BINARY_DIR}/image/testing/${CMAKE_INSTALL_PREFIX}/lib/rpm/macros &&
-
-		cp -r ${CMAKE_CURRENT_SOURCE_DIR}/data/
-		${CMAKE_CURRENT_BINARY_DIR}/image/testing/ &&
-
-		mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/image/testing/etc/ld.so.conf.d/ &&
-
-		echo "${CMAKE_INSTALL_PREFIX}/lib64" >
-		${CMAKE_CURRENT_BINARY_DIR}/image/testing/etc/ld.so.conf.d/rpm.conf
-	DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/image/base
-)
-add_custom_command(
-	OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/image/postinst
-	COMMAND mkdir image/postinst work merged &&
-		mount -t overlay overlay -o lowerdir=image/base:image/testing,upperdir=image/postinst,workdir=work merged &&
-		sudo ldconfig -r merged &&
-		umount -l merged &&
-		rm -rf work merged
-	DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/image/testing
-)
-add_custom_target(image DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/image/postinst)
 
 include(ProcessorCount)
 ProcessorCount(nproc)
