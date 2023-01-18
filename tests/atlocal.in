@@ -34,7 +34,7 @@ fi
 RPMTEST="${PWD}/image"
 RPMDATA="${PWD}/"
 
-for mnt in rpmtests.dir/*/testing; do
+for mnt in rpmtests.dir/*/tree; do
     mountpoint -q ${mnt} && umount -l ${mnt}
 done
 
@@ -83,9 +83,9 @@ fi
 
 function setup_env()
 {
-    if [ -d testing ]; then
+    if [ -d tree ]; then
 	PREFIX=${PREFIX}
-        RPMTEST=${PWD}/testing
+        RPMTEST=${PWD}/tree
         HOME=${RPMTEST}
         RPM_CONFIGDIR=${RPMTEST}/@RPMCONFIGDIR@
         export PREFIX RPMTEST HOME RPM_CONFIGDIR
