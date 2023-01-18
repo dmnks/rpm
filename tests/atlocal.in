@@ -34,6 +34,10 @@ fi
 RPMTEST="${PWD}/image"
 RPMDATA="${PWD}/"
 
+for mnt in rpmtests.dir/*/testing; do
+    mountpoint -q ${mnt} && umount -l ${mnt}
+done
+
 RPM_CONFIGDIR="${RPMTEST}/testing/@RPMCONFIGDIR@"
 RPM_POPTEXEC_PATH="${RPMTEST}/testing/@usrbindir@"
 export RPM_CONFIGDIR RPM_POPTEXEC_PATH
