@@ -49,5 +49,3 @@ RUN dnf -y install \
     xz-devel \
     zlib-devel \
     pandoc
-
-WORKDIR /srv/_build

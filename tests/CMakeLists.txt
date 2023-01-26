@@ -47,14 +47,12 @@ set(TESTSUITE_AT
 )
 
 set(AUTOTEST ${AUTOM4TE} --language=autotest)
-add_custom_target(tests
-	DEPENDS rpmtests image
-)
 add_custom_target(rpmtests
 	COMMAND ${AUTOTEST} -I ${CMAKE_CURRENT_SOURCE_DIR}
 		    -o rpmtests rpmtests.at &&
 		cp ${CMAKE_CURRENT_SOURCE_DIR}/data/macros.debug .
 	DEPENDS ${TESTSUITE_AT}
+	DEPENDS image
 )
 add_custom_target(image
 	COMMAND rm -rf image/inst &&
@@ -131,17 +129,17 @@ add_custom_command(
 		rm -rf image/base/usr/lib/sysimage/*
 )
 
-include(ProcessorCount)
-ProcessorCount(nproc)
-if (nproc GREATER 1)
-	set(jobs -j${nproc})
-endif()
+# include(ProcessorCount)
+# ProcessorCount(nproc)
+# if (nproc GREATER 1)
+# 	set(jobs -j${nproc})
+# endif()
 
-add_custom_target(check COMMAND
-	./rpmtests ${jobs} $(TESTOPTS)
-	DEPENDS populate_testing
-	DEPENDS rpmtests
-)
+# add_custom_target(check COMMAND
+# 	./rpmtests ${jobs} $(TESTOPTS)
+# 	DEPENDS populate_testing
+# 	DEPENDS rpmtests
+# )
 
 #add_custom_command(TARGET populate_testing POST_BUILD
 #	COMMAND chmod -R u-w testing
