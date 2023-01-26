@@ -13,6 +13,7 @@ RUN dnf -y install \
     audit-libs-devel \
     autoconf \
     btrfs-progs \
+    bubblewrap \
     bzip2-devel \
     cmake \
     dbus-devel \
