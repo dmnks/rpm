@@ -1,3 +1,4 @@
+# vi:filetype=sh
 PREFIX="@prefix@"
 RPMLIBDIR="@usrlibdir@"
 #LD_LIBRARY_PATH="${abs_builddir}/testing/${RPMLIBDIR}${LD_LIBRARY_PATH+:${LD_LIBRARY_PATH}}"
