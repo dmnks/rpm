@@ -58,20 +58,11 @@ add_custom_target(image
 	COMMAND rm -rf image/inst &&
 		${CMAKE_MAKE_PROGRAM} -C ${CMAKE_BINARY_DIR}
 		    DESTDIR=${CMAKE_CURRENT_BINARY_DIR}/image/inst install &&
+		mkdir -p image/inst/etc/ld.so.conf.d/ &&
+		ldconfig -r image/inst ${CMAKE_INSTALL_PREFIX}/lib64 &&
 		sed -i 's,^%_dbpath\t.*$$,%_dbpath /usr/lib/sysimage/rpm,'
 		    image/inst/${CMAKE_INSTALL_PREFIX}/lib/rpm/macros &&
-		cp -r ${CMAKE_CURRENT_SOURCE_DIR}/data image/inst/ &&
-		mkdir -p image/inst/etc/ld.so.conf.d/ &&
-		echo "${CMAKE_INSTALL_PREFIX}/lib64" >
-		    image/inst/etc/ld.so.conf.d/rpm.conf &&
-
-		mkdir work merged &&
-		mount -t overlay overlay
-		      -o lowerdir=image/base,upperdir=image/inst,workdir=work
-		      merged &&
-		sudo ldconfig -r merged &&
-		umount -l merged &&
-		rm -rf work merged
+		cp -r ${CMAKE_CURRENT_SOURCE_DIR}/data image/inst/
 	DEPENDS image/base
 )
 add_custom_command(
