@@ -315,7 +315,7 @@ exit:
  * @param line		current line from spec file
  * @return		RPMRC_OK on success
  */
-static rpmRC doPatchMacro(rpmSpec spec, const char *line)
+static rpmRC doPatchMacro(rpmSpec spec, const char *line, int *nwarn)
 {
     char *opt_b, *opt_d, *opt_o;
     char *buf = NULL;
@@ -346,9 +346,7 @@ static rpmRC doPatchMacro(rpmSpec spec, const char *line)
 
     /* Convert %patchN to %patch -PN to simplify further processing */
     if (! strchr(" \t\n", line[6])) {
-	rpmlog(RPMLOG_WARNING,
-	    _("%%patchN is deprecated, use %%patch N (or %%patch -P N):\n%s"),
-	    line);
+	(*nwarn)++;
 	rasprintf(&buf, "%%patch -P %s", line + 6);
     }
     poptParseArgvString(buf ? buf : line, &argc, &argv);
@@ -420,6 +418,7 @@ exit:
 int parsePrep(rpmSpec spec)
 {
     int rc, res = PART_ERROR;
+    int nwarn = 0;
     ARGV_t saveLines = NULL;
 
     if (spec->prep != NULL) {
@@ -439,7 +438,7 @@ int parsePrep(rpmSpec spec)
 	if (rstreqn(*lines, "%setup", sizeof("%setup")-1)) {
 	    rc = doSetupMacro(spec, *lines);
 	} else if (rstreqn(*lines, "%patch", sizeof("%patch")-1)) {
-	    rc = doPatchMacro(spec, *lines);
+	    rc = doPatchMacro(spec, *lines, &nwarn);
 	} else {
 	    appendBuf(spec, *lines, 0);
 	}
@@ -448,6 +447,10 @@ int parsePrep(rpmSpec spec)
 	    goto exit;
 	}
     }
+
+    if (nwarn)
+	rpmlog(RPMLOG_WARNING,
+	       _("%%patchN is deprecated, use %%patch N (or %%patch -P N) [repeats %ix]\n"), nwarn);
 
 exit:
     argvFree(saveLines);
