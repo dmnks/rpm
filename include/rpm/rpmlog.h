@@ -63,6 +63,8 @@ typedef enum rpmlogLvl_e {
 #define RPMLOG_DEFAULT	0x01	/*!< perform default logging */	
 #define RPMLOG_EXIT	0x02	/*!< exit after logging */
 
+#define RPMLOG_NODUP	0x40
+
 /** \ingroup rpmlog
  */
 typedef struct rpmlogRec_s * rpmlogRec;

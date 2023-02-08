@@ -389,6 +389,13 @@ static void dolog(struct rpmlogRec_s *rec, int saverec)
     if (ctx == NULL)
 	return;
 
+    if ((rec->code & RPMLOG_NODUP))
+	for (int i = 0; i < ctx->nrecs; i++)
+	    if (!strcmp(rec->message, ctx->recs[i].message)) {
+		ctx = rpmlogCtxRelease(ctx);
+		return;
+	    }
+
     /* Save copy of all messages at warning (or below == "more important"). */
     if (saverec) {
 	ctx->recs = xrealloc(ctx->recs, (ctx->nrecs+2) * sizeof(*ctx->recs));

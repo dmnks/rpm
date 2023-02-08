@@ -346,9 +346,8 @@ static rpmRC doPatchMacro(rpmSpec spec, const char *line)
 
     /* Convert %patchN to %patch -PN to simplify further processing */
     if (! strchr(" \t\n", line[6])) {
-	rpmlog(RPMLOG_WARNING,
-	    _("%%patchN is deprecated, use %%patch N (or %%patch -P N):\n%s"),
-	    line);
+	rpmlog(RPMLOG_WARNING | RPMLOG_NODUP,
+	    _("%%patchN is deprecated, use %%patch N (or %%patch -P N)\n"));
 	rasprintf(&buf, "%%patch -P %s", line + 6);
     }
     poptParseArgvString(buf ? buf : line, &argc, &argv);
