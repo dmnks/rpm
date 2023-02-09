@@ -55,6 +55,17 @@ foreach(prg ${TESTPROGS})
 	    RUNTIME_OUTPUT_DIRECTORY image/inst/${CMAKE_INSTALL_PREFIX}/bin)
 endforeach()
 
+include(ProcessorCount)
+ProcessorCount(nproc)
+if (nproc GREATER 1)
+	set(JOBS -j${nproc})
+endif()
+
+add_custom_target(check
+	COMMAND ./rpmtests ${JOBS} $(TESTOPTS)
+	DEPENDS rpmtests
+)
+
 add_custom_target(rpmtests
 	COMMAND ${AUTOTEST} -I ${CMAKE_CURRENT_SOURCE_DIR}
 		    -o rpmtests rpmtests.at &&
@@ -90,18 +101,6 @@ add_custom_command(OUTPUT image/base
 		unzip xz xz-libs zlib zstd &&
 		rm -rf image/base/usr/lib/sysimage/*
 )
-
-# include(ProcessorCount)
-# ProcessorCount(nproc)
-# if (nproc GREATER 1)
-# 	set(jobs -j${nproc})
-# endif()
-
-# add_custom_target(check COMMAND
-# 	./rpmtests ${jobs} $(TESTOPTS)
-# 	DEPENDS populate_testing
-# 	DEPENDS rpmtests
-# )
 
 #add_custom_command(TARGET populate_testing POST_BUILD
 #	COMMAND chmod -R u-w testing
