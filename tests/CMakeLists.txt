@@ -76,8 +76,7 @@ add_custom_target(image
 	DEPENDS image/base
 )
 
-add_custom_command(
-	OUTPUT image/base
+add_custom_command(OUTPUT image/base
 	COMMAND dnf -y install
 		--installroot=${CMAKE_CURRENT_BINARY_DIR}/image/base
 		--disablerepo=\* --enablerepo=fedora,updates
