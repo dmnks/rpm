@@ -47,13 +47,23 @@ set(TESTSUITE_AT
 )
 
 set(AUTOTEST ${AUTOM4TE} --language=autotest)
+set(TESTPROGS rpmpgpcheck rpmpgppubkeyfingerprint)
+foreach(prg ${TESTPROGS})
+	add_executable(${prg} EXCLUDE_FROM_ALL ${prg}.c)
+	target_link_libraries(${prg} PRIVATE librpmio)
+	set_target_properties(${prg} PROPERTIES
+	    RUNTIME_OUTPUT_DIRECTORY image/inst/${CMAKE_INSTALL_PREFIX}/bin)
+endforeach()
+
 add_custom_target(rpmtests
 	COMMAND ${AUTOTEST} -I ${CMAKE_CURRENT_SOURCE_DIR}
 		    -o rpmtests rpmtests.at &&
 		cp ${CMAKE_CURRENT_SOURCE_DIR}/data/macros.debug .
 	DEPENDS ${TESTSUITE_AT}
+	DEPENDS ${TESTPROGS}
 	DEPENDS image
 )
+
 add_custom_target(image
 	COMMAND rm -rf image/inst &&
 		${CMAKE_MAKE_PROGRAM} -C ${CMAKE_BINARY_DIR}
@@ -65,6 +75,7 @@ add_custom_target(image
 		cp -r ${CMAKE_CURRENT_SOURCE_DIR}/data image/inst/
 	DEPENDS image/base
 )
+
 add_custom_command(
 	OUTPUT image/base
 	COMMAND dnf -y install
