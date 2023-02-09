@@ -2,10 +2,10 @@ AT_TESTED([bwrap])
 
 m4_define([RPMTEST_SETUP],[[
 if ! [ -d tree/ ]; then
-    #cp -aP "${RPMTEST}" .
     mkdir temp work tree
-    mount -t overlay overlay -o lowerdir=${RPMTEST}/inst:${RPMTEST}/base,upperdir=temp,workdir=work tree >/dev/null
-    #chmod -R u+w tree/
+    mount -t overlay overlay \
+	-o lowerdir=${RPMTEST}/inst:${RPMTEST}/base,upperdir=temp,workdir=work \
+	tree
     mkdir -p tree/build
     ln -s ../data/SOURCES tree/build/
 fi
