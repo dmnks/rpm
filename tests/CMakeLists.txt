@@ -68,55 +68,16 @@ add_custom_target(image
 add_custom_command(
 	OUTPUT image/base
 	COMMAND dnf -y install
+		--installroot=${CMAKE_CURRENT_BINARY_DIR}/image/base
 		--disablerepo=\* --enablerepo=fedora,updates
 		--releasever=37
-		--installroot=${CMAKE_CURRENT_BINARY_DIR}/image/base
-		audit
-		bash
-		binutils
-		bzip2
-		coreutils
-		cpio
-		curl
-		debugedit
-		diffutils
-		elfutils-libelf
-		elfutils-libs
-		file
-		file-libs
-		findutils
-		gawk
-		gcc
-		gdb-headless
-		gdb-minimal
-		glibc
-		gpg
-		grep
-		gzip
-		ima-evm-utils
-		libacl
-		libarchive
-		libcap
-		libfsverity
-		libgcc
-		libgomp
-		libzstd
-		lua-libs
-		make
-		openssl-libs
-		patch
-		pkgconf-pkg-config
-		python3
-		rpm-sequoia
-		sed
-		sqlite-libs
-		tar
-		unzip
-		xz
-		xz-libs
-		zlib
-		zstd &&
-
+		audit bash binutils bzip2 coreutils cpio curl debugedit
+		diffutils elfutils-libelf elfutils-libs file file-libs
+		findutils gawk gcc gdb-headless gdb-minimal glibc gpg grep gzip
+		ima-evm-utils libacl libarchive libcap libfsverity libgcc
+		libgomp libzstd lua-libs make openssl-libs patch
+		pkgconf-pkg-config python3 rpm-sequoia sed sqlite-libs tar
+		unzip xz xz-libs zlib zstd &&
 		rm -rf image/base/usr/lib/sysimage/*
 )
 
