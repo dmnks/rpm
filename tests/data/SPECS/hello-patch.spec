@@ -22,4 +22,3 @@ Simple rpm demonstration.
 %patch3 -p1 -b .modernize3
 
 %changelog
-blah

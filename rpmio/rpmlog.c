@@ -21,7 +21,6 @@ struct rpmlogCtx_s {
     int nrecs;
     int nrecsPri[RPMLOG_NPRIS];
 
-    int nsupp;
     int maxDelta;
 
     rpmlogRec recs;
@@ -36,6 +35,7 @@ struct rpmlogRec_s {
     char * message;		/* log message string */
 
     time_t ts;
+    int nsupp;
 };
 
 /* Force log context acquisition through a function */
@@ -43,7 +43,7 @@ static rpmlogCtx rpmlogCtxAcquire(int write)
 {
     static struct rpmlogCtx_s _globalCtx = { PTHREAD_RWLOCK_INITIALIZER,
 					     RPMLOG_UPTO(RPMLOG_NOTICE),
-					     0, {0}, 0, 1, NULL, NULL, NULL, NULL };
+					     0, {0}, 1, NULL, NULL, NULL, NULL };
     rpmlogCtx ctx = &_globalCtx;
     int xx;
 
@@ -120,27 +120,6 @@ const char * rpmlogRecMessage(rpmlogRec rec)
 rpmlogLvl rpmlogRecPriority(rpmlogRec rec)
 {
     return (rec != NULL) ? rec->pri : (rpmlogLvl)-1;
-}
-
-void rpmlogPrintByMask(FILE *f, unsigned mask)
-{
-    rpmlogCtx ctx = rpmlogCtxAcquire(0);
-
-    if (ctx == NULL)
-	return;
-
-    if (f == NULL)
-	f = stderr;
-
-    for (int i = 0; i < ctx->nrecs; i++) {
-	rpmlogRec rec = ctx->recs + i;
-	if (mask && ((RPMLOG_MASK(rec->pri) & mask) == 0))
-	    continue;
-	if (rec->message && *rec->message)
-	    fprintf(f, "    %s", rec->message);
-    }
-
-    rpmlogCtxRelease(ctx);
 }
 
 void rpmlogPrint(FILE *f)
@@ -381,16 +360,18 @@ static int rpmlogDefault(FILE *stdlog, rpmlogRec rec)
     return (rec->pri <= RPMLOG_CRIT ? RPMLOG_EXIT : 0);
 }
 
-int rpmlogFlushSuppressed(rpmlogCtx ctx)
+static void logsuppress(FILE *f, rpmlogRec rec, int repeat)
 {
-    int nsupp = ctx->nsupp;
-    ctx->nsupp = 0;
-    if (!nsupp)
-	return 0;
-    rpmlogCtxRelease(ctx);
-    rpmlog(RPMLOG_WARNING,
-	_("--- Last warning repeated %i times ---\n"), nsupp);
-    return 1;
+    char *s = NULL;
+    rasprintf(&s, _("--- Last warning suppressed %i times ---\n"),
+	      rec->nsupp - repeat);
+    struct rpmlogRec_s nrec = {0, RPMLOG_NOTICE, s, 0, 0};
+
+    if (repeat)
+	rpmlogDefault(f, rec);
+    rpmlogDefault(f, &nrec);
+
+    free(s);
 }
 
 /* FIX: rpmlogMsgPrefix[] dependent, not unqualified */
@@ -412,24 +393,25 @@ static void dolog(struct rpmlogRec_s *rec, int saverec)
     /* Save copy of all messages at warning (or below == "more important"). */
     if (saverec) {
 	if (ctx->nrecs > 0) {
-	    struct rpmlogRec_s last = ctx->recs[ctx->nrecs-1];
-	    if (((rec->ts - last.ts) <= ctx->maxDelta) && !strcmp(rec->message, last.message)) {
-		ctx->nsupp++;
+	    struct rpmlogRec_s *last = &ctx->recs[ctx->nrecs-1];
+	    if (((rec->ts - last->ts) <= ctx->maxDelta) && !strcmp(rec->message, last->message)) {
+		last->nsupp++;
 		ctx = rpmlogCtxRelease(ctx);
 		return;
 	    }
+	    if (last->nsupp)
+		logsuppress(ctx->stdlog, last, 1);
 	}
-	if (rpmlogFlushSuppressed(ctx))
-	    ctx = rpmlogCtxAcquire(1);
 
 	ctx->recs = xrealloc(ctx->recs, (ctx->nrecs+2) * sizeof(*ctx->recs));
 	ctx->recs[ctx->nrecs].code = rec->code;
 	ctx->recs[ctx->nrecs].pri = rec->pri;
 	ctx->recs[ctx->nrecs].message = xstrdup(rec->message);
 	ctx->recs[ctx->nrecs].ts = rec->ts;
+	ctx->recs[ctx->nrecs].nsupp = rec->nsupp;
 	ctx->recs[ctx->nrecs+1].code = 0;
 	ctx->recs[ctx->nrecs+1].message = NULL;
-	ctx->recs[ctx->nrecs+1].ts = 0;
+	ctx->recs[ctx->nrecs+1].nsupp = 0;
 	ctx->nrecs++;
 	ctx->nrecsPri[rec->pri]++;
     }
@@ -457,6 +439,31 @@ static void dolog(struct rpmlogRec_s *rec, int saverec)
     if (needexit)
 	exit(EXIT_FAILURE);
 
+}
+
+void rpmlogPrintByMask(FILE *f, unsigned mask)
+{
+    rpmlogCtx ctx = rpmlogCtxAcquire(0);
+
+    if (ctx == NULL)
+	return;
+
+    if (f == NULL)
+	f = stderr;
+
+    for (int i = 0; i < ctx->nrecs; i++) {
+	rpmlogRec rec = ctx->recs + i;
+	if (mask && ((RPMLOG_MASK(rec->pri) & mask) == 0))
+	    continue;
+	if (rec->message && *rec->message)
+	    fprintf(f, "    %s", rec->message);
+	if (rec->nsupp) {
+	    fprintf(f, "    ");
+	    logsuppress(f, rec, 0);
+	}
+    }
+
+    rpmlogCtxRelease(ctx);
 }
 
 void rpmlog (int code, const char *fmt, ...)
@@ -491,6 +498,8 @@ void rpmlog (int code, const char *fmt, ...)
 	struct timeval tv;
 	gettimeofday(&tv, NULL);
 	rec.ts = tv.tv_sec;
+
+	rec.nsupp = 0;
 
 	dolog(&rec, saverec);
 
