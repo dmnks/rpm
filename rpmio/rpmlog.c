@@ -12,12 +12,18 @@
 #include <rpm/rpmstring.h>
 #include "debug.h"
 
+#include <sys/time.h>
+
 typedef struct rpmlogCtx_s * rpmlogCtx;
 struct rpmlogCtx_s {
     pthread_rwlock_t lock;
     unsigned mask;
     int nrecs;
     int nrecsPri[RPMLOG_NPRIS];
+
+    int nsupp;
+    int maxDelta;
+
     rpmlogRec recs;
     rpmlogCallback cbfunc;
     rpmlogCallbackData cbdata;
@@ -28,6 +34,8 @@ struct rpmlogRec_s {
     int		code;		/* unused */
     rpmlogLvl	pri;		/* priority */ 
     char * message;		/* log message string */
+
+    time_t ts;
 };
 
 /* Force log context acquisition through a function */
@@ -35,7 +43,7 @@ static rpmlogCtx rpmlogCtxAcquire(int write)
 {
     static struct rpmlogCtx_s _globalCtx = { PTHREAD_RWLOCK_INITIALIZER,
 					     RPMLOG_UPTO(RPMLOG_NOTICE),
-					     0, {0}, NULL, NULL, NULL, NULL };
+					     0, {0}, 0, 1, NULL, NULL, NULL, NULL };
     rpmlogCtx ctx = &_globalCtx;
     int xx;
 
@@ -373,6 +381,18 @@ static int rpmlogDefault(FILE *stdlog, rpmlogRec rec)
     return (rec->pri <= RPMLOG_CRIT ? RPMLOG_EXIT : 0);
 }
 
+int rpmlogFlushSuppressed(rpmlogCtx ctx)
+{
+    int nsupp = ctx->nsupp;
+    ctx->nsupp = 0;
+    if (!nsupp)
+	return 0;
+    rpmlogCtxRelease(ctx);
+    rpmlog(RPMLOG_WARNING,
+	_("--- Last warning repeated %i times ---\n"), nsupp);
+    return 1;
+}
+
 /* FIX: rpmlogMsgPrefix[] dependent, not unqualified */
 /* FIX: rpmlogMsgPrefix[] may be NULL */
 static void dolog(struct rpmlogRec_s *rec, int saverec)
@@ -391,12 +411,25 @@ static void dolog(struct rpmlogRec_s *rec, int saverec)
 
     /* Save copy of all messages at warning (or below == "more important"). */
     if (saverec) {
+	if (ctx->nrecs > 0) {
+	    struct rpmlogRec_s last = ctx->recs[ctx->nrecs-1];
+	    if (((rec->ts - last.ts) <= ctx->maxDelta) && !strcmp(rec->message, last.message)) {
+		ctx->nsupp++;
+		ctx = rpmlogCtxRelease(ctx);
+		return;
+	    }
+	}
+	if (rpmlogFlushSuppressed(ctx))
+	    ctx = rpmlogCtxAcquire(1);
+
 	ctx->recs = xrealloc(ctx->recs, (ctx->nrecs+2) * sizeof(*ctx->recs));
 	ctx->recs[ctx->nrecs].code = rec->code;
 	ctx->recs[ctx->nrecs].pri = rec->pri;
 	ctx->recs[ctx->nrecs].message = xstrdup(rec->message);
+	ctx->recs[ctx->nrecs].ts = rec->ts;
 	ctx->recs[ctx->nrecs+1].code = 0;
 	ctx->recs[ctx->nrecs+1].message = NULL;
+	ctx->recs[ctx->nrecs+1].ts = 0;
 	ctx->nrecs++;
 	ctx->nrecsPri[rec->pri]++;
     }
@@ -454,6 +487,10 @@ void rpmlog (int code, const char *fmt, ...)
 	rec.code = code;
 	rec.pri = pri;
 	rec.message = msg;
+
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+	rec.ts = tv.tv_sec;
 
 	dolog(&rec, saverec);
 

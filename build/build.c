@@ -482,6 +482,8 @@ exit:
     free(cookie);
     spec->rootDir = NULL;
 
+    /* rpmlogFlushSuppressed(NULL); */
+
     /* Suppress summaries on --quiet */
     if (rpmIsNormal()) {
 	unsigned maskWarn = RPMLOG_MASK(RPMLOG_WARNING);
