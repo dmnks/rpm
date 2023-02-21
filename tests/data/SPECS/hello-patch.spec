@@ -18,7 +18,7 @@ Simple rpm demonstration.
 %setup -q
 %patch0 -p1 -b .install
 %patch1 -p1 -b .modernize
-%patch2 -p1 -b .modernize2
-%patch3 -p1 -b .modernize3
+#%patch2 -p1 -b .modernize2
+#%patch3 -p1 -b .modernize3
 
 %changelog

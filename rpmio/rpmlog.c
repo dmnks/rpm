@@ -360,16 +360,38 @@ static int rpmlogDefault(FILE *stdlog, rpmlogRec rec)
     return (rec->pri <= RPMLOG_CRIT ? RPMLOG_EXIT : 0);
 }
 
-static void logsuppress(FILE *f, rpmlogRec rec, int repeat)
+static char *getsuppress(int count)
 {
     char *s = NULL;
-    rasprintf(&s, _("--- Last warning suppressed %i times ---\n"),
-	      rec->nsupp - repeat);
+    rasprintf(&s, _("--- Last warning suppressed %i times ---\n"), count);
+    return s;
+}
+
+static void logsuppress(FILE *f, rpmlogRec rec)
+{
+    int repeat = 1;
+    int notice = 1;
+
+    if (!rec->nsupp)
+	return;
+    else if (rec->nsupp == 1) {
+	repeat = 1;
+	notice = 0;
+    } else if (rec->nsupp == 2) {
+	repeat = 2;
+	notice = 0;
+    } else {
+	repeat = 1;
+	notice = 1;
+    }
+
+    char *s = getsuppress(rec->nsupp - repeat);
     struct rpmlogRec_s nrec = {0, RPMLOG_NOTICE, s, 0, 0};
 
-    if (repeat)
+    for (int i = 0; i < repeat; i++)
 	rpmlogDefault(f, rec);
-    rpmlogDefault(f, &nrec);
+    if (notice)
+	rpmlogDefault(f, &nrec);
 
     free(s);
 }
@@ -399,8 +421,7 @@ static void dolog(struct rpmlogRec_s *rec, int saverec)
 		ctx = rpmlogCtxRelease(ctx);
 		return;
 	    }
-	    if (last->nsupp)
-		logsuppress(ctx->stdlog, last, 1);
+	    logsuppress(ctx->stdlog, last);
 	}
 
 	ctx->recs = xrealloc(ctx->recs, (ctx->nrecs+2) * sizeof(*ctx->recs));
@@ -457,10 +478,10 @@ void rpmlogPrintByMask(FILE *f, unsigned mask)
 	    continue;
 	if (rec->message && *rec->message)
 	    fprintf(f, "    %s", rec->message);
-	if (rec->nsupp) {
-	    fprintf(f, "    ");
-	    logsuppress(f, rec, 0);
-	}
+	/* if (rec->nsupp) { */
+	/*     fprintf(f, "    "); */
+	/*     logsuppress(f, rec, 0); */
+	/* } */
     }
 
     rpmlogCtxRelease(ctx);
