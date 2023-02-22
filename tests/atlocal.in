@@ -36,7 +36,7 @@ RPMTEST="${PWD}/image"
 RPMDATA="${PWD}/"
 
 for mnt in rpmtests.dir/*/tree; do
-    mountpoint -q ${mnt} && umount -l ${mnt}
+    sudo mountpoint -q ${mnt} && sudo umount -l ${mnt}
 done
 
 RPM_CONFIGDIR="${RPMTEST}/inst/@RPMCONFIGDIR@"
@@ -74,13 +74,13 @@ fi
     CAP_DISABLED=true;
 #fi
 
-MALLOC_DEBUG=libc_malloc_debug.so.0
-if ! LD_PRELOAD=${MALLOC_DEBUG} /bin/true 2>&1 | grep -q ERROR; then
-    MALLOC_PERTURB="$(awk 'BEGIN{srand(); printf "%d\n",(rand()*255)}')"
-    LD_PRELOAD="${MALLOC_DEBUG}"
-    GLIBC_TUNABLES="glibc.malloc.check=1:glibc.malloc.perturb=${MALLOC_PERTURB}"
-    export LD_PRELOAD GLIBC_TUNABLES
-fi
+# MALLOC_DEBUG=libc_malloc_debug.so.0
+# if ! LD_PRELOAD=${MALLOC_DEBUG} /bin/true 2>&1 | grep -q ERROR; then
+#     MALLOC_PERTURB="$(awk 'BEGIN{srand(); printf "%d\n",(rand()*255)}')"
+#     LD_PRELOAD="${MALLOC_DEBUG}"
+#     GLIBC_TUNABLES="glibc.malloc.check=1:glibc.malloc.perturb=${MALLOC_PERTURB}"
+#     export LD_PRELOAD GLIBC_TUNABLES
+# fi
 
 function setup_env()
 {

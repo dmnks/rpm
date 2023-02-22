@@ -3,7 +3,7 @@ AT_TESTED([bwrap])
 m4_define([RPMTEST_SETUP],[[
 if ! [ -d tree/ ]; then
     mkdir temp work tree
-    mount -t overlay overlay \
+    sudo mount -t overlay overlay \
 	-o lowerdir=${RPMTEST}/inst:${RPMTEST}/base,upperdir=temp,workdir=work \
 	tree
     mkdir -p tree/build
@@ -56,7 +56,7 @@ AT_CHECK($@)
 m4_define([RPMTEST_CLEANUP],[
 # Need -l since bwrap spawns a custom pid1 process which may hang around for a
 # bit after the container terminates
-umount -l tree
+sudo umount -l tree
 rm -rf temp work tree
 AT_CLEANUP
 ])

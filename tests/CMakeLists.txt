@@ -83,7 +83,8 @@ add_custom_target(image
 		ldconfig -r image/inst ${CMAKE_INSTALL_PREFIX}/lib64 &&
 		sed -i 's,^%_dbpath\t.*$$,%_dbpath /usr/lib/sysimage/rpm,'
 		    image/inst/${CMAKE_INSTALL_PREFIX}/lib/rpm/macros &&
-		cp -r ${CMAKE_CURRENT_SOURCE_DIR}/data image/inst/
+		cp -r ${CMAKE_CURRENT_SOURCE_DIR}/data image/inst/ &&
+		chmod -R u+w image
 	DEPENDS image/base
 )
 
