@@ -57,7 +57,7 @@ m4_define([RPMTEST_CLEANUP],[
 # Need -l since bwrap spawns a custom pid1 process which may hang around for a
 # bit after the container terminates
 sudo umount -l tree
-rm -rf temp work tree
+sudo rm -rf temp work tree
 AT_CLEANUP
 ])
 

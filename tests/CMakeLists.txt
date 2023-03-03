@@ -69,7 +69,8 @@ add_custom_target(check
 add_custom_target(rpmtests
 	COMMAND ${AUTOTEST} -I ${CMAKE_CURRENT_SOURCE_DIR}
 		    -o rpmtests rpmtests.at &&
-		cp ${CMAKE_CURRENT_SOURCE_DIR}/data/macros.debug .
+		cp ${CMAKE_CURRENT_SOURCE_DIR}/data/macros.debug . &&
+		cp ${CMAKE_CURRENT_SOURCE_DIR}/bwrap.py .
 	DEPENDS ${TESTSUITE_AT}
 	DEPENDS ${TESTPROGS}
 	DEPENDS image
@@ -100,7 +101,10 @@ add_custom_command(OUTPUT image/base
 		libgomp libzstd lua-libs make openssl-libs patch
 		pkgconf-pkg-config python3 rpm-sequoia sed sqlite-libs tar
 		unzip xz xz-libs zlib zstd &&
-		rm -rf image/base/usr/lib/sysimage/*
+		rm -rf image/base/usr/lib/sysimage/* &&
+		echo "test:x:1000:1000:test:/home/test:/bin/bash" >>
+		    image/base/etc/passwd &&
+		echo "test:x:1000:" >> image/base/etc/group
 )
 
 #add_custom_command(TARGET populate_testing POST_BUILD
