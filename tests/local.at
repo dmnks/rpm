@@ -4,6 +4,7 @@ m4_define([RPMTEST_SETUP],[[
 if ! [ -d tree/ ]; then
     mkdir temp work tree
     mount -t overlay overlay \
+	-o userxattr \
 	-o lowerdir=${RPMTEST}/inst:${RPMTEST}/base,upperdir=temp,workdir=work \
 	tree
     mkdir -p tree/build
