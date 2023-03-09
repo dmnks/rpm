@@ -99,7 +99,8 @@ add_custom_command(OUTPUT image/base
 		libgomp libzstd lua-libs make openssl-libs patch
 		pkgconf-pkg-config python3 rpm-sequoia sed sqlite-libs tar
 		unzip xz xz-libs zlib zstd &&
-		rm -rf image/base/usr/lib/sysimage/*
+		rm -rf image/base/usr/lib/sysimage/* &&
+		chmod -R u+w image/base
 )
 
 #add_custom_command(TARGET populate_testing POST_BUILD
