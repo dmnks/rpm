@@ -88,10 +88,8 @@ add_custom_target(image
 )
 
 add_custom_command(OUTPUT image/base
-	COMMAND podman run --privileged -t --rm
-		-v ${CMAKE_CURRENT_BINARY_DIR}:/srv:z fedora:37
-		dnf -y install
-		--installroot=/srv/image/base
+	COMMAND podman unshare dnf -y install
+		--installroot=${CMAKE_CURRENT_BINARY_DIR}/image/base
 		--disablerepo=\* --enablerepo=fedora,updates
 		--releasever=37
 		audit bash binutils bzip2 coreutils cpio curl debugedit
