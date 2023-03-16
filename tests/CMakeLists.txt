@@ -61,9 +61,12 @@ if (nproc GREATER 1)
 	set(JOBS -j${nproc})
 endif()
 
+set(PODMAN_RUN podman run --privileged -it --rm -v ${CMAKE_CURRENT_BINARY_DIR}:/srv:z --workdir /srv)
+
 add_custom_target(check
-	COMMAND ./rpmtests ${JOBS} $(TESTOPTS)
+	COMMAND ${PODMAN_RUN} rpm ./rpmtests ${JOBS} $(TESTOPTS)
 	DEPENDS rpmtests
+	DEPENDS runner
 )
 
 add_custom_target(rpmtests
@@ -88,8 +91,8 @@ add_custom_target(image
 )
 
 add_custom_command(OUTPUT image/base
-	COMMAND dnf -y install
-		--installroot=${CMAKE_CURRENT_BINARY_DIR}/image/base
+	COMMAND ${PODMAN_RUN} fedora:37 dnf -y install
+		--installroot=/srv/image/base
 		--disablerepo=\* --enablerepo=fedora,updates
 		--releasever=37
 		audit bash binutils bzip2 coreutils cpio curl debugedit
@@ -100,7 +103,11 @@ add_custom_command(OUTPUT image/base
 		pkgconf-pkg-config python3 rpm-sequoia sed sqlite-libs tar
 		unzip xz xz-libs zlib zstd &&
 		rm -rf image/base/usr/lib/sysimage/* &&
-		chmod -R u+w image/base
+		podman unshare chmod -R u+w image/base
+)
+
+add_custom_command(OUTPUT runner
+	COMMAND podman build -t rpm -f ${CMAKE_SOURCE_DIR}/tests/Dockerfile ${CMAKE_SOURCE_DIR}
 )
 
 #add_custom_command(TARGET populate_testing POST_BUILD
