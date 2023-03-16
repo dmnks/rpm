@@ -61,8 +61,6 @@ if (nproc GREATER 1)
 	set(JOBS -j${nproc})
 endif()
 
-set(PODMAN_RUN podman run --privileged -it --rm -v ${CMAKE_CURRENT_BINARY_DIR}:/srv:z --workdir /srv)
-
 add_custom_target(check
 	COMMAND podman unshare ./rpmtests ${JOBS} $(TESTOPTS)
 	DEPENDS rpmtests
@@ -90,7 +88,9 @@ add_custom_target(image
 )
 
 add_custom_command(OUTPUT image/base
-	COMMAND ${PODMAN_RUN} fedora:37 dnf -y install
+	COMMAND podman run --privileged -t --rm
+		-v ${CMAKE_CURRENT_BINARY_DIR}:/srv:z fedora:37
+		dnf -y install
 		--installroot=/srv/image/base
 		--disablerepo=\* --enablerepo=fedora,updates
 		--releasever=37
