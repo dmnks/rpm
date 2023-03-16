@@ -64,9 +64,8 @@ endif()
 set(PODMAN_RUN podman run --privileged -it --rm -v ${CMAKE_CURRENT_BINARY_DIR}:/srv:z --workdir /srv)
 
 add_custom_target(check
-	COMMAND ${PODMAN_RUN} rpm ./rpmtests ${JOBS} $(TESTOPTS)
+	COMMAND podman unshare ./rpmtests ${JOBS} $(TESTOPTS)
 	DEPENDS rpmtests
-	DEPENDS runner
 )
 
 add_custom_target(rpmtests
@@ -104,10 +103,6 @@ add_custom_command(OUTPUT image/base
 		unzip xz xz-libs zlib zstd &&
 		rm -rf image/base/usr/lib/sysimage/* &&
 		podman unshare chmod -R u+w image/base
-)
-
-add_custom_command(OUTPUT runner
-	COMMAND podman build -t rpm -f ${CMAKE_SOURCE_DIR}/tests/Dockerfile ${CMAKE_SOURCE_DIR}
 )
 
 #add_custom_command(TARGET populate_testing POST_BUILD
