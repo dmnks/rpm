@@ -7,27 +7,22 @@ install_weak_deps=0\n\
 tsflags=nodocs" >> /etc/dnf/dnf.conf
 RUN sed -i -e "s:^enabled=.$:enabled=0:g" /etc/yum.repos.d/*openh264.repo
 RUN rpm -e fedora-repos-modular
+
 RUN dnf -y update
 RUN dnf -y install \
-    /usr/bin/gdb-add-index \
     audit-libs-devel \
     autoconf \
-    btrfs-progs \
     bubblewrap \
     bzip2-devel \
     cmake \
     dbus-devel \
-    debugedit \
     doxygen \
     dwz \
-    elfutils binutils \
     elfutils-devel \
     elfutils-libelf-devel \
-    fakechroot which \
     file-devel \
-    findutils sed grep gawk diffutils file patch \
-    fsverity-utils fsverity-utils-devel \
-    gcc \
+    fsverity-utils \
+    fsverity-utils-devel \
     gettext-devel \
     git-core \
     glibc-gconv-extra \
@@ -38,19 +33,19 @@ RUN dnf -y install \
     libgcrypt-devel \
     libselinux-devel \
     libzstd-devel \
-    lua-devel readline-devel \
-    make \
+    lua-devel \
     openssl-devel \
+    pandoc \
     pkgconfig \
     popt-devel \
     python3-devel \
+    readline-devel \
     redhat-lsb-core \
     rpm-sequoia-devel \
     sqlite-devel \
-    tar unzip gzip bzip2 cpio xz \
+    which \
     xz-devel \
-    zlib-devel \
-    pandoc
+    zlib-devel
 
 COPY ci/fedora/mktree .
 RUN ./mktree / 37
