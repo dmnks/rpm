@@ -44,9 +44,13 @@ RUN dnf -y install \
     pkgconfig \
     popt-devel \
     python3-devel \
+    redhat-lsb-core \
     rpm-sequoia-devel \
     sqlite-devel \
     tar unzip gzip bzip2 cpio xz \
     xz-devel \
     zlib-devel \
     pandoc
+
+COPY ci/fedora/mktree .
+RUN ./mktree / 37

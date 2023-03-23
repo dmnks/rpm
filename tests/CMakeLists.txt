@@ -57,6 +57,14 @@ foreach(prg ${TESTPROGS})
 	    RUNTIME_OUTPUT_DIRECTORY image/inst/${CMAKE_INSTALL_PREFIX}/bin)
 endforeach()
 
+execute_process(COMMAND lsb_release -is
+		OUTPUT_VARIABLE LSB_NAME
+		OUTPUT_STRIP_TRAILING_WHITESPACE)
+execute_process(COMMAND lsb_release -rs
+		OUTPUT_VARIABLE LSB_RELEASE
+		OUTPUT_STRIP_TRAILING_WHITESPACE)
+string(TOLOWER ${LSB_NAME} LSB_NAME)
+
 if (ENABLE_ISOLATION)
     find_program(PODMAN podman docker REQUIRED)
     execute_process(COMMAND ${PODMAN} build -t rpm
@@ -113,18 +121,6 @@ add_custom_target(image
 )
 
 add_custom_command(OUTPUT image/base
-	COMMAND ${PODMAN_RUN} dnf -y install
-		--installroot=${CMAKE_CURRENT_BINARY_DIR}/image/base
-		--setopt=cachedir=${CMAKE_CURRENT_BINARY_DIR}/image/cache
-		--setopt=keepcache=true
-		--disablerepo=\* --enablerepo=fedora,updates
-		--releasever=37
-		audit bash binutils bzip2 coreutils cpio curl debugedit
-		diffutils elfutils-libelf elfutils-libs file file-libs
-		findutils gawk gcc gdb-headless gdb-minimal glibc gpg grep gzip
-		ima-evm-utils libacl libarchive libcap libfsverity libgcc
-		libgomp libzstd lua-libs make openssl-libs patch
-		pkgconf-pkg-config python3 rpm-sequoia sed sqlite-libs tar
-		unzip xz xz-libs zlib zstd &&
-		rm -rf image/base/usr/lib/sysimage/*
+	COMMAND ${PODMAN_RUN} ${CMAKE_SOURCE_DIR}/ci/${LSB_NAME}/mktree
+		${CMAKE_CURRENT_BINARY_DIR}/image/base ${LSB_RELEASE}
 )
