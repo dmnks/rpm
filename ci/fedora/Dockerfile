@@ -49,3 +49,7 @@ RUN dnf -y install \
 
 COPY ci/fedora/mktree .
 RUN ./mktree / 37
+
+RUN rpm -e --nodeps rpm rpm-libs rpm-build-libs rpm-sign-libs python3-rpm
+
+RUN rm -rf /usr/lib/sysimage/rpm

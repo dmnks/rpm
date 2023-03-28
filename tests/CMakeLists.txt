@@ -117,7 +117,7 @@ add_custom_target(image
 		sed -i 's,^%_dbpath\t.*$$,%_dbpath /usr/lib/sysimage/rpm,'
 		    image/inst/${CMAKE_INSTALL_PREFIX}/lib/rpm/macros &&
 		cp -r ${CMAKE_CURRENT_SOURCE_DIR}/data image/inst/
-	DEPENDS image/base
+	# DEPENDS image/base
 )
 
 add_custom_command(OUTPUT image/base
