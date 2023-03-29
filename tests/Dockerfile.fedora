@@ -8,48 +8,94 @@ tsflags=nodocs" >> /etc/dnf/dnf.conf
 RUN sed -i -e "s:^enabled=.$:enabled=0:g" /etc/yum.repos.d/*openh264.repo
 RUN rpm -e fedora-repos-modular
 
-RUN dnf -y update
 RUN dnf -y install \
+    audit \
     audit-libs-devel \
     autoconf \
+    bash \
+    binutils \
     bubblewrap \
+    bzip2 \
     bzip2-devel \
     cmake \
+    coreutils \
+    cpio \
+    curl \
     dbus-devel \
+    debugedit \
+    diffutils \
     doxygen \
     dwz \
     elfutils-devel \
+    elfutils-libelf \
     elfutils-libelf-devel \
+    elfutils-libs \
+    file \
     file-devel \
+    file-libs \
+    findutils \
     fsverity-utils \
     fsverity-utils-devel \
+    gawk \
+    gcc \
+    gdb-headless \
+    gdb-minimal \
     gettext-devel \
     git-core \
+    glibc \
     glibc-gconv-extra \
+    gpg \
+    grep \
+    gzip \
+    ima-evm-utils \
     ima-evm-utils-devel \
+    libacl \
     libacl-devel \
+    libarchive \
     libarchive-devel \
+    libcap \
     libcap-devel \
+    libfsverity \
+    libgcc \
     libgcrypt-devel \
+    libgomp \
     libselinux-devel \
+    libzstd \
     libzstd-devel \
     lua-devel \
+    lua-libs \
+    make \
     openssl-devel \
+    openssl-libs \
     pandoc \
+    patch \
+    pkgconf-pkg-config \
     pkgconfig \
     popt-devel \
+    python3 \
     python3-devel \
     readline-devel \
     redhat-lsb-core \
+    rpm-sequoia \
     rpm-sequoia-devel \
+    sed \
     sqlite-devel \
+    sqlite-libs \
+    tar \
+    unzip \
     which \
+    xz \
     xz-devel \
-    zlib-devel
+    xz-libs \
+    zlib \
+    zlib-devel \
+    zstd
 
-COPY ci/fedora/mktree .
-RUN ./mktree / 37
-
-RUN rpm -e --nodeps rpm rpm-libs rpm-build-libs rpm-sign-libs python3-rpm
+RUN rpm -e --nodeps \
+    rpm \
+    rpm-libs \
+    rpm-build-libs \
+    rpm-sign-libs \
+    python3-rpm
 
 RUN rm -rf /usr/lib/sysimage/rpm
