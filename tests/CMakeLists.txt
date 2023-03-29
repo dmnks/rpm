@@ -54,7 +54,7 @@ foreach(prg ${TESTPROGS})
 	add_executable(${prg} EXCLUDE_FROM_ALL ${prg}.c)
 	target_link_libraries(${prg} PRIVATE librpmio)
 	set_target_properties(${prg} PROPERTIES
-	    RUNTIME_OUTPUT_DIRECTORY image/inst/${CMAKE_INSTALL_PREFIX}/bin)
+	    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_INSTALL_PREFIX}/bin)
 endforeach()
 
 execute_process(COMMAND lsb_release -is
@@ -65,28 +65,28 @@ execute_process(COMMAND lsb_release -rs
 		OUTPUT_STRIP_TRAILING_WHITESPACE)
 string(TOLOWER ${LSB_NAME} LSB_NAME)
 
-if (ENABLE_ISOLATION)
-    find_program(PODMAN podman docker REQUIRED)
-    execute_process(COMMAND ${PODMAN} build -t rpm
-		    -f ${CMAKE_SOURCE_DIR}/Dockerfile
-		    ${CMAKE_SOURCE_DIR})
-    set(PODMAN_RUN ${PODMAN} run -it --rm --privileged
-	--volume ${CMAKE_CURRENT_BINARY_DIR}:${CMAKE_CURRENT_BINARY_DIR}:z
-	--workdir ${CMAKE_CURRENT_BINARY_DIR} rpm)
-else()
-    find_program(PODMAN podman)
-    execute_process(COMMAND id -u OUTPUT_VARIABLE UID)
-    foreach (util ${TESTUTILS})
-	find_program(__${UTIL} ${util} REQUIRED)
-    endforeach()
-    if (${UID} EQUAL 0)
-	set(PODMAN_RUN "")
-    elseif (PODMAN)
-	set(PODMAN_RUN ${PODMAN} unshare)
-    else()
-	message(FATAL_ERROR "Must be root or ENABLE_ISOLATION")
-    endif()
-endif()
+# if (ENABLE_ISOLATION)
+#     find_program(PODMAN podman docker REQUIRED)
+#     execute_process(COMMAND ${PODMAN} build -t rpm
+# 		    -f ${CMAKE_SOURCE_DIR}/Dockerfile
+# 		    ${CMAKE_SOURCE_DIR})
+#     set(PODMAN_RUN ${PODMAN} run -it --rm --privileged
+# 	--volume ${CMAKE_CURRENT_BINARY_DIR}:${CMAKE_CURRENT_BINARY_DIR}:z
+# 	--workdir ${CMAKE_CURRENT_BINARY_DIR} rpm)
+# else()
+#     find_program(PODMAN podman)
+#     execute_process(COMMAND id -u OUTPUT_VARIABLE UID)
+#     foreach (util ${TESTUTILS})
+# 	find_program(__${UTIL} ${util} REQUIRED)
+#     endforeach()
+#     if (${UID} EQUAL 0)
+# 	set(PODMAN_RUN "")
+#     elseif (PODMAN)
+# 	set(PODMAN_RUN ${PODMAN} unshare)
+#     else()
+# 	message(FATAL_ERROR "Must be root or ENABLE_ISOLATION")
+#     endif()
+# endif()
 
 include(ProcessorCount)
 ProcessorCount(nproc)
@@ -95,32 +95,27 @@ if (nproc GREATER 1)
 endif()
 
 add_custom_target(check
-	COMMAND ${PODMAN_RUN} ./rpmtests ${JOBS} $(TESTOPTS)
+	COMMAND ./rpmtests ${JOBS} $(TESTOPTS)
 	DEPENDS rpmtests
 )
 
 add_custom_target(rpmtests
 	COMMAND ${AUTOTEST} -I ${CMAKE_CURRENT_SOURCE_DIR}
 		    -o rpmtests rpmtests.at &&
+		cp -r ${CMAKE_CURRENT_SOURCE_DIR}/data / &&
 		cp ${CMAKE_CURRENT_SOURCE_DIR}/data/macros.debug .
 	DEPENDS ${TESTSUITE_AT}
 	DEPENDS ${TESTPROGS}
-	DEPENDS image
+	#DEPENDS image
 )
 
-add_custom_target(image
-	COMMAND rm -rf image/inst &&
-		${CMAKE_MAKE_PROGRAM} -C ${CMAKE_BINARY_DIR}
-		    DESTDIR=${CMAKE_CURRENT_BINARY_DIR}/image/inst install &&
-		mkdir -p image/inst/etc/ld.so.conf.d/ &&
-		ldconfig -r image/inst ${CMAKE_INSTALL_PREFIX}/lib64 &&
-		sed -i 's,^%_dbpath\t.*$$,%_dbpath /usr/lib/sysimage/rpm,'
-		    image/inst/${CMAKE_INSTALL_PREFIX}/lib/rpm/macros &&
-		cp -r ${CMAKE_CURRENT_SOURCE_DIR}/data image/inst/
-	# DEPENDS image/base
-)
-
-add_custom_command(OUTPUT image/base
-	COMMAND ${PODMAN_RUN} ${CMAKE_SOURCE_DIR}/ci/${LSB_NAME}/mktree
-		${CMAKE_CURRENT_BINARY_DIR}/image/base ${LSB_RELEASE}
-)
+# add_custom_target(image
+# 	COMMAND rm -rf image/inst &&
+# 		${CMAKE_MAKE_PROGRAM} -C ${CMAKE_BINARY_DIR}
+# 		    DESTDIR=${CMAKE_CURRENT_BINARY_DIR}/image/inst install &&
+# 		mkdir -p image/inst/etc/ld.so.conf.d/ &&
+# 		ldconfig -r image/inst ${CMAKE_INSTALL_PREFIX}/lib64 &&
+# 		sed -i 's,^%_dbpath\t.*$$,%_dbpath /usr/lib/sysimage/rpm,'
+# 		    image/inst/${CMAKE_INSTALL_PREFIX}/lib/rpm/macros &&
+# 		cp -r ${CMAKE_CURRENT_SOURCE_DIR}/data image/inst/
+# )

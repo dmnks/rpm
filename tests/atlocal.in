@@ -39,8 +39,8 @@ for mnt in rpmtests.dir/*/tree; do
     mountpoint -q ${mnt} && umount -l ${mnt}
 done
 
-RPM_CONFIGDIR="${RPMTEST}/inst/@RPMCONFIGDIR@"
-RPM_POPTEXEC_PATH="${RPMTEST}/inst/@usrbindir@"
+RPM_CONFIGDIR="@RPMCONFIGDIR@"
+RPM_POPTEXEC_PATH="@usrbindir@"
 export RPM_CONFIGDIR RPM_POPTEXEC_PATH
 
 DBFORMAT=$(awk '/^%_db_backend/{print $2}' "${RPM_CONFIGDIR}/macros")
