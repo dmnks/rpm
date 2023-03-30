@@ -1,4 +1,4 @@
-FROM registry.fedoraproject.org/fedora:37 AS base
+FROM registry.fedoraproject.org/fedora:37
 MAINTAINER rpm-maint@lists.rpm.org
 
 RUN echo -e "\
@@ -62,30 +62,3 @@ RUN dnf -y install \
     xz-devel \
     zlib-devel \
     zstd
-
-FROM base
-
-WORKDIR /srv/source
-COPY . .
-RUN chmod -R a-w .
-
-WORKDIR /srv/build
-RUN cmake \
-    -DENABLE_PLUGINS=OFF \
-    -DENABLE_WERROR=ON \
-    ../source
-
-RUN rpm -e --nodeps \
-    rpm \
-    rpm-libs \
-    rpm-build-libs \
-    rpm-sign-libs \
-    python3-rpm
-
-RUN make && \
-    make install && \
-    ldconfig /usr/local/lib64 && \
-    sed -i 's,^%_dbpath\t.*$,%_dbpath /usr/lib/sysimage/rpm,' \
-	$(rpm --eval '%_rpmconfigdir')/macros
-
-WORKDIR /
