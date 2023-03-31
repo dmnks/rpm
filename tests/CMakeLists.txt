@@ -54,7 +54,7 @@ foreach(prg ${TESTPROGS})
 	add_executable(${prg} EXCLUDE_FROM_ALL ${prg}.c)
 	target_link_libraries(${prg} PRIVATE librpmio)
 	set_target_properties(${prg} PROPERTIES
-	    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_INSTALL_PREFIX}/bin)
+	    RUNTIME_OUTPUT_DIRECTORY tree/${CMAKE_INSTALL_PREFIX}/bin)
 endforeach()
 
 execute_process(COMMAND lsb_release -is
@@ -102,20 +102,17 @@ add_custom_target(check
 add_custom_target(rpmtests
 	COMMAND ${AUTOTEST} -I ${CMAKE_CURRENT_SOURCE_DIR}
 		    -o rpmtests rpmtests.at &&
-		cp -r ${CMAKE_CURRENT_SOURCE_DIR}/data / &&
+		cp -r ${CMAKE_CURRENT_SOURCE_DIR}/data tree/ &&
 		cp ${CMAKE_CURRENT_SOURCE_DIR}/data/macros.debug .
 	DEPENDS ${TESTSUITE_AT}
 	DEPENDS ${TESTPROGS}
-	#DEPENDS image
+	DEPENDS tree
 )
 
-# add_custom_target(image
-# 	COMMAND rm -rf image/inst &&
-# 		${CMAKE_MAKE_PROGRAM} -C ${CMAKE_BINARY_DIR}
-# 		    DESTDIR=${CMAKE_CURRENT_BINARY_DIR}/image/inst install &&
-# 		mkdir -p image/inst/etc/ld.so.conf.d/ &&
-# 		ldconfig -r image/inst ${CMAKE_INSTALL_PREFIX}/lib64 &&
-# 		sed -i 's,^%_dbpath\t.*$$,%_dbpath /usr/lib/sysimage/rpm,'
-# 		    image/inst/${CMAKE_INSTALL_PREFIX}/lib/rpm/macros &&
-# 		cp -r ${CMAKE_CURRENT_SOURCE_DIR}/data image/inst/
-# )
+add_custom_target(tree
+	COMMAND rm -rf tree &&
+		${CMAKE_MAKE_PROGRAM} -C ${CMAKE_BINARY_DIR}
+		    DESTDIR=${CMAKE_CURRENT_BINARY_DIR}/tree install &&
+		mkdir -p tree/etc/ &&
+		ldconfig -r tree ${CMAKE_INSTALL_PREFIX}/lib64
+)
