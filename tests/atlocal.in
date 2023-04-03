@@ -104,7 +104,7 @@ function rundebug()
     setup_env
     cp ${RPMDATA}/macros.debug ${RPM_CONFIGDIR}/macros.d/
     (unset RPM_CONFIGDIR RPM_POPTEXEC_PATH; \
-        bwrap --unshare-pid --dev-bind ${RPMTEST} / --dev /dev --proc /proc "$@" \
+        bwrap --unshare-pid --dev-bind ${RPMTEST} / --chdir / --dev /dev --proc /proc "$@" \
 	--define "_buildhost testhost" --define "_topdir /build" --noplugins --nouserns
     )
     rm -f ${RPM_CONFIGDIR}/macros.d/macros.debug
@@ -114,7 +114,7 @@ function runroot()
 {
     setup_env
     (unset RPM_CONFIGDIR RPM_POPTEXEC_PATH; \
-        bwrap --unshare-pid --dev-bind ${RPMTEST} / --dev /dev --proc /proc "$@" \
+        bwrap --unshare-pid --dev-bind ${RPMTEST} / --chdir / --dev /dev --proc /proc "$@" \
 	--define "_buildhost testhost" --define "_topdir /build" --noplugins --nouserns
     )
 }
@@ -123,6 +123,6 @@ function runroot_other()
 {
     setup_env
     (unset RPM_CONFIGDIR RPM_POPTEXEC_PATH; \
-        bwrap --unshare-pid --dev-bind ${RPMTEST} / --dev /dev --proc /proc "$@"
+        bwrap --unshare-pid --dev-bind ${RPMTEST} / --chdir / --dev /dev --proc /proc "$@"
     )
 }
