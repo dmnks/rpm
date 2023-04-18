@@ -22,7 +22,7 @@ if (ENABLE_ISOLATION)
 	--volume ${CMAKE_CURRENT_BINARY_DIR}:${CMAKE_CURRENT_BINARY_DIR}:z
 	--workdir ${CMAKE_CURRENT_BINARY_DIR} rpm)
     set(destdir ${CMAKE_CURRENT_BINARY_DIR}/destdir)
-    set(lowerdir ${destdir}:/)
+    set(lowerdir ${destdir}:${CMAKE_CURRENT_BINARY_DIR}/tree)
 else()
     set(PODMAN_RUN "")
     # foreach (util ${TESTUTILS})
@@ -111,6 +111,20 @@ add_custom_target(rpmtests
 	DEPENDS ${TESTSUITE_AT}
 	DEPENDS ${TESTPROGS}
 	DEPENDS destdir
+	DEPENDS tree
+)
+
+add_custom_command(OUTPUT tree
+	COMMAND mkdir -p tree &&
+		cp --reflink=auto -r /usr tree/ 2>/dev/null || true &&
+		cp --reflink=auto -r /etc tree/ 2>/dev/null || true &&
+		ln -s usr/bin tree/bin &&
+		ln -s usr/lib tree/lib &&
+		ln -s usr/lib64 tree/lib64 &&
+		mkdir -p tree/root &&
+		mkdir -p tree/tmp &&
+		mkdir -p tree/var/tmp &&
+		chmod u+w -R tree/
 )
 
 add_custom_target(destdir
