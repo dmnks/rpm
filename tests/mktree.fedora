@@ -19,6 +19,7 @@ ${unshare} dnf -y install \
     --exclude=rpm \
     --setopt=install_weak_deps=0 \
     --setopt=cachedir=${cachedir} \
+    --setopt=keepcache=1 \
     audit \
     bash \
     binutils \
