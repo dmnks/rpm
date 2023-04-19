@@ -114,7 +114,7 @@ add_custom_target(image
 		${CMAKE_MAKE_PROGRAM} -C ${CMAKE_BINARY_DIR}
 		    DESTDIR=${CMAKE_CURRENT_BINARY_DIR}/image/inst install &&
 		mkdir -p image/inst/etc &&
-		ldconfig -r image/inst ${CMAKE_INSTALL_PREFIX}/lib64 &&
+		ldconfig -r image/inst ${CMAKE_INSTALL_PREFIX}/lib64
 	DEPENDS image/base
 )
 
