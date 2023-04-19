@@ -4,7 +4,7 @@
 destdir=$1
 release=$2
 
-dnf -y install \
+podman unshare dnf -y install \
     --installroot=${destdir} \
     --releasever=${release} \
     --disablerepo=\* --enablerepo=fedora,updates \
@@ -55,5 +55,3 @@ dnf -y install \
     xz-libs \
     zlib \
     zstd
-
-[ "${destdir}" == "/" ] || rm -rf ${destdir}/usr/lib/sysimage/*

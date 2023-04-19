@@ -119,6 +119,6 @@ add_custom_target(image
 )
 
 add_custom_command(OUTPUT image/base
-	COMMAND ${PODMAN_RUN} ${CMAKE_SOURCE_DIR}/ci/${LSB_NAME}/mktree
+	COMMAND ${CMAKE_SOURCE_DIR}/ci/${LSB_NAME}/mktree
 		${CMAKE_CURRENT_BINARY_DIR}/image/base ${LSB_RELEASE}
 )
