@@ -9,13 +9,16 @@
 [ "$#" -lt 2 ] && exit 1
 release=$1
 destdir=$2
+cachedir=$(python3 -c 'import dnf; print(dnf.conf.Conf().cachedir)')
+[ $(id -u) == 0 ] && unshare= || unshare="podman unshare"
 
-podman unshare dnf -y install \
+${unshare} dnf -y install \
     --disablerepo=\* --enablerepo=fedora,updates \
     --releasever=${release} \
     --installroot=${destdir} \
-    --setopt=install_weak_deps=0 \
     --exclude=rpm \
+    --setopt=install_weak_deps=0 \
+    --setopt=cachedir=${cachedir} \
     audit \
     bash \
     binutils \
@@ -43,7 +46,6 @@ podman unshare dnf -y install \
     libarchive \
     libcap \
     libfsverity \
-    libgcc \
     libgomp \
     libzstd \
     lua-libs \

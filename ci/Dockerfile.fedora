@@ -15,6 +15,7 @@ RUN dnf -y install \
     bzip2-devel \
     cmake \
     dbus-devel \
+    debugedit \
     doxygen \
     dwz \
     elfutils-devel \
@@ -22,6 +23,7 @@ RUN dnf -y install \
     file-devel \
     fsverity-utils \
     fsverity-utils-devel \
+    gcc \
     gettext-devel \
     git-core \
     glibc-gconv-extra \
