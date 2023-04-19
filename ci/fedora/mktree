@@ -8,6 +8,8 @@ dnf -y install \
     --installroot=${destdir} \
     --releasever=${release} \
     --disablerepo=\* --enablerepo=fedora,updates \
+    --setopt=install_weak_deps=0 \
+    --exclude=rpm \
     audit \
     bash \
     binutils \
