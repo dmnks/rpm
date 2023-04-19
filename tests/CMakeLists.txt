@@ -54,7 +54,7 @@ foreach(prg ${TESTPROGS})
 	add_executable(${prg} EXCLUDE_FROM_ALL ${prg}.c)
 	target_link_libraries(${prg} PRIVATE librpmio)
 	set_target_properties(${prg} PROPERTIES
-	    RUNTIME_OUTPUT_DIRECTORY image/inst/${CMAKE_INSTALL_PREFIX}/bin)
+	    RUNTIME_OUTPUT_DIRECTORY tree/inst/${CMAKE_INSTALL_PREFIX}/bin)
 endforeach()
 
 execute_process(COMMAND lsb_release -is
@@ -68,7 +68,7 @@ string(TOLOWER ${LSB_NAME} LSB_NAME)
 if (ENABLE_ISOLATION)
     find_program(PODMAN podman docker REQUIRED)
     execute_process(COMMAND ${PODMAN} build -t rpm
-		    -f ${CMAKE_SOURCE_DIR}/Dockerfile
+		    -f ${CMAKE_SOURCE_DIR}/ci/Dockerfile.${LSB_NAME}
 		    ${CMAKE_SOURCE_DIR})
     set(PODMAN_RUN ${PODMAN} run -it --rm --privileged
 	--volume ${CMAKE_CURRENT_BINARY_DIR}:${CMAKE_CURRENT_BINARY_DIR}:z
@@ -103,22 +103,22 @@ add_custom_target(rpmtests
 	COMMAND ${AUTOTEST} -I ${CMAKE_CURRENT_SOURCE_DIR}
 		    -o rpmtests rpmtests.at &&
 		cp ${CMAKE_CURRENT_SOURCE_DIR}/data/macros.debug . &&
-		cp -r ${CMAKE_CURRENT_SOURCE_DIR}/data image/inst/
+		cp -r ${CMAKE_CURRENT_SOURCE_DIR}/data tree/inst/
 	DEPENDS ${TESTSUITE_AT}
 	DEPENDS ${TESTPROGS}
-	DEPENDS image
+	DEPENDS tree
 )
 
-add_custom_target(image
-	COMMAND rm -rf image/inst &&
+add_custom_target(tree
+	COMMAND rm -rf tree/inst &&
 		${CMAKE_MAKE_PROGRAM} -C ${CMAKE_BINARY_DIR}
-		    DESTDIR=${CMAKE_CURRENT_BINARY_DIR}/image/inst install &&
-		mkdir -p image/inst/etc &&
-		ldconfig -r image/inst ${CMAKE_INSTALL_PREFIX}/lib64
-	DEPENDS image/base
+		    DESTDIR=${CMAKE_CURRENT_BINARY_DIR}/tree/inst install &&
+		mkdir -p tree/inst/etc &&
+		ldconfig -r tree/inst ${CMAKE_INSTALL_PREFIX}/lib64
+	DEPENDS tree/base
 )
 
-add_custom_command(OUTPUT image/base
-	COMMAND ${CMAKE_SOURCE_DIR}/ci/${LSB_NAME}/mktree
-		${CMAKE_CURRENT_BINARY_DIR}/image/base ${LSB_RELEASE}
+add_custom_command(OUTPUT tree/base
+	COMMAND ${CMAKE_SOURCE_DIR}/tests/mktree.${LSB_NAME} ${LSB_RELEASE}
+		${CMAKE_CURRENT_BINARY_DIR}/tree/base
 )

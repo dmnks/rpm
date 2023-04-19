@@ -1,13 +1,19 @@
 #!/bin/bash
+#
+# Bootstrap a file system tree with RPM's runtime dependencies (but without RPM
+# itself) whose versions match those of the build system.
+#
+# Takes two arguments: OS version and destination directory.
+# The script must also work if executed as a regular user.
 
 [ "$#" -lt 2 ] && exit 1
-destdir=$1
-release=$2
+release=$1
+destdir=$2
 
 podman unshare dnf -y install \
-    --installroot=${destdir} \
-    --releasever=${release} \
     --disablerepo=\* --enablerepo=fedora,updates \
+    --releasever=${release} \
+    --installroot=${destdir} \
     --setopt=install_weak_deps=0 \
     --exclude=rpm \
     audit \

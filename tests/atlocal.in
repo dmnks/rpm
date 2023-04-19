@@ -32,7 +32,7 @@ fi
 
 # RPMTEST="${abs_builddir}/testing"
 # RPMDATA="${abs_srcdir}/data/"
-RPMTEST="${PWD}/image"
+RPMTEST="${PWD}/tree"
 RPMDATA="${PWD}/"
 
 for mnt in rpmtests.dir/*/tree; do
