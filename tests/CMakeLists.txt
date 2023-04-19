@@ -102,7 +102,8 @@ add_custom_target(check
 add_custom_target(rpmtests
 	COMMAND ${AUTOTEST} -I ${CMAKE_CURRENT_SOURCE_DIR}
 		    -o rpmtests rpmtests.at &&
-		cp ${CMAKE_CURRENT_SOURCE_DIR}/data/macros.debug .
+		cp ${CMAKE_CURRENT_SOURCE_DIR}/data/macros.debug . &&
+		cp -r ${CMAKE_CURRENT_SOURCE_DIR}/data image/inst/
 	DEPENDS ${TESTSUITE_AT}
 	DEPENDS ${TESTPROGS}
 	DEPENDS image
@@ -112,11 +113,8 @@ add_custom_target(image
 	COMMAND rm -rf image/inst &&
 		${CMAKE_MAKE_PROGRAM} -C ${CMAKE_BINARY_DIR}
 		    DESTDIR=${CMAKE_CURRENT_BINARY_DIR}/image/inst install &&
-		mkdir -p image/inst/etc/ld.so.conf.d/ &&
+		mkdir -p image/inst/etc &&
 		ldconfig -r image/inst ${CMAKE_INSTALL_PREFIX}/lib64 &&
-		sed -i 's,^%_dbpath\t.*$$,%_dbpath /usr/lib/sysimage/rpm,'
-		    image/inst/${CMAKE_INSTALL_PREFIX}/lib/rpm/macros &&
-		cp -r ${CMAKE_CURRENT_SOURCE_DIR}/data image/inst/
 	DEPENDS image/base
 )
 
