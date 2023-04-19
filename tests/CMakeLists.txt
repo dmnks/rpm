@@ -67,7 +67,7 @@ string(TOLOWER ${LSB_NAME} LSB_NAME)
 
 if (ENABLE_ISOLATION)
     find_program(PODMAN podman docker REQUIRED)
-    execute_process(COMMAND ${PODMAN} build -t rpm
+    execute_process(COMMAND ${PODMAN} build -t rpm --target minimal
 		    -f ${CMAKE_SOURCE_DIR}/ci/Dockerfile.${LSB_NAME}
 		    ${CMAKE_SOURCE_DIR})
     set(PODMAN_RUN ${PODMAN} run -it --rm --privileged
