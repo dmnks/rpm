@@ -4,7 +4,7 @@
 # itself) whose versions match those of the build system.
 #
 # Takes two arguments: OS version and destination directory.
-# The script must also work if executed as a regular user.
+# This script must also work if executed as a regular user.
 
 [ "$#" -lt 2 ] && exit 1
 release=$1
