@@ -1,25 +1,25 @@
 #!/bin/bash
 #
-# Bootstrap a file system tree with RPM's runtime dependencies (but without RPM
-# itself) whose versions match those of the build system.
+# Bootstrap a filesystem tree with RPM's runtime dependencies that are ABI
+# compatible with the build dependencies used.  No existing RPM installation
+# should be present in the tree.
 #
 # Takes two arguments: OS version and destination directory.
-# This script must also work if executed as a regular user.
+# This script must also work if executed as a regular (non-root) user.
 
-[ "$#" -lt 2 ] && exit 1
+[ $# -lt 2 ] && exit 1
 release=$1
 destdir=$2
 cachedir=$(python3 -c 'import dnf; print(dnf.conf.Conf().cachedir)')
-[ $(id -u) == 0 ] && unshare= || unshare="podman unshare"
+[ $(id -u) == 0 ] && unshare= || unshare="unshare -r --map-auto"
 
 ${unshare} dnf -y install \
-    --disablerepo=\* --enablerepo=fedora,updates \
     --releasever=${release} \
     --installroot=${destdir} \
-    --exclude=rpm \
-    --setopt=install_weak_deps=0 \
     --setopt=cachedir=${cachedir} \
     --setopt=keepcache=1 \
+    --setopt=install_weak_deps=0 \
+    --disablerepo=\* --enablerepo=fedora,updates \
     audit \
     bash \
     binutils \
