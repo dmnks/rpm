@@ -11,14 +11,19 @@ RUN rpm -e fedora-repos-modular
 RUN dnf -y install \
     audit-libs-devel \
     autoconf \
+    binutils \
+    bubblewrap \
     bzip2-devel \
     cmake \
+    cpio \
     dbus-devel \
     debugedit \
+    diffutils \
     doxygen \
     dwz \
     elfutils-devel \
     elfutils-libelf-devel \
+    file \
     file-devel \
     fsverity-utils \
     fsverity-utils-devel \
