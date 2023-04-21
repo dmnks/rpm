@@ -53,7 +53,7 @@ foreach(prg ${TESTPROGS})
 	add_executable(${prg} EXCLUDE_FROM_ALL ${prg}.c)
 	target_link_libraries(${prg} PRIVATE librpmio)
 	set_target_properties(${prg} PROPERTIES
-	    RUNTIME_OUTPUT_DIRECTORY tree/inst/${CMAKE_INSTALL_PREFIX}/bin)
+	    RUNTIME_OUTPUT_DIRECTORY destdir/${CMAKE_INSTALL_PREFIX}/bin)
 endforeach()
 
 execute_process(COMMAND lsb_release -is
@@ -68,13 +68,17 @@ find_program(BWRAP bwrap REQUIRED)
 find_program(UNSHARE unshare REQUIRED)
 set(UNSHARE unshare -rm --map-auto)
 
+set(TREEDIR ${CMAKE_CURRENT_BINARY_DIR}/tree)
+string(REPLACE ";" " " UNSHARE_CMD "${UNSHARE}")
+configure_file(mktree.${LSB_NAME} mktree @ONLY)
+
 if (ENABLE_SANDBOX)
     set(UNSHARE ${UNSHARE} ${BWRAP}
 	--cap-add ALL
+	--ro-bind ${TREEDIR} /
+	--bind ${CMAKE_CURRENT_BINARY_DIR} /srv
 	--dev /dev --proc /proc
-	--ro-bind tree/base /
-	--bind ${CMAKE_CURRENT_BINARY_DIR} /tests
-	--chdir /tests)
+	--chdir /srv)
 else()
     foreach (util cpio diff file gzip mount readelf tar)
 	find_program(__${UTIL} ${util} REQUIRED)
@@ -96,22 +100,21 @@ add_custom_target(rpmtests
 	COMMAND ${AUTOTEST} -I ${CMAKE_CURRENT_SOURCE_DIR}
 		    -o rpmtests rpmtests.at &&
 		cp ${CMAKE_CURRENT_SOURCE_DIR}/data/macros.debug . &&
-		cp -r ${CMAKE_CURRENT_SOURCE_DIR}/data tree/inst/
+		cp -r ${CMAKE_CURRENT_SOURCE_DIR}/data destdir/
 	DEPENDS ${TESTSUITE_AT}
 	DEPENDS ${TESTPROGS}
 	DEPENDS tree
 )
 
 add_custom_target(tree
-	COMMAND rm -rf tree/inst &&
+	COMMAND rm -rf destdir/ &&
 		${CMAKE_MAKE_PROGRAM} -C ${CMAKE_BINARY_DIR}
-		    DESTDIR=${CMAKE_CURRENT_BINARY_DIR}/tree/inst install &&
-		mkdir -p tree/inst/etc &&
-		ldconfig -r tree/inst ${CMAKE_INSTALL_PREFIX}/lib64
-	DEPENDS tree/base
+		    DESTDIR=${CMAKE_CURRENT_BINARY_DIR}/destdir install &&
+		mkdir -p destdir/etc &&
+		ldconfig -r destdir ${CMAKE_INSTALL_PREFIX}/lib64
+	DEPENDS ${TREEDIR}
 )
 
-add_custom_command(OUTPUT tree/base
-	COMMAND ${CMAKE_SOURCE_DIR}/tests/mktree.${LSB_NAME}
-		${LSB_RELEASE} ${CMAKE_CURRENT_BINARY_DIR}/tree/base
+add_custom_command(OUTPUT ${TREEDIR}
+	COMMAND ./mktree
 )
