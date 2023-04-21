@@ -63,4 +63,6 @@ ${unshare} dnf -y install \
     xz \
     xz-libs \
     zlib \
-    zstd
+    zstd \
+    util-linux-core \
+    bubblewrap

@@ -1,4 +1,4 @@
-FROM registry.fedoraproject.org/fedora:37 AS minimal
+FROM registry.fedoraproject.org/fedora:37
 MAINTAINER rpm-maint@lists.rpm.org
 
 RUN echo -e "\
@@ -8,17 +8,6 @@ tsflags=nodocs" >> /etc/dnf/dnf.conf
 RUN sed -i -e "s:^enabled=.$:enabled=0:g" /etc/yum.repos.d/*openh264.repo
 RUN rpm -e fedora-repos-modular
 
-# Test suite dependencies
-RUN dnf -y install \
-    binutils \
-    bubblewrap \
-    cpio \
-    diffutils \
-    file
-
-FROM minimal
-
-# Build dependencies
 RUN dnf -y install \
     audit-libs-devel \
     autoconf \

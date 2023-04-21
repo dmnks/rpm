@@ -73,15 +73,11 @@ else()
 endif()
 
 if (ENABLE_SANDBOX)
-    find_program(PODMAN podman docker REQUIRED)
-    execute_process(COMMAND ${PODMAN} build -t rpm --target minimal
-	-f ${CMAKE_SOURCE_DIR}/ci/Dockerfile.${LSB_NAME}
-	${CMAKE_SOURCE_DIR})
-    set(UNSHARE ${PODMAN} run -it --rm --privileged
-	--volume ${CMAKE_CURRENT_BINARY_DIR}:${CMAKE_CURRENT_BINARY_DIR}:z
-	--workdir ${CMAKE_CURRENT_BINARY_DIR} rpm)
+    set(UNSHARE unshare -r --map-auto bwrap --cap-add ALL
+	--ro-bind tree/base / --dev /dev --proc /proc
+	--bind ${CMAKE_CURRENT_BINARY_DIR} /test --chdir /test)
 else()
-    foreach (util bwrap cpio diff file readelf)
+    foreach (util bwrap cpio diff file gzip mount readelf tar)
 	find_program(__${UTIL} ${util} REQUIRED)
     endforeach()
 endif()
