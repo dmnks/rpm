@@ -1,8 +1,11 @@
 #!/bin/bash
+
+# Bootstrap a minimal filesystem tree with RPM's runtime dependencies that are
+# ABI compatible with the build dependencies used.  No existing RPM
+# installation should be present in the tree.
 #
-# Bootstrap a filesystem tree with RPM's runtime dependencies that are ABI
-# compatible with the build dependencies used.  No existing RPM installation
-# should be present in the tree.
+# To support ENABLE_SANDBOX, test-suite dependencies must also be present in
+# the tree.
 #
 # Takes two arguments: OS version and destination directory.
 # This script must also work if executed as a regular (non-root) user.
@@ -23,6 +26,7 @@ ${unshare} dnf -y install \
     audit \
     bash \
     binutils \
+    bubblewrap \
     bzip2 \
     coreutils \
     cpio \
@@ -60,9 +64,8 @@ ${unshare} dnf -y install \
     sqlite-libs \
     tar \
     unzip \
+    util-linux-core \
     xz \
     xz-libs \
     zlib \
-    zstd \
-    util-linux-core \
-    bubblewrap
+    zstd

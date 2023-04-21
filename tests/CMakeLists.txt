@@ -64,20 +64,19 @@ execute_process(COMMAND lsb_release -rs
 		OUTPUT_STRIP_TRAILING_WHITESPACE)
 string(TOLOWER ${LSB_NAME} LSB_NAME)
 
-execute_process(COMMAND id -u OUTPUT_VARIABLE UID)
-if (${UID} EQUAL 0)
-    set(UNSHARE "")
-else()
-    find_program(UNSHARE unshare REQUIRED)
-    set(UNSHARE unshare -rm --map-auto)
-endif()
+find_program(BWRAP bwrap REQUIRED)
+find_program(UNSHARE unshare REQUIRED)
+set(UNSHARE unshare -rm --map-auto)
 
 if (ENABLE_SANDBOX)
-    set(UNSHARE unshare -r --map-auto bwrap --cap-add ALL
-	--ro-bind tree/base / --dev /dev --proc /proc
-	--bind ${CMAKE_CURRENT_BINARY_DIR} /test --chdir /test)
+    set(UNSHARE ${UNSHARE} ${BWRAP}
+	--cap-add ALL
+	--dev /dev --proc /proc
+	--ro-bind tree/base /
+	--bind ${CMAKE_CURRENT_BINARY_DIR} /tests
+	--chdir /tests)
 else()
-    foreach (util bwrap cpio diff file gzip mount readelf tar)
+    foreach (util cpio diff file gzip mount readelf tar)
 	find_program(__${UTIL} ${util} REQUIRED)
     endforeach()
 endif()
