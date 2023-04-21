@@ -65,8 +65,13 @@ execute_process(COMMAND lsb_release -rs
 string(TOLOWER ${LSB_NAME} LSB_NAME)
 
 find_program(BWRAP bwrap REQUIRED)
-find_program(UNSHARE unshare REQUIRED)
-set(UNSHARE unshare -rm --map-auto)
+execute_process(COMMAND id -u OUTPUT_VARIABLE UID)
+if (${UID} EQUAL 0)
+    set(UNSHARE "")
+else()
+    find_program(UNSHARE unshare REQUIRED)
+    set(UNSHARE unshare -rm --map-auto)
+endif()
 
 set(TREEDIR ${CMAKE_CURRENT_BINARY_DIR}/tree)
 string(REPLACE ";" " " UNSHARE_CMD "${UNSHARE}")
@@ -76,9 +81,8 @@ if (ENABLE_SANDBOX)
     set(UNSHARE ${UNSHARE} ${BWRAP}
 	--cap-add ALL
 	--ro-bind ${TREEDIR} /
-	--bind ${CMAKE_CURRENT_BINARY_DIR} /srv
-	--dev /dev --proc /proc
-	--chdir /srv)
+	--bind ${CMAKE_CURRENT_BINARY_DIR} /srv --chdir /srv
+	--dev /dev --proc /proc)
 else()
     foreach (util cpio diff file gzip mount readelf tar)
 	find_program(__${UTIL} ${util} REQUIRED)

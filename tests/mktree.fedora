@@ -5,9 +5,9 @@
 # installation should be present in the tree.
 #
 # Useful CMake variables:
-#   TREEDIR: absolute path to the destination directory of the tree
+#   TREEDIR: destination directory for the tree (absolute path)
+#   UNSHARE_CMD: runs a program as root in a user namespace (unset if root)
 #   LSB_RELEASE: OS version
-#   UNSHARE_CMD: runs a program in a user namespace (if not root already)
 #
 # To support ENABLE_SANDBOX, test-suite dependencies must also be present in
 # the tree.
