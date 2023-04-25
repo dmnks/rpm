@@ -79,7 +79,6 @@ configure_file(mktree.${LSB_NAME} mktree @ONLY)
 
 if (ENABLE_SANDBOX)
     set(UNSHARE ${UNSHARE} ${BWRAP}
-	--cap-add ALL
 	--ro-bind ${TREEDIR} /
 	--bind ${CMAKE_CURRENT_BINARY_DIR} /srv --chdir /srv
 	--dev /dev --proc /proc)
