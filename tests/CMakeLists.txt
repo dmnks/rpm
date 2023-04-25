@@ -53,7 +53,7 @@ foreach(prg ${TESTPROGS})
 	add_executable(${prg} EXCLUDE_FROM_ALL ${prg}.c)
 	target_link_libraries(${prg} PRIVATE librpmio)
 	set_target_properties(${prg} PROPERTIES
-	    RUNTIME_OUTPUT_DIRECTORY destdir/${CMAKE_INSTALL_PREFIX}/bin)
+	    RUNTIME_OUTPUT_DIRECTORY inst/${CMAKE_INSTALL_PREFIX}/bin)
 endforeach()
 
 execute_process(COMMAND lsb_release -is
@@ -103,18 +103,18 @@ add_custom_target(rpmtests
 	COMMAND ${AUTOTEST} -I ${CMAKE_CURRENT_SOURCE_DIR}
 		    -o rpmtests rpmtests.at &&
 		cp ${CMAKE_CURRENT_SOURCE_DIR}/data/macros.debug . &&
-		cp -r ${CMAKE_CURRENT_SOURCE_DIR}/data destdir/
+		cp -r ${CMAKE_CURRENT_SOURCE_DIR}/data inst/
 	DEPENDS ${TESTSUITE_AT}
 	DEPENDS ${TESTPROGS}
 	DEPENDS tree
 )
 
 add_custom_target(tree
-	COMMAND rm -rf destdir/ &&
+	COMMAND rm -rf inst/ &&
 		${CMAKE_MAKE_PROGRAM} -C ${CMAKE_BINARY_DIR}
-		    DESTDIR=${CMAKE_CURRENT_BINARY_DIR}/destdir install &&
-		mkdir -p destdir/etc &&
-		ldconfig -r destdir ${CMAKE_INSTALL_PREFIX}/lib64
+		    DESTDIR=${CMAKE_CURRENT_BINARY_DIR}/inst install &&
+		mkdir -p inst/etc &&
+		ldconfig -r inst ${CMAKE_INSTALL_PREFIX}/lib64
 	DEPENDS ${TREEDIR}
 )
 
