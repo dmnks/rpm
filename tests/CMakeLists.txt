@@ -107,10 +107,10 @@ add_custom_target(rpmtests
 		cp -r ${CMAKE_CURRENT_SOURCE_DIR}/data inst/
 	DEPENDS ${TESTSUITE_AT}
 	DEPENDS ${TESTPROGS}
-	DEPENDS tree
+	DEPENDS inst
 )
 
-add_custom_target(tree
+add_custom_target(inst
 	COMMAND rm -rf inst/ &&
 		${CMAKE_MAKE_PROGRAM} -C ${CMAKE_BINARY_DIR}
 		DESTDIR=${CMAKE_CURRENT_BINARY_DIR}/inst install &&
