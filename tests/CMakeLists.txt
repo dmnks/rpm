@@ -68,10 +68,10 @@ string(TOLOWER ${LSB_NAME} LSB_NAME)
 find_program(BWRAP bwrap REQUIRED)
 execute_process(COMMAND id -u OUTPUT_VARIABLE UID)
 if (${UID} EQUAL 0)
-    set(UNSHARE "")
+	set(UNSHARE "")
 else()
-    find_program(UNSHARE unshare REQUIRED)
-    set(UNSHARE unshare -rm --map-auto)
+	find_program(UNSHARE unshare REQUIRED)
+	set(UNSHARE unshare -rm --map-auto)
 endif()
 
 set(TREE_DIR ${CMAKE_CURRENT_BINARY_DIR}/tree)
@@ -79,14 +79,14 @@ string(REPLACE ";" " " UNSHARE_CMD "${UNSHARE}")
 configure_file(mktree.${LSB_NAME} mktree @ONLY)
 
 if (ENABLE_SANDBOX)
-    set(UNSHARE ${UNSHARE} ${BWRAP}
-	--ro-bind ${TREE_DIR} /
-	--bind ${CMAKE_CURRENT_BINARY_DIR} /srv --chdir /srv
-	--dev /dev --proc /proc)
+	set(UNSHARE ${UNSHARE} ${BWRAP}
+	    --ro-bind ${TREE_DIR} /
+	    --bind ${CMAKE_CURRENT_BINARY_DIR} /srv --chdir /srv
+	    --dev /dev --proc /proc)
 else()
-    foreach (util cpio diff file gzip mount readelf tar)
-	find_program(__${UTIL} ${util} REQUIRED)
-    endforeach()
+	foreach (util cpio diff file gzip mount readelf tar)
+		find_program(__${UTIL} ${util} REQUIRED)
+	endforeach()
 endif()
 
 include(ProcessorCount)
@@ -102,7 +102,7 @@ add_custom_target(check
 
 add_custom_target(rpmtests
 	COMMAND ${AUTOTEST} -I ${CMAKE_CURRENT_SOURCE_DIR}
-		    -o rpmtests rpmtests.at &&
+		-o rpmtests rpmtests.at &&
 		cp ${CMAKE_CURRENT_SOURCE_DIR}/data/macros.debug . &&
 		cp -r ${CMAKE_CURRENT_SOURCE_DIR}/data inst/
 	DEPENDS ${TESTSUITE_AT}
@@ -113,7 +113,7 @@ add_custom_target(rpmtests
 add_custom_target(tree
 	COMMAND rm -rf inst/ &&
 		${CMAKE_MAKE_PROGRAM} -C ${CMAKE_BINARY_DIR}
-		    DESTDIR=${CMAKE_CURRENT_BINARY_DIR}/inst install &&
+		DESTDIR=${CMAKE_CURRENT_BINARY_DIR}/inst install &&
 		mkdir -p inst/etc &&
 		ldconfig -r inst ${CMAKE_INSTALL_PREFIX}/lib64
 	DEPENDS ${TREE_DIR}
