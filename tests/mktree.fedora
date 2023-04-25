@@ -5,7 +5,7 @@
 # installation should be present in the tree.
 #
 # Useful CMake variables:
-#   TREEDIR: destination directory for the tree (absolute path)
+#   TREE_DIR: destination directory for the tree (absolute path)
 #   UNSHARE_CMD: runs a program as root in a user namespace (unset if root)
 #   LSB_RELEASE: OS version
 #
@@ -17,7 +17,7 @@
 cachedir=$(python3 -c 'import dnf; print(dnf.conf.Conf().cachedir)')
 
 @UNSHARE_CMD@ dnf -y install \
-    --installroot=@TREEDIR@ \
+    --installroot=@TREE_DIR@ \
     --releasever=@LSB_RELEASE@ \
     --setopt=cachedir=${cachedir} \
     --setopt=keepcache=1 \

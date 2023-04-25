@@ -74,13 +74,13 @@ else()
     set(UNSHARE unshare -rm --map-auto)
 endif()
 
-set(TREEDIR ${CMAKE_CURRENT_BINARY_DIR}/tree)
+set(TREE_DIR ${CMAKE_CURRENT_BINARY_DIR}/tree)
 string(REPLACE ";" " " UNSHARE_CMD "${UNSHARE}")
 configure_file(mktree.${LSB_NAME} mktree @ONLY)
 
 if (ENABLE_SANDBOX)
     set(UNSHARE ${UNSHARE} ${BWRAP}
-	--ro-bind ${TREEDIR} /
+	--ro-bind ${TREE_DIR} /
 	--bind ${CMAKE_CURRENT_BINARY_DIR} /srv --chdir /srv
 	--dev /dev --proc /proc)
 else()
@@ -116,9 +116,9 @@ add_custom_target(tree
 		    DESTDIR=${CMAKE_CURRENT_BINARY_DIR}/inst install &&
 		mkdir -p inst/etc &&
 		ldconfig -r inst ${CMAKE_INSTALL_PREFIX}/lib64
-	DEPENDS ${TREEDIR}
+	DEPENDS ${TREE_DIR}
 )
 
-add_custom_command(OUTPUT ${TREEDIR}
+add_custom_command(OUTPUT ${TREE_DIR}
 	COMMAND ./mktree
 )
