@@ -56,10 +56,11 @@ foreach(prg ${TESTPROGS})
 	    RUNTIME_OUTPUT_DIRECTORY inst/${CMAKE_INSTALL_PREFIX}/bin)
 endforeach()
 
-execute_process(COMMAND lsb_release -is
+find_program(LSB lsb_release REQUIRED)
+execute_process(COMMAND ${LSB} -is
 		OUTPUT_VARIABLE LSB_NAME
 		OUTPUT_STRIP_TRAILING_WHITESPACE)
-execute_process(COMMAND lsb_release -rs
+execute_process(COMMAND ${LSB} -rs
 		OUTPUT_VARIABLE LSB_RELEASE
 		OUTPUT_STRIP_TRAILING_WHITESPACE)
 string(TOLOWER ${LSB_NAME} LSB_NAME)
