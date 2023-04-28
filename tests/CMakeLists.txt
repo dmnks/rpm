@@ -50,6 +50,7 @@ set(TESTSUITE_AT
 
 set(TREE_DIR ${CMAKE_CURRENT_BINARY_DIR}/tree)
 set(INST_DIR ${CMAKE_CURRENT_BINARY_DIR}/inst)
+set(DATA_DIR ${CMAKE_CURRENT_BINARY_DIR}/data)
 
 find_program(AUTOM4TE autom4te REQUIRED)
 set(AUTOTEST ${AUTOM4TE} --language=autotest)
@@ -57,8 +58,6 @@ set(TESTPROGS rpmpgpcheck rpmpgppubkeyfingerprint)
 foreach(prg ${TESTPROGS})
 	add_executable(${prg} EXCLUDE_FROM_ALL ${prg}.c)
 	target_link_libraries(${prg} PRIVATE librpmio)
-	set_target_properties(${prg} PROPERTIES
-		RUNTIME_OUTPUT_DIRECTORY ${INST_DIR}/${CMAKE_INSTALL_PREFIX}/bin)
 endforeach()
 
 find_program(LSB lsb_release REQUIRED)
@@ -73,27 +72,28 @@ string(TOLOWER ${LSB_NAME} LSB_NAME)
 find_program(BWRAP bwrap REQUIRED)
 execute_process(COMMAND id -u OUTPUT_VARIABLE UID)
 if (${UID} EQUAL 0)
-	set(UNSHARE "")
+	set(UNSHARE_CMD "")
 elseif(EXISTS /run/.toolboxenv)
-	set(UNSHARE sudo)
+	set(UNSHARE_CMD "sudo")
 else()
 	find_program(UNSHARE unshare REQUIRED)
-	set(UNSHARE unshare -rm --map-auto)
+	set(UNSHARE_CMD "${UNSHARE} -rm --map-auto")
 endif()
 
-string(REPLACE ";" " " UNSHARE_CMD "${UNSHARE}")
 configure_file(mktree.${LSB_NAME} mktree @ONLY)
 
 if (ENABLE_SANDBOX)
-	set(UNSHARE ${UNSHARE} ${BWRAP}
-	    --ro-bind ${TREE_DIR} /
-	    --bind ${CMAKE_CURRENT_BINARY_DIR} /srv --chdir /srv
-	    --dev /dev --proc /proc)
+	set(UNSHARE_CMD "${UNSHARE_CMD} ${BWRAP} \
+	    --ro-bind ${TREE_DIR} / \
+	    --bind ${CMAKE_CURRENT_BINARY_DIR} /srv --chdir /srv \
+	    --dev /dev --proc /proc")
 else()
 	foreach (util cpio diff file gzip mount readelf tar)
 		find_program(__${UTIL} ${util} REQUIRED)
 	endforeach()
 endif()
+
+configure_file(run.in run @ONLY)
 
 include(ProcessorCount)
 ProcessorCount(nproc)
@@ -102,8 +102,17 @@ if (nproc GREATER 1)
 endif()
 
 add_custom_target(check
-	COMMAND ${UNSHARE} ./rpmtests ${JOBS} $(TESTOPTS)
+	COMMAND ./run ${JOBS} $(TESTOPTS)
+	DEPENDS testsuite
+	DEPENDS image
+)
+
+add_custom_target(testsuite
 	DEPENDS rpmtests
+	DEPENDS ${DATA_DIR}
+)
+
+add_custom_target(image
 	DEPENDS ${INST_DIR}
 	DEPENDS ${TREE_DIR}
 )
@@ -114,14 +123,22 @@ add_custom_command(OUTPUT rpmtests
 	DEPENDS ${TESTSUITE_AT}
 )
 
+add_custom_command(OUTPUT ${DATA_DIR}
+	COMMAND rm -rf ${DATA_DIR} &&
+		mkdir ${DATA_DIR} &&
+		cp -r ${CMAKE_CURRENT_SOURCE_DIR}/data ${DATA_DIR}/ &&
+		mkdir -p ${DATA_DIR}/usr/bin &&
+		cp ${TESTPROGS} ${DATA_DIR}/usr/bin/
+	DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/data
+	DEPENDS ${TESTPROGS}
+)
+
 add_custom_command(OUTPUT ${INST_DIR}
 	COMMAND rm -rf ${INST_DIR} &&
 		${CMAKE_MAKE_PROGRAM} -C ${CMAKE_BINARY_DIR}
 		DESTDIR=${INST_DIR} install &&
 		mkdir -p ${INST_DIR}/etc &&
-		ldconfig -r ${INST_DIR} ${CMAKE_INSTALL_PREFIX}/lib64 &&
-		cp -r ${CMAKE_CURRENT_SOURCE_DIR}/data ${INST_DIR}/
-	# DEPENDS ${TESTPROGS}
+		ldconfig -r ${INST_DIR} ${CMAKE_INSTALL_PREFIX}/lib64
 	DEPENDS ${TOP_TARGETS}
 )
 
