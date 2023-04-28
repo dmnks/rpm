@@ -17,6 +17,8 @@ configure_file(atlocal.in atlocal @ONLY)
 configure_file(atconfig.in atconfig @ONLY)
 configure_file(package.m4.in package.m4 @ONLY)
 
+get_property(TOP_TARGETS DIRECTORY .. PROPERTY BUILDSYSTEM_TARGETS)
+
 set(TESTSUITE_AT
 	rpmtests.at
 	rpmgeneral.at
@@ -46,6 +48,9 @@ set(TESTSUITE_AT
 	rpmpgp.at
 )
 
+set(TREE_DIR ${CMAKE_CURRENT_BINARY_DIR}/tree)
+set(INST_DIR ${CMAKE_CURRENT_BINARY_DIR}/inst)
+
 find_program(AUTOM4TE autom4te REQUIRED)
 set(AUTOTEST ${AUTOM4TE} --language=autotest)
 set(TESTPROGS rpmpgpcheck rpmpgppubkeyfingerprint)
@@ -53,7 +58,7 @@ foreach(prg ${TESTPROGS})
 	add_executable(${prg} EXCLUDE_FROM_ALL ${prg}.c)
 	target_link_libraries(${prg} PRIVATE librpmio)
 	set_target_properties(${prg} PROPERTIES
-	    RUNTIME_OUTPUT_DIRECTORY inst/${CMAKE_INSTALL_PREFIX}/bin)
+		RUNTIME_OUTPUT_DIRECTORY ${INST_DIR}/${CMAKE_INSTALL_PREFIX}/bin)
 endforeach()
 
 find_program(LSB lsb_release REQUIRED)
@@ -69,12 +74,13 @@ find_program(BWRAP bwrap REQUIRED)
 execute_process(COMMAND id -u OUTPUT_VARIABLE UID)
 if (${UID} EQUAL 0)
 	set(UNSHARE "")
+elseif(EXISTS /run/.toolboxenv)
+	set(UNSHARE sudo)
 else()
 	find_program(UNSHARE unshare REQUIRED)
 	set(UNSHARE unshare -rm --map-auto)
 endif()
 
-set(TREE_DIR ${CMAKE_CURRENT_BINARY_DIR}/tree)
 string(REPLACE ";" " " UNSHARE_CMD "${UNSHARE}")
 configure_file(mktree.${LSB_NAME} mktree @ONLY)
 
@@ -98,27 +104,28 @@ endif()
 add_custom_target(check
 	COMMAND ${UNSHARE} ./rpmtests ${JOBS} $(TESTOPTS)
 	DEPENDS rpmtests
-)
-
-add_custom_target(rpmtests
-	COMMAND ${AUTOTEST} -I ${CMAKE_CURRENT_SOURCE_DIR}
-		-o rpmtests rpmtests.at &&
-		cp ${CMAKE_CURRENT_SOURCE_DIR}/data/macros.debug . &&
-		cp -r ${CMAKE_CURRENT_SOURCE_DIR}/data inst/
-	DEPENDS ${TESTSUITE_AT}
-	DEPENDS ${TESTPROGS}
-	DEPENDS inst
-)
-
-add_custom_target(inst
-	COMMAND rm -rf inst/ &&
-		${CMAKE_MAKE_PROGRAM} -C ${CMAKE_BINARY_DIR}
-		DESTDIR=${CMAKE_CURRENT_BINARY_DIR}/inst install &&
-		mkdir -p inst/etc &&
-		ldconfig -r inst ${CMAKE_INSTALL_PREFIX}/lib64
+	DEPENDS ${INST_DIR}
 	DEPENDS ${TREE_DIR}
 )
 
+add_custom_command(OUTPUT rpmtests
+	COMMAND ${AUTOTEST} -I ${CMAKE_CURRENT_SOURCE_DIR}
+		-o rpmtests rpmtests.at
+	DEPENDS ${TESTSUITE_AT}
+)
+
+add_custom_command(OUTPUT ${INST_DIR}
+	COMMAND rm -rf ${INST_DIR} &&
+		${CMAKE_MAKE_PROGRAM} -C ${CMAKE_BINARY_DIR}
+		DESTDIR=${INST_DIR} install &&
+		mkdir -p ${INST_DIR}/etc &&
+		ldconfig -r ${INST_DIR} ${CMAKE_INSTALL_PREFIX}/lib64 &&
+		cp -r ${CMAKE_CURRENT_SOURCE_DIR}/data ${INST_DIR}/
+	# DEPENDS ${TESTPROGS}
+	DEPENDS ${TOP_TARGETS}
+)
+
 add_custom_command(OUTPUT ${TREE_DIR}
-	COMMAND ./mktree
+	COMMAND rm -rf ${TREE_DIR} && ./mktree
+	DEPENDS mktree
 )
