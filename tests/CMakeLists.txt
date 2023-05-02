@@ -72,28 +72,27 @@ string(TOLOWER ${LSB_NAME} LSB_NAME)
 find_program(BWRAP bwrap REQUIRED)
 execute_process(COMMAND id -u OUTPUT_VARIABLE UID)
 if (${UID} EQUAL 0)
-	set(UNSHARE_CMD "")
+	set(UNSHARE "")
 elseif(EXISTS /run/.toolboxenv)
-	set(UNSHARE_CMD "sudo")
+	set(UNSHARE sudo)
 else()
 	find_program(UNSHARE unshare REQUIRED)
-	set(UNSHARE_CMD "${UNSHARE} -rm --map-auto")
+	set(UNSHARE ${UNSHARE} -rm --map-auto)
 endif()
 
+string(REPLACE ";" " " UNSHARE_CMD "${UNSHARE}")
 configure_file(mktree.${LSB_NAME} mktree @ONLY)
 
 if (ENABLE_SANDBOX)
-	set(UNSHARE_CMD "${UNSHARE_CMD} ${BWRAP} \
-	    --ro-bind ${TREE_DIR} / \
-	    --bind ${CMAKE_CURRENT_BINARY_DIR} /srv --chdir /srv \
-	    --dev /dev --proc /proc")
+	set(UNSHARE ${UNSHARE} ${BWRAP}
+	    --ro-bind ${TREE_DIR} /
+	    --bind ${CMAKE_CURRENT_BINARY_DIR} /srv --chdir /srv
+	    --dev /dev --proc /proc)
 else()
 	foreach (util cpio diff file gzip mount readelf tar)
 		find_program(__${UTIL} ${util} REQUIRED)
 	endforeach()
 endif()
-
-configure_file(run.in run @ONLY)
 
 include(ProcessorCount)
 ProcessorCount(nproc)
@@ -102,7 +101,7 @@ if (nproc GREATER 1)
 endif()
 
 add_custom_target(check
-	COMMAND ./run ${JOBS} $(TESTOPTS)
+	COMMAND ${UNSHARE} ./rpmtests ${JOBS} $(TESTOPTS)
 	DEPENDS testsuite
 	DEPENDS image
 )
