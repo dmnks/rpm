@@ -1,7 +1,7 @@
 # vi:filetype=sh
 
-PREFIX="@CMAKE_INSTALL_PREFIX@"
-export PREFIX
+LIBDIR="@CMAKE_INSTALL_FULL_LIBDIR@"
+export LIBDIR
 
 CRYPTO=@CRYPTO@
 export CRYPTO
@@ -64,13 +64,9 @@ fi
 function setup_env()
 {
     if [ -d tree ]; then
-	# FIXME
-	PREFIX=${PREFIX}
-
         RPMTEST=${PWD}/tree
         HOME=${RPMTEST}
-
-        export PREFIX RPMTEST HOME
+        export RPMTEST HOME
     fi
 }
 

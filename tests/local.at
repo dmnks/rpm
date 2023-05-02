@@ -10,11 +10,9 @@ if ! [ -d tree/ ]; then
     mkdir -p tree/build
     ln -s ../data/SOURCES tree/build/
 fi
-export PREFIX="${PREFIX}"
 export RPMTEST="${PWD}/tree"
 export TOPDIR="${RPMTEST}/build"
 export HOME="${RPMTEST}"
-export PATH=${PREFIX}/bin:$PATH
 ]])
 
 m4_define([RPMDB_INIT],[
