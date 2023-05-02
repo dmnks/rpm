@@ -32,8 +32,8 @@ fi
 
 # RPMTEST="${abs_builddir}/testing"
 # RPMDATA="${abs_srcdir}/data/"
-RPMTEST="${PWD}/"
-RPMDATA="${PWD}/util/data/"
+RPMTEST="${PWD}/base/"
+RPMDATA="${PWD}/base/util/data/"
 
 for mnt in rpmtests.dir/*/tree; do
     mountpoint -q ${mnt} && umount -l ${mnt}

@@ -48,9 +48,10 @@ set(TESTSUITE_AT
 	rpmpgp.at
 )
 
-set(TREE_DIR ${CMAKE_CURRENT_BINARY_DIR}/tree)
-set(INST_DIR ${CMAKE_CURRENT_BINARY_DIR}/inst)
-set(UTIL_DIR ${CMAKE_CURRENT_BINARY_DIR}/util)
+set(BASE_DIR ${CMAKE_CURRENT_BINARY_DIR}/base)
+set(TREE_DIR ${BASE_DIR}/tree)
+set(INST_DIR ${BASE_DIR}/inst)
+set(UTIL_DIR ${BASE_DIR}/util)
 set(DATA_DIR ${UTIL_DIR}/data)
 
 find_program(AUTOM4TE autom4te REQUIRED)
