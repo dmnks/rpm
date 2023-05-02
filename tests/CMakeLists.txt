@@ -116,8 +116,8 @@ add_custom_target(testenv
 
 add_custom_target(testsuite
 	DEPENDS rpmtests
-	DEPENDS ${DATA_DIR}
 	DEPENDS ${TESTPROGS}
+	DEPENDS ${DATA_DIR}
 )
 
 add_custom_target(testimage
