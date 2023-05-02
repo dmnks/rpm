@@ -50,7 +50,8 @@ set(TESTSUITE_AT
 
 set(TREE_DIR ${CMAKE_CURRENT_BINARY_DIR}/tree)
 set(INST_DIR ${CMAKE_CURRENT_BINARY_DIR}/inst)
-set(DATA_DIR ${CMAKE_CURRENT_BINARY_DIR}/data)
+set(UTIL_DIR ${CMAKE_CURRENT_BINARY_DIR}/util)
+set(DATA_DIR ${UTIL_DIR}/data)
 
 find_program(AUTOM4TE autom4te REQUIRED)
 set(AUTOTEST ${AUTOM4TE} --language=autotest)
@@ -58,6 +59,8 @@ set(TESTPROGS rpmpgpcheck rpmpgppubkeyfingerprint)
 foreach(prg ${TESTPROGS})
 	add_executable(${prg} EXCLUDE_FROM_ALL ${prg}.c)
 	target_link_libraries(${prg} PRIVATE librpmio)
+	set_target_properties(${prg} PROPERTIES
+		RUNTIME_OUTPUT_DIRECTORY ${UTIL_DIR}/usr/bin)
 endforeach()
 
 find_program(LSB lsb_release REQUIRED)
@@ -113,6 +116,7 @@ add_custom_target(testenv
 add_custom_target(testsuite
 	DEPENDS rpmtests
 	DEPENDS ${DATA_DIR}
+	DEPENDS ${TESTPROGS}
 )
 
 add_custom_target(testimage
@@ -128,12 +132,9 @@ add_custom_command(OUTPUT rpmtests
 
 add_custom_command(OUTPUT ${DATA_DIR}
 	COMMAND rm -rf ${DATA_DIR} &&
-		mkdir ${DATA_DIR} &&
-		cp -r ${CMAKE_CURRENT_SOURCE_DIR}/data ${DATA_DIR}/ &&
-		mkdir -p ${DATA_DIR}/usr/bin &&
-		cp ${TESTPROGS} ${DATA_DIR}/usr/bin/
+		mkdir -p ${DATA_DIR} &&
+		cp -r ${CMAKE_CURRENT_SOURCE_DIR}/data ${UTIL_DIR}/
 	DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/data
-	DEPENDS ${TESTPROGS}
 )
 
 add_custom_command(OUTPUT ${INST_DIR}
