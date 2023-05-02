@@ -48,6 +48,7 @@ else
     DEBUGINFO_DISABLED=true;
 fi
 if [ "@WITH_CAP@" == "ON" ]; then
+    # FIXME
     CAP_DISABLED=true;
 else
     CAP_DISABLED=false;
@@ -66,7 +67,8 @@ function setup_env()
     if [ -d tree ]; then
         RPMTEST=${PWD}/tree
         HOME=${RPMTEST}
-        export RPMTEST HOME
+        PATH=@CMAKE_INSTALL_PREFIX@/bin:$PATH
+        export RPMTEST HOME PATH
     fi
 }
 
