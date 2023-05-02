@@ -1,8 +1,11 @@
-set(PYTHON ${Python3_EXECUTABLE})
-set(prefix ${CMAKE_INSTALL_PREFIX})
+set(BASE_DIR base)
+set(TREE_DIR ${BASE_DIR}/tree)
+set(INST_DIR ${BASE_DIR}/inst)
+set(UTIL_DIR ${BASE_DIR}/util)
+set(DATA_DIR ${UTIL_DIR}/data)
+
 set(pyexecdir ${Python3_SITEARCH})
 set(usrbindir ${CMAKE_INSTALL_FULL_BINDIR})
-set(usrlibdir ${CMAKE_INSTALL_FULL_LIBDIR})
 if (${WITH_INTERNAL_OPENPGP})
 	if (${WITH_OPENSSL})
 		set(CRYPTO openssl)
@@ -47,12 +50,6 @@ set(TESTSUITE_AT
 	rpmvfylevel.at
 	rpmpgp.at
 )
-
-set(BASE_DIR ${CMAKE_CURRENT_BINARY_DIR}/base)
-set(TREE_DIR ${BASE_DIR}/tree)
-set(INST_DIR ${BASE_DIR}/inst)
-set(UTIL_DIR ${BASE_DIR}/util)
-set(DATA_DIR ${UTIL_DIR}/data)
 
 find_program(AUTOM4TE autom4te REQUIRED)
 set(AUTOTEST ${AUTOM4TE} --language=autotest)
@@ -141,7 +138,7 @@ add_custom_command(OUTPUT ${DATA_DIR}
 add_custom_command(OUTPUT ${INST_DIR}
 	COMMAND rm -rf ${INST_DIR} &&
 		${CMAKE_MAKE_PROGRAM} -C ${CMAKE_BINARY_DIR}
-		DESTDIR=${INST_DIR} install &&
+		DESTDIR=${CMAKE_CURRENT_BINARY_DIR}/${INST_DIR} install &&
 		mkdir -p ${INST_DIR}/etc &&
 		ldconfig -r ${INST_DIR} ${CMAKE_INSTALL_PREFIX}/lib64
 	DEPENDS ${TOP_TARGETS}

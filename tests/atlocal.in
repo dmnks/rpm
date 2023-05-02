@@ -1,18 +1,7 @@
 # vi:filetype=sh
-PREFIX="@prefix@"
-RPMLIBDIR="@usrlibdir@"
-#LD_LIBRARY_PATH="${abs_builddir}/testing/${RPMLIBDIR}${LD_LIBRARY_PATH+:${LD_LIBRARY_PATH}}"
-#export LD_LIBRARY_PATH
-export PREFIX
-export RPMLIBDIR
-#PATH="${abs_builddir}/testing@usrbindir@:$PATH"
-#export PATH
 
-PYTHON=@PYTHON@
-if test "${PYTHON}"; then
-    PYTHONPATH="${abs_builddir}/testing@pyexecdir@"
-    export PYTHONPATH
-fi
+PREFIX="@CMAKE_INSTALL_PREFIX@"
+export PREFIX
 
 CRYPTO=@CRYPTO@
 export CRYPTO
@@ -30,32 +19,27 @@ else
     exit
 fi
 
-# RPMTEST="${abs_builddir}/testing"
-# RPMDATA="${abs_srcdir}/data/"
-RPMTEST="${PWD}/base/"
-RPMDATA="${PWD}/base/util/data/"
-
+# Unmount any leftover trees from previous runs (e.g. failed tests)
 for mnt in rpmtests.dir/*/tree; do
     mountpoint -q ${mnt} && umount -l ${mnt}
 done
 
-RPM_CONFIGDIR="${RPMTEST}/inst/@RPMCONFIGDIR@"
-RPM_POPTEXEC_PATH="${RPMTEST}/inst/@usrbindir@"
-export RPM_CONFIGDIR RPM_POPTEXEC_PATH
+BASE_DIR="${PWD}/@UTIL_DIR@:${PWD}/@INST_DIR@:${PWD}/@TREE_DIR@"
+RPM_CONFIGDIR="@RPMCONFIGDIR@"
+export BASE_DIR RPM_CONFIGDIR
 
-DBFORMAT=$(awk '/^%_db_backend/{print $2}' "${RPM_CONFIGDIR}/macros")
+DATA_DIR="${PWD}/@DATA_DIR@"
+
+DBFORMAT=$(awk '/^%_db_backend/{print $2}' "@INST_DIR@/@RPMCONFIGDIR@/macros")
 export DBFORMAT
-
-# Popt looks into $HOME
-HOME="${PWD}"
-export HOME
 
 TZ=UTC
 export TZ
 
 unset SOURCE_DATE_EPOCH
 
-TOPDIR="${HOME}/build"
+# FIXME
+TOPDIR="${PWD}/build"
 
 RPM_XFAIL=${RPM_XFAIL-1}
 if test -x "@__FIND_DEBUGINFO@"; then
@@ -63,16 +47,11 @@ if test -x "@__FIND_DEBUGINFO@"; then
 else
     DEBUGINFO_DISABLED=true;
 fi
-if test "${PYTHON}"; then
-    PYTHON_DISABLED=false;
-else
-    PYTHON_DISABLED=true;
-fi
-#if grep -q '#define WITH_CAP 1' "${abs_top_builddir}/config.h"; then
-    CAP_DISABLED=false;
-#else
+if [ "@WITH_CAP@" == "ON" ]; then
     CAP_DISABLED=true;
-#fi
+else
+    CAP_DISABLED=false;
+fi
 
 MALLOC_DEBUG=libc_malloc_debug.so.0
 if ! LD_PRELOAD=${MALLOC_DEBUG} /bin/true 2>&1 | grep -q ERROR; then
@@ -85,11 +64,13 @@ fi
 function setup_env()
 {
     if [ -d tree ]; then
+	# FIXME
 	PREFIX=${PREFIX}
+
         RPMTEST=${PWD}/tree
         HOME=${RPMTEST}
-        RPM_CONFIGDIR=${RPMTEST}/@RPMCONFIGDIR@
-        export PREFIX RPMTEST HOME RPM_CONFIGDIR
+
+        export PREFIX RPMTEST HOME
     fi
 }
 
@@ -102,18 +83,18 @@ function run()
 function rundebug()
 {
     setup_env
-    cp ${RPMDATA}/macros.debug ${RPM_CONFIGDIR}/macros.d/
-    (unset RPM_CONFIGDIR RPM_POPTEXEC_PATH; \
+    cp ${DATA_DIR}/macros.debug tree/@RPMCONFIGDIR@/macros.d/
+    (unset RPM_POPTEXEC_PATH; \
         bwrap --unshare-pid --dev-bind ${RPMTEST} / --dev /dev --proc /proc "$@" \
 	--define "_buildhost testhost" --define "_topdir /build" --noplugins --nouserns
     )
-    rm -f ${RPM_CONFIGDIR}/macros.d/macros.debug
+    rm -f tree/@RPMCONFIGDIR@/macros.d/macros.debug
 }
 
 function runroot()
 {
     setup_env
-    (unset RPM_CONFIGDIR RPM_POPTEXEC_PATH; \
+    (unset RPM_POPTEXEC_PATH; \
         bwrap --unshare-pid --dev-bind ${RPMTEST} / --dev /dev --proc /proc "$@" \
 	--define "_buildhost testhost" --define "_topdir /build" --noplugins --nouserns
     )
@@ -122,7 +103,7 @@ function runroot()
 function runroot_other()
 {
     setup_env
-    (unset RPM_CONFIGDIR RPM_POPTEXEC_PATH; \
+    (unset RPM_POPTEXEC_PATH; \
         bwrap --unshare-pid --dev-bind ${RPMTEST} / --dev /dev --proc /proc "$@"
     )
 }
