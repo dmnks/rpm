@@ -106,6 +106,10 @@ add_custom_target(check
 	DEPENDS image
 )
 
+add_custom_target(testenv
+	COMMAND ${UNSHARE} env "PS1='(testenv)#" "'" sh || true
+)
+
 add_custom_target(testsuite
 	DEPENDS rpmtests
 	DEPENDS ${DATA_DIR}
