@@ -109,6 +109,13 @@ add_custom_target(check
 	DEPENDS testimage
 )
 
+add_custom_target(shell
+	COMMAND ${UNSHARE} sh -c "set -e; source ./atlocal; \
+		mkdir -p shell; cd shell; mkovl; \
+		spawn env HOME=/root PS1='(shell)# ' sh" || true
+	VERBATIM
+)
+
 add_custom_target(testenv
 	COMMAND ${UNSHARE} env "PS1=(testenv)# " sh || true
 	VERBATIM
