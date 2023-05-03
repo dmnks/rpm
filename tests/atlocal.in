@@ -62,11 +62,6 @@ if ! LD_PRELOAD=${MALLOC_DEBUG} /bin/true 2>&1 | grep -q ERROR; then
     export LD_PRELOAD GLIBC_TUNABLES
 fi
 
-function run()
-{
-    "$@" --define "_buildhost testhost" --define "_tmppath ${RPMTEST}/tmp" --define "_topdir ${TOPDIR}" --define "_db_backend ${DBFORMAT}" --dbpath="${RPMTEST}/var/lib/rpm/"
-}
-
 function rundebug()
 {
     cp ${DATA_DIR}/macros.debug tree/@RPMCONFIGDIR@/macros.d/
