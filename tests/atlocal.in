@@ -52,11 +52,17 @@ for mnt in rpmtests.dir/*/tree; do
     mountpoint -q ${mnt} && umount -l ${mnt}
 done
 
-function _overlay()
+function mkovl()
 {
     mkdir temp work tree
     mount -t overlay overlay -o userxattr \
           -o lowerdir=${BASE_DIR},upperdir=temp,workdir=work tree
+}
+
+function rmovl()
+{
+    umount -l tree
+    rm -rf temp work tree
 }
 
 function _bwrap()

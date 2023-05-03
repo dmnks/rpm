@@ -1,7 +1,7 @@
 AT_TESTED([bwrap])
 
 m4_define([RPMTEST_SETUP],[[
-[ -d tree ] || _overlay
+[ -d tree ] || mkovl
 export RPMTEST="${PWD}/tree"
 export TOPDIR="${RPMTEST}/build"
 ]])
@@ -45,10 +45,7 @@ AT_CHECK($@)
 ])
 
 m4_define([RPMTEST_CLEANUP],[
-# Need -l since bwrap spawns a custom pid1 process which may hang around for a
-# bit after the container terminates
-umount -l tree
-rm -rf temp work tree
+rmovl
 AT_CLEANUP
 ])
 
