@@ -67,7 +67,7 @@ function rmovl()
     rm -rf temp work tree
 }
 
-function _bwrap()
+function spawn()
 {
     bwrap --unshare-pid --dev-bind ${RPMTEST} / \
           --dev /dev --proc /proc --chdir / "$@"
@@ -75,12 +75,12 @@ function _bwrap()
 
 function runroot()
 {
-    _bwrap "$@" --noplugins --nouserns
+    spawn "$@" --noplugins --nouserns
 }
 
 function runroot_other()
 {
-    _bwrap "$@"
+    spawn "$@"
 }
 
 function rundebug()

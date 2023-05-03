@@ -870,7 +870,8 @@ RPMTEST_CHECK([
 RPMDB_INIT
 
 # Use macros.debug to generate a debuginfo package.
-rundebug --setenv CFLAGS "-g" rpmbuild --quiet \
+export CFLAGS="-g"
+rundebug rpmbuild --quiet \
   --rebuild /data/SRPMS/hello-1.0-1.src.rpm
 
 # Extract the main package and inspect the hello binary
@@ -906,7 +907,8 @@ RPMTEST_CHECK([
 RPMDB_INIT
 
 # Use macros.debug to generate a debuginfo package.
-rundebug --setenv CFLAGS "-g" rpmbuild --quiet \
+export CFLAGS="-g"
+rundebug rpmbuild --quiet \
   --define="_find_debuginfo_opts -g" \
   --rebuild /data/SRPMS/hello-1.0-1.src.rpm
 
@@ -1031,7 +1033,8 @@ RPMDB_INIT
 
 # Use macros.debug to generate a debuginfo package,
 # but pass --nodebuginfo to skip it.
-rundebug --setenv CFLAGS "-g" rpmbuild --quiet --nodebuginfo \
+export CFLAGS="-g"
+rundebug rpmbuild --quiet --nodebuginfo \
   --rebuild /data/SRPMS/hello-1.0-1.src.rpm
 
 # Extract the main package and inspect the hello binary
