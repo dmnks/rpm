@@ -44,12 +44,12 @@ if test -x "@__FIND_DEBUGINFO@"; then
 else
     DEBUGINFO_DISABLED=true;
 fi
-if [ "@WITH_CAP@" == "ON" ]; then
-    # FIXME
+# FIXME
+#if [ "@WITH_CAP@" == "ON" ]; then
+#    CAP_DISABLED=false;
+#else
     CAP_DISABLED=true;
-else
-    CAP_DISABLED=false;
-fi
+#fi
 
 MALLOC_DEBUG=libc_malloc_debug.so.0
 if ! LD_PRELOAD=${MALLOC_DEBUG} /bin/true 2>&1 | grep -q ERROR; then
