@@ -10,8 +10,6 @@ if ! [ -d tree/ ]; then
 fi
 export RPMTEST="${PWD}/tree"
 export TOPDIR="${RPMTEST}/build"
-# TODO needed?
-export HOME="${RPMTEST}"
 ]])
 
 m4_define([RPMDB_INIT],[

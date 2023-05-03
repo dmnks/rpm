@@ -38,9 +38,6 @@ export TZ
 
 unset SOURCE_DATE_EPOCH
 
-# FIXME
-TOPDIR="${PWD}/build"
-
 RPM_XFAIL=${RPM_XFAIL-1}
 if test -x "@__FIND_DEBUGINFO@"; then
     DEBUGINFO_DISABLED=false;
