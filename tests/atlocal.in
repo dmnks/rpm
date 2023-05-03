@@ -62,27 +62,24 @@ if ! LD_PRELOAD=${MALLOC_DEBUG} /bin/true 2>&1 | grep -q ERROR; then
     export LD_PRELOAD GLIBC_TUNABLES
 fi
 
-function rundebug()
+function spawn()
 {
-    cp ${DATA_DIR}/macros.debug tree/@MACRO_DIR@/
-    (unset RPM_POPTEXEC_PATH; \
-        bwrap --unshare-pid --dev-bind ${RPMTEST} / --dev /dev --proc /proc "$@" \
-	--noplugins --nouserns
-    )
-    rm -f tree/@MACRO_DIR@/macros.debug
+    bwrap --unshare-pid --dev-bind ${RPMTEST} / --dev /dev --proc /proc "$@"
 }
 
 function runroot()
 {
-    (unset RPM_POPTEXEC_PATH; \
-        bwrap --unshare-pid --dev-bind ${RPMTEST} / --dev /dev --proc /proc "$@" \
-	--noplugins --nouserns
-    )
+    spawn "$@" --noplugins --nouserns
 }
 
 function runroot_other()
 {
-    (unset RPM_POPTEXEC_PATH; \
-        bwrap --unshare-pid --dev-bind ${RPMTEST} / --dev /dev --proc /proc "$@"
-    )
+    spawn "$@"
+}
+
+function rundebug()
+{
+    cp ${DATA_DIR}/macros.debug tree/@MACRO_DIR@/
+    runroot "$@"
+    rm -f tree/@MACRO_DIR@/macros.debug
 }
