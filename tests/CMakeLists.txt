@@ -105,8 +105,7 @@ endif()
 
 add_custom_target(check
 	COMMAND ${UNSHARE} ./rpmtests ${JOBS} $(TESTOPTS)
-	DEPENDS testsuite
-	DEPENDS testimage
+	DEPENDS tests
 )
 
 add_custom_target(shell
@@ -121,13 +120,18 @@ add_custom_target(testenv
 	VERBATIM
 )
 
-add_custom_target(testsuite
+add_custom_target(tests
+	DEPENDS suite
+	DEPENDS image
+)
+
+add_custom_target(suite
 	DEPENDS rpmtests
 	DEPENDS ${TESTPROGS}
 	DEPENDS ${DATA_DIR}
 )
 
-add_custom_target(testimage
+add_custom_target(image
 	DEPENDS ${INST_DIR}
 	DEPENDS ${TREE_DIR}
 )
