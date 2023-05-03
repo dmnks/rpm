@@ -54,7 +54,7 @@ done
 
 function mkovl()
 {
-    mkdir temp work tree
+    mkdir -p temp work tree
     mount -t overlay overlay -o userxattr \
           -o lowerdir=${BASE_DIR},upperdir=temp,workdir=work tree
     export RPMTEST="${PWD}/tree"
