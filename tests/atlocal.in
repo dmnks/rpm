@@ -55,14 +55,14 @@ done
 function _overlay()
 {
     mkdir temp work tree
-    mount -t overlay overlay \
-          -o userxattr \
+    mount -t overlay overlay -o userxattr \
           -o lowerdir=${BASE_DIR},upperdir=temp,workdir=work tree
 }
 
 function _bwrap()
 {
-    bwrap --unshare-pid --dev-bind ${RPMTEST} / --dev /dev --proc /proc "$@"
+    bwrap --unshare-pid --dev-bind ${RPMTEST} / \
+          --dev /dev --proc /proc --chdir / "$@"
 }
 
 function runroot()
