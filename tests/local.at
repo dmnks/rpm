@@ -1,13 +1,7 @@
 AT_TESTED([bwrap])
 
 m4_define([RPMTEST_SETUP],[[
-if ! [ -d tree/ ]; then
-    mkdir temp work tree
-    mount -t overlay overlay \
-	-o userxattr \
-	-o lowerdir=${BASE_DIR},upperdir=temp,workdir=work \
-	tree
-fi
+[ -d tree ] || _overlay
 export RPMTEST="${PWD}/tree"
 export TOPDIR="${RPMTEST}/build"
 #TODO:

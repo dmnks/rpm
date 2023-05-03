@@ -1,8 +1,8 @@
 # vi:filetype=sh
 
 BASE_DIR="${PWD}/@UTIL_DIR@:${PWD}/@INST_DIR@:${PWD}/@TREE_DIR@"
-RPM_CONFIGDIR="@RPMCONFIGDIR@"
 DATA_DIR="${PWD}/@DATA_DIR@"
+RPM_CONFIGDIR="@RPMCONFIGDIR@"
 LIBDIR="@CMAKE_INSTALL_FULL_LIBDIR@"
 RPM_XFAIL=${RPM_XFAIL-1}
 DBFORMAT=$(awk '/^%_db_backend/{print $2}' "@INST_DIR@/@RPMCONFIGDIR@/macros")
@@ -51,6 +51,14 @@ fi
 for mnt in rpmtests.dir/*/tree; do
     mountpoint -q ${mnt} && umount -l ${mnt}
 done
+
+function _overlay()
+{
+    mkdir temp work tree
+    mount -t overlay overlay \
+          -o userxattr \
+          -o lowerdir=${BASE_DIR},upperdir=temp,workdir=work tree
+}
 
 function _bwrap()
 {
