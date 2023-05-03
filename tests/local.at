@@ -10,6 +10,8 @@ if ! [ -d tree/ ]; then
 fi
 export RPMTEST="${PWD}/tree"
 export TOPDIR="${RPMTEST}/build"
+#TODO:
+#PATH=@CMAKE_INSTALL_PREFIX@/bin:$PATH
 ]])
 
 m4_define([RPMDB_INIT],[

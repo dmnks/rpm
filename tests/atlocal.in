@@ -52,19 +52,19 @@ for mnt in rpmtests.dir/*/tree; do
     mountpoint -q ${mnt} && umount -l ${mnt}
 done
 
-function spawn()
+function _bwrap()
 {
     bwrap --unshare-pid --dev-bind ${RPMTEST} / --dev /dev --proc /proc "$@"
 }
 
 function runroot()
 {
-    spawn "$@" --noplugins --nouserns
+    _bwrap "$@" --noplugins --nouserns
 }
 
 function runroot_other()
 {
-    spawn "$@"
+    _bwrap "$@"
 }
 
 function rundebug()
