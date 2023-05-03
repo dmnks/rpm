@@ -110,7 +110,8 @@ add_custom_target(check
 )
 
 add_custom_target(testenv
-	COMMAND ${UNSHARE} env "PS1='(testenv)#" "'" sh || true
+	COMMAND ${UNSHARE} env "PS1=(testenv)# " sh || true
+	VERBATIM
 )
 
 add_custom_target(testsuite
