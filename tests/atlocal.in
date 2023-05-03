@@ -1,10 +1,17 @@
 # vi:filetype=sh
 
+BASE_DIR="${PWD}/@UTIL_DIR@:${PWD}/@INST_DIR@:${PWD}/@TREE_DIR@"
+RPM_CONFIGDIR="@RPMCONFIGDIR@"
+DATA_DIR="${PWD}/@DATA_DIR@"
 LIBDIR="@CMAKE_INSTALL_FULL_LIBDIR@"
-export LIBDIR
+RPM_XFAIL=${RPM_XFAIL-1}
+DBFORMAT=$(awk '/^%_db_backend/{print $2}' "@INST_DIR@/@RPMCONFIGDIR@/macros")
+TZ=UTC
+
+export DBFORMAT TZ
+unset SOURCE_DATE_EPOCH
 
 CRYPTO=@CRYPTO@
-export CRYPTO
 if test x$CRYPTO = xlibgcrypt
 then
     PGP=internal
@@ -19,31 +26,12 @@ else
     exit
 fi
 
-# Unmount any leftover trees from previous runs (e.g. failed tests)
-for mnt in rpmtests.dir/*/tree; do
-    mountpoint -q ${mnt} && umount -l ${mnt}
-done
-
-BASE_DIR="${PWD}/@UTIL_DIR@:${PWD}/@INST_DIR@:${PWD}/@TREE_DIR@"
-RPM_CONFIGDIR="@RPMCONFIGDIR@"
-export BASE_DIR RPM_CONFIGDIR
-
-DATA_DIR="${PWD}/@DATA_DIR@"
-
-DBFORMAT=$(awk '/^%_db_backend/{print $2}' "@INST_DIR@/@RPMCONFIGDIR@/macros")
-export DBFORMAT
-
-TZ=UTC
-export TZ
-
-unset SOURCE_DATE_EPOCH
-
-RPM_XFAIL=${RPM_XFAIL-1}
 if test -x "@__FIND_DEBUGINFO@"; then
     DEBUGINFO_DISABLED=false;
 else
     DEBUGINFO_DISABLED=true;
 fi
+
 # FIXME
 #if [ "@WITH_CAP@" == "ON" ]; then
 #    CAP_DISABLED=false;
@@ -58,6 +46,11 @@ if ! LD_PRELOAD=${MALLOC_DEBUG} /bin/true 2>&1 | grep -q ERROR; then
     GLIBC_TUNABLES="glibc.malloc.check=1:glibc.malloc.perturb=${MALLOC_PERTURB}"
     export LD_PRELOAD GLIBC_TUNABLES
 fi
+
+# Unmount any leftover trees from previous runs (e.g. failed tests)
+for mnt in rpmtests.dir/*/tree; do
+    mountpoint -q ${mnt} && umount -l ${mnt}
+done
 
 function spawn()
 {
