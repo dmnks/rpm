@@ -62,25 +62,13 @@ if ! LD_PRELOAD=${MALLOC_DEBUG} /bin/true 2>&1 | grep -q ERROR; then
     export LD_PRELOAD GLIBC_TUNABLES
 fi
 
-function setup_env()
-{
-    if [ -d tree ]; then
-        RPMTEST=${PWD}/tree
-        HOME=${RPMTEST}
-        PATH=@CMAKE_INSTALL_PREFIX@/bin:$PATH
-        export RPMTEST HOME PATH
-    fi
-}
-
 function run()
 {
-    setup_env
     "$@" --define "_buildhost testhost" --define "_tmppath ${RPMTEST}/tmp" --define "_topdir ${TOPDIR}" --define "_db_backend ${DBFORMAT}" --dbpath="${RPMTEST}/var/lib/rpm/"
 }
 
 function rundebug()
 {
-    setup_env
     cp ${DATA_DIR}/macros.debug tree/@RPMCONFIGDIR@/macros.d/
     (unset RPM_POPTEXEC_PATH; \
         bwrap --unshare-pid --dev-bind ${RPMTEST} / --dev /dev --proc /proc "$@" \
@@ -91,7 +79,6 @@ function rundebug()
 
 function runroot()
 {
-    setup_env
     (unset RPM_POPTEXEC_PATH; \
         bwrap --unshare-pid --dev-bind ${RPMTEST} / --dev /dev --proc /proc "$@" \
 	--define "_buildhost testhost" --define "_topdir /build" --noplugins --nouserns
@@ -100,7 +87,6 @@ function runroot()
 
 function runroot_other()
 {
-    setup_env
     (unset RPM_POPTEXEC_PATH; \
         bwrap --unshare-pid --dev-bind ${RPMTEST} / --dev /dev --proc /proc "$@"
     )
