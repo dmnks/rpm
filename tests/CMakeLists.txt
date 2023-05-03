@@ -4,6 +4,8 @@ set(INST_DIR ${BASE_DIR}/inst)
 set(UTIL_DIR ${BASE_DIR}/util)
 set(DATA_DIR ${UTIL_DIR}/data)
 
+set(MACRO_DIR ${RPMCONFIGDIR}/macros.d)
+
 set(pyexecdir ${Python3_SITEARCH})
 set(usrbindir ${CMAKE_INSTALL_FULL_BINDIR})
 if (${WITH_INTERNAL_OPENPGP})
@@ -131,8 +133,10 @@ add_custom_command(OUTPUT rpmtests
 
 add_custom_command(OUTPUT ${DATA_DIR}
 	COMMAND rm -rf ${DATA_DIR} &&
-		mkdir -p ${DATA_DIR} &&
-		cp -r ${CMAKE_CURRENT_SOURCE_DIR}/data ${UTIL_DIR}/
+		cp -r ${CMAKE_CURRENT_SOURCE_DIR}/data ${UTIL_DIR}/ &&
+		mkdir -p ${UTIL_DIR}/{build,${MACRO_DIR}} &&
+		ln -sf /data/SOURCES ${UTIL_DIR}/build/ &&
+		ln -sf /data/macros.test ${UTIL_DIR}/${MACRO_DIR}/
 	DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/data
 )
 

@@ -7,11 +7,10 @@ if ! [ -d tree/ ]; then
 	-o userxattr \
 	-o lowerdir=${BASE_DIR},upperdir=temp,workdir=work \
 	tree
-    mkdir -p tree/build
-    ln -s ../data/SOURCES tree/build/
 fi
 export RPMTEST="${PWD}/tree"
 export TOPDIR="${RPMTEST}/build"
+# TODO needed?
 export HOME="${RPMTEST}"
 ]])
 

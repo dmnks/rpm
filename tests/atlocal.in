@@ -64,19 +64,19 @@ fi
 
 function rundebug()
 {
-    cp ${DATA_DIR}/macros.debug tree/@RPMCONFIGDIR@/macros.d/
+    cp ${DATA_DIR}/macros.debug tree/@MACRO_DIR@/
     (unset RPM_POPTEXEC_PATH; \
         bwrap --unshare-pid --dev-bind ${RPMTEST} / --dev /dev --proc /proc "$@" \
-	--define "_buildhost testhost" --define "_topdir /build" --noplugins --nouserns
+	--noplugins --nouserns
     )
-    rm -f tree/@RPMCONFIGDIR@/macros.d/macros.debug
+    rm -f tree/@MACRO_DIR@/macros.debug
 }
 
 function runroot()
 {
     (unset RPM_POPTEXEC_PATH; \
         bwrap --unshare-pid --dev-bind ${RPMTEST} / --dev /dev --proc /proc "$@" \
-	--define "_buildhost testhost" --define "_topdir /build" --noplugins --nouserns
+	--noplugins --nouserns
     )
 }
 
