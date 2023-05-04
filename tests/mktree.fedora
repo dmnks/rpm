@@ -5,7 +5,7 @@
 # installation should be present in the tree.
 #
 # Useful CMake variables:
-#   TREE_DIR: destination directory for the tree (relative to CWD)
+#   TREE_DIR: destination directory for the tree (absolute path)
 #   UNSHARE_CMD: runs a program as root in a user namespace (unset if root)
 #   LSB_RELEASE: OS version
 #
@@ -18,7 +18,7 @@ cachedir=$(python3 -c 'import dnf; print(dnf.conf.Conf().cachedir)')
 mkdir -p home && echo '%_netsharedpath %nil' > home/.rpmmacros
 
 @UNSHARE_CMD@ env HOME=home dnf -y install \
-    --installroot=${PWD}/@TREE_DIR@ \
+    --installroot=@TREE_DIR@ \
     --releasever=@LSB_RELEASE@ \
     --setopt=cachedir=${cachedir} \
     --setopt=keepcache=1 \

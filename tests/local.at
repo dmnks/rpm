@@ -2,6 +2,8 @@ AT_TESTED([bwrap])
 
 m4_define([RPMTEST_SETUP],[[
 [ -d tree ] || mkovl
+export RPMTEST="${PWD}/tree"
+export TOPDIR="${RPMTEST}/build"
 ]])
 
 m4_define([RPMDB_INIT],[

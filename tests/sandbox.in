@@ -1,0 +1,50 @@
+#!/bin/bash
+
+function mkovl()
+{
+    mkdir -p temp work tree
+    mount -t overlay overlay -o userxattr \
+          -o lowerdir=@BASE_DIRS@,upperdir=temp,workdir=work tree
+}
+
+function rmovl()
+{
+    umount -l tree
+    rm -rf temp work tree
+}
+
+function spawn()
+{
+    bwrap --unshare-pid --dev-bind ${RPMTEST} / \
+          --dev /dev --proc /proc --chdir / \
+          --setenv PATH @CMAKE_INSTALL_PREFIX@/bin:/usr/bin "$@"
+}
+
+function runroot()
+{
+    spawn "$@" --noplugins --nouserns
+}
+
+function runroot_other()
+{
+    spawn "$@"
+}
+
+function rundebug()
+{
+    cp tree/data/macros.debug tree/@MACRO_DIR@/
+    runroot "$@"
+    rm -f tree/@MACRO_DIR@/macros.debug
+}
+
+# TODO support symlink mode also in tests? (how about runroot?)
+if [ -L "$0" ]; then
+    if [ -z "${RPMTEST}" ]; then
+        cd $(dirname $0)/..
+        mkdir -p sandbox
+        cd sandbox
+        mkovl
+        RPMTEST=${PWD}/tree
+    fi
+    spawn $(basename $0) "$@"
+fi

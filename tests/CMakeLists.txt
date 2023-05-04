@@ -1,8 +1,9 @@
-set(BASE_DIR base)
+set(BASE_DIR ${CMAKE_CURRENT_BINARY_DIR}/base)
 set(TREE_DIR ${BASE_DIR}/tree)
 set(INST_DIR ${BASE_DIR}/inst)
 set(UTIL_DIR ${BASE_DIR}/util)
 set(DATA_DIR ${UTIL_DIR}/data)
+set(BASE_DIRS "${UTIL_DIR}:${INST_DIR}:${TREE_DIR}")
 
 set(MACRO_DIR ${RPMCONFIGDIR}/macros.d)
 
@@ -20,6 +21,7 @@ endif()
 
 configure_file(atlocal.in atlocal @ONLY)
 configure_file(atconfig.in atconfig @ONLY)
+configure_file(sandbox.in bin/sandbox @ONLY)
 configure_file(package.m4.in package.m4 @ONLY)
 
 get_property(TOP_TARGETS DIRECTORY .. PROPERTY BUILDSYSTEM_TARGETS)
@@ -86,10 +88,12 @@ endif()
 string(REPLACE ";" " " UNSHARE_CMD "${UNSHARE}")
 configure_file(mktree.${LSB_NAME} mktree @ONLY)
 
+# TODO rename the option
 if (ENABLE_SANDBOX)
 	set(UNSHARE ${UNSHARE} ${BWRAP}
 	    --ro-bind ${TREE_DIR} /
-	    --bind ${CMAKE_CURRENT_BINARY_DIR} /srv --chdir /srv
+	    --bind ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_BINARY_DIR}
+	    --chdir ${CMAKE_CURRENT_BINARY_DIR}
 	    --dev /dev --proc /proc)
 else()
 	foreach (util cpio diff file gzip mount readelf tar)
@@ -155,13 +159,15 @@ add_custom_command(OUTPUT ${DATA_DIR}
 add_custom_command(OUTPUT ${INST_DIR}
 	COMMAND rm -rf ${INST_DIR} &&
 		${CMAKE_MAKE_PROGRAM} -C ${CMAKE_BINARY_DIR}
-		DESTDIR=${CMAKE_CURRENT_BINARY_DIR}/${INST_DIR} install &&
+		DESTDIR=${INST_DIR} install &&
 		mkdir -p ${INST_DIR}/etc &&
 		ldconfig -r ${INST_DIR} ${CMAKE_INSTALL_PREFIX}/lib64
 	DEPENDS ${TOP_TARGETS}
 )
 
 add_custom_command(OUTPUT ${TREE_DIR}
-	COMMAND rm -rf ${TREE_DIR} && ./mktree
+	COMMAND rm -rf ${TREE_DIR} &&
+		./mktree &&
+		mkdir -p ${TREE_DIR}/${CMAKE_CURRENT_BINARY_DIR}
 	DEPENDS mktree
 )
