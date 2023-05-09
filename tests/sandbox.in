@@ -1,12 +1,12 @@
 #!/bin/bash
 
-BASE_DIR="${PWD}/@UTIL_DIR@:${PWD}/@INST_DIR@:${PWD}/@TREE_DIR@"
+LOWERDIR="${PWD}/@UTIL_DIR@:${PWD}/@INST_DIR@:${PWD}/@TREE_DIR@"
 
 function mkovl()
 {
     mkdir -p temp work tree
     mount -t overlay overlay -o userxattr \
-          -o lowerdir=${BASE_DIR},upperdir=temp,workdir=work tree
+          -o lowerdir=${LOWERDIR},upperdir=temp,workdir=work tree
     export RPMTEST="${PWD}/tree"
     export TOPDIR="${RPMTEST}/build"
 }
@@ -19,13 +19,20 @@ function rmovl()
 
 function spawn()
 {
-    bwrap --unshare-pid --dev-bind ${RPMTEST} / \
-          --dev /dev --proc /proc --chdir / "$@"
+    @BWRAP@ --unshare-pid --dev-bind ${RPMTEST} / \
+            --dev /dev --proc /proc --chdir / "$@"
 }
 
-if [ "$(basename $0)" == "sandbox" ]; then
+function shell()
+{
     mkdir -p shell
     cd shell
     mkovl
-    spawn "$@"
+    spawn --bind ${PWD}/.. /srv --chdir /srv "$@"
+}
+
+if [ "$(basename $0)" == "sandbox" ]; then
+    export LOWERDIR
+    export -f mkovl spawn shell
+    @UNSHARE_CMD@ sh -c 'shell "$@"' "shell" "$@"
 fi

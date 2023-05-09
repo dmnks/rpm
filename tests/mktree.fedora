@@ -1,18 +1,19 @@
 #!/bin/bash
 
 # Bootstrap a minimal filesystem tree with RPM's runtime dependencies that are
-# ABI compatible with the build dependencies used.  No existing RPM
-# installation should be present in the tree.
+# ABI compatible with the build dependencies used.  Test-suite dependencies
+# (see below) MUST also be included.  An existing RPM installation SHOULD NOT
+# be included.
+#
+# Test-suite dependencies (program names):
+#   bwrap cpio diff file gzip mount readelf tar
 #
 # Useful CMake variables:
 #   TREE_DIR: destination directory for the tree (relative to CWD)
 #   UNSHARE_CMD: runs a program as root in a user namespace (unset if root)
 #   LSB_RELEASE: OS version
 #
-# To support ENABLE_SANDBOX, test-suite dependencies must also be present in
-# the tree.
-#
-# This script must work if executed as a regular user as well as root.
+# This script MUST work if executed as a regular user as well as root.
 
 cachedir=$(python3 -c 'import dnf; print(dnf.conf.Conf().cachedir)')
 mkdir -p home && echo '%_netsharedpath %nil' > home/.rpmmacros

@@ -17,7 +17,6 @@ option(ENABLE_SQLITE "Enable sqlite rpmdb support" ON)
 option(ENABLE_NDB "Enable ndb rpmdb support" ON)
 option(ENABLE_BDB_RO "Enable read-only Berkeley DB rpmdb support (EXPERIMENTAL)" OFF)
 option(ENABLE_TESTSUITE "Enable test-suite" ON)
-option(ENABLE_SANDBOX "Enable full test-suite containerization" ON)
 
 option(WITH_INTERNAL_OPENPGP "Use internal OpenPGP parse (DEPRECATED)" OFF)
 option(WITH_OPENSSL "Use openssl (instead of libgcrypt) for internal crypto" OFF)

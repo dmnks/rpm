@@ -20,7 +20,6 @@ endif()
 
 configure_file(atlocal.in atlocal @ONLY)
 configure_file(atconfig.in atconfig @ONLY)
-configure_file(sandbox.in sandbox @ONLY)
 configure_file(package.m4.in package.m4 @ONLY)
 
 get_property(TOP_TARGETS DIRECTORY .. PROPERTY BUILDSYSTEM_TARGETS)
@@ -76,27 +75,16 @@ string(TOLOWER ${LSB_NAME} LSB_NAME)
 find_program(BWRAP bwrap REQUIRED)
 execute_process(COMMAND id -u OUTPUT_VARIABLE UID)
 if (${UID} EQUAL 0)
-	set(UNSHARE "")
+	set(UNSHARE_CMD "")
 elseif(EXISTS /run/.toolboxenv)
-	set(UNSHARE sudo)
+	set(UNSHARE_CMD "sudo")
 else()
 	find_program(UNSHARE unshare REQUIRED)
-	set(UNSHARE ${UNSHARE} -rm --map-auto)
+	set(UNSHARE_CMD "${UNSHARE} -rm --map-auto")
 endif()
 
-string(REPLACE ";" " " UNSHARE_CMD "${UNSHARE}")
+configure_file(sandbox.in sandbox @ONLY)
 configure_file(mktree.${LSB_NAME} mktree @ONLY)
-
-if (ENABLE_SANDBOX)
-	set(UNSHARE ${UNSHARE} ${BWRAP}
-	    --ro-bind ${TREE_DIR} /
-	    --bind ${CMAKE_CURRENT_BINARY_DIR} /srv --chdir /srv
-	    --dev /dev --proc /proc)
-else()
-	foreach (util cpio diff file gzip mount readelf tar)
-		find_program(__${UTIL} ${util} REQUIRED)
-	endforeach()
-endif()
 
 include(ProcessorCount)
 ProcessorCount(nproc)
@@ -105,17 +93,12 @@ if (nproc GREATER 1)
 endif()
 
 add_custom_target(check
-	COMMAND ${UNSHARE} ./rpmtests ${JOBS} $(TESTOPTS)
+	COMMAND ./sandbox ./rpmtests ${JOBS} $(TESTOPTS)
 	DEPENDS tests
 )
 
 add_custom_target(shell
-	COMMAND ${UNSHARE} ./sandbox env HOME=/root "PS1=(shell)# " sh || true
-	VERBATIM
-)
-
-add_custom_target(testenv
-	COMMAND ${UNSHARE} env "PS1=(testenv)# " sh || true
+	COMMAND ./sandbox env HOME=/root "PS1=(shell)# " sh || true
 	VERBATIM
 )
 
@@ -161,6 +144,7 @@ add_custom_command(OUTPUT ${INST_DIR}
 )
 
 add_custom_command(OUTPUT ${TREE_DIR}
-	COMMAND rm -rf ${TREE_DIR} && ./mktree
+	COMMAND rm -rf ${TREE_DIR} &&
+		./mktree
 	DEPENDS mktree
 )
