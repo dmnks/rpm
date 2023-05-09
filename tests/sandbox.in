@@ -8,7 +8,6 @@ function mkovl()
     mount -t overlay overlay -o userxattr \
           -o lowerdir=${LOWERDIR},upperdir=temp,workdir=work tree
     export RPMTEST="${PWD}/tree"
-    export TOPDIR="${RPMTEST}/build"
 }
 
 function rmovl()
@@ -34,5 +33,5 @@ function shell()
 if [ "$(basename $0)" == "sandbox" ]; then
     export LOWERDIR
     export -f mkovl spawn shell
-    @UNSHARE_CMD@ sh -c 'shell "$@"' "shell" "$@"
+    @UNSHARE_CMD@ sh -c 'shell "$@"' $0 "$@"
 fi
