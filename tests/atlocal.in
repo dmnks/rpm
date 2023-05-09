@@ -1,6 +1,5 @@
 # vi:filetype=sh
 
-BASE_DIR="${PWD}/@UTIL_DIR@:${PWD}/@INST_DIR@:${PWD}/@TREE_DIR@"
 DATA_DIR="${PWD}/@DATA_DIR@"
 RPM_CONFIGDIR="@RPMCONFIGDIR@"
 LIBDIR="@CMAKE_INSTALL_FULL_LIBDIR@"
@@ -51,26 +50,7 @@ for mnt in rpmtests.dir/*/tree; do
     mountpoint -q ${mnt} && umount -l ${mnt}
 done
 
-function mkovl()
-{
-    mkdir -p temp work tree
-    mount -t overlay overlay -o userxattr \
-          -o lowerdir=${BASE_DIR},upperdir=temp,workdir=work tree
-    export RPMTEST="${PWD}/tree"
-    export TOPDIR="${RPMTEST}/build"
-}
-
-function rmovl()
-{
-    umount -l tree
-    rm -rf temp work tree
-}
-
-function spawn()
-{
-    bwrap --unshare-pid --dev-bind ${RPMTEST} / \
-          --dev /dev --proc /proc --chdir / "$@"
-}
+source ./sandbox
 
 function runroot()
 {

@@ -20,6 +20,7 @@ endif()
 
 configure_file(atlocal.in atlocal @ONLY)
 configure_file(atconfig.in atconfig @ONLY)
+configure_file(sandbox.in sandbox @ONLY)
 configure_file(package.m4.in package.m4 @ONLY)
 
 get_property(TOP_TARGETS DIRECTORY .. PROPERTY BUILDSYSTEM_TARGETS)
@@ -109,9 +110,7 @@ add_custom_target(check
 )
 
 add_custom_target(shell
-	COMMAND ${UNSHARE} sh -c "set -e; source ./atlocal; \
-		mkdir -p shell; cd shell; mkovl; \
-		spawn env HOME=/root PS1='(shell)# ' sh" || true
+	COMMAND ${UNSHARE} ./sandbox env HOME=/root "PS1=(shell)# " sh || true
 	VERBATIM
 )
 
