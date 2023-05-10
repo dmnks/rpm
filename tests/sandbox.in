@@ -15,7 +15,7 @@ function sandbox()
             export RPMTEST="${PWD}/merged"
         ;;
         rm)
-            umount -l merged
+            umount -ql merged
             rm -rf upper work merged
         ;;
         exec)
@@ -28,15 +28,17 @@ function sandbox()
             cd @CONTAINER_DIR@
             sandbox create
             cd ../..
+
             if [ "$1" == "--readonly" ]; then
                 mount -o remount,ro ${RPMTEST}
                 shift
             fi
+
             sandbox exec --bind ${PWD} /srv --chdir /srv "$@"
         ;;
         prune)
-            for mnt in $1/*/merged; do
-                mountpoint -q ${mnt} && umount -l ${mnt}
+            for dir in "$@"; do
+                [ -d ${dir} ] && (cd ${dir} && [ -d merged ] && sandbox rm)
             done
         ;;
     esac

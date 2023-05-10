@@ -47,7 +47,7 @@ fi
 
 source ./sandbox
 
-sandbox prune rpmtests.dir
+sandbox prune rpmtests.dir/*
 
 function runroot()
 {
