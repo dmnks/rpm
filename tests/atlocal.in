@@ -54,12 +54,12 @@ source ./sandbox
 
 function runroot()
 {
-    spawn "$@" --noplugins --nouserns
+    sandbox exec "$@" --noplugins --nouserns
 }
 
 function runroot_other()
 {
-    spawn "$@"
+    sandbox exec "$@"
 }
 
 function rundebug()

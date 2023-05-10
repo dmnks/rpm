@@ -2,37 +2,37 @@
 
 LOWERDIR="${PWD}/@UTIL_DIR@:${PWD}/@INST_DIR@:${PWD}/@TREE_DIR@"
 
-function mkovl()
+function sandbox()
 {
-    mkdir -p temp work tree
-    mount -t overlay overlay -o userxattr \
-          -o lowerdir=${LOWERDIR},upperdir=temp,workdir=work tree
-    export RPMTEST="${PWD}/tree"
-}
-
-function rmovl()
-{
-    umount -l tree
-    rm -rf temp work tree
-}
-
-function spawn()
-{
-    @BWRAP@ --unshare-pid --dev-bind ${RPMTEST} / \
-            --dev /dev --proc /proc --chdir / \
-            --setenv PATH @CMAKE_INSTALL_PREFIX@/bin:/usr/bin "$@"
-}
-
-function shell()
-{
-    mkdir -p shell
-    cd shell
-    mkovl
-    spawn --bind ${PWD}/.. /srv --chdir /srv "$@"
+    local cmd=$1
+    shift
+    case $cmd in
+        create)
+            mkdir -p upper work tree
+            mount -t overlay overlay -o userxattr \
+                  -o lowerdir=${LOWERDIR},upperdir=upper,workdir=work tree
+            export RPMTEST="${PWD}/tree"
+        ;;
+        rm)
+            umount -l tree
+            rm -rf upper work tree
+        ;;
+        exec)
+            @BWRAP@ --unshare-pid --dev-bind ${RPMTEST} / \
+                    --dev /dev --proc /proc --chdir / \
+                    --setenv PATH @CMAKE_INSTALL_PREFIX@/bin:/usr/bin "$@"
+        ;;
+        run)
+            mkdir -p shell
+            cd shell
+            sandbox create
+            sandbox exec --bind ${PWD}/.. /srv --chdir /srv "$@"
+        ;;
+    esac
 }
 
 if [ "$(basename $0)" == "sandbox" ]; then
     export LOWERDIR
-    export -f mkovl spawn shell
-    @UNSHARE_CMD@ sh -c 'shell "$@"' $0 "$@"
+    export -f sandbox
+    @UNSHARE_CMD@ sh -c 'sandbox "$@"' $0 "$@"
 fi

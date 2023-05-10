@@ -1,7 +1,7 @@
 AT_TESTED([bwrap])
 
 m4_define([RPMTEST_SETUP],[[
-[ -d tree ] || mkovl
+[ -d tree ] || sandbox create
 ]])
 
 m4_define([RPMDB_INIT],[
@@ -43,7 +43,7 @@ AT_CHECK($@)
 ])
 
 m4_define([RPMTEST_CLEANUP],[
-rmovl
+sandbox rm
 AT_CLEANUP
 ])
 
