@@ -1,5 +1,6 @@
 #!/bin/bash
 
+cd "$(dirname $0)"
 LOWERDIR="${PWD}/@UTIL_DIR@:${PWD}/@INST_DIR@:${PWD}/@TREE_DIR@"
 
 function sandbox()
