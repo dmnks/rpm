@@ -9,7 +9,7 @@
 #   bwrap cpio diff file gzip mount readelf tar
 #
 # Useful CMake variables:
-#   TREE_DIR: destination directory for the tree (relative to CWD)
+#   TREE_DIR: destination directory for the tree (relative to PWD)
 #   UNSHARE_CMD: runs a program as root in a user namespace (unset if root)
 #   LSB_RELEASE: OS version
 #
