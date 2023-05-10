@@ -19,7 +19,8 @@ function rmovl()
 function spawn()
 {
     @BWRAP@ --unshare-pid --dev-bind ${RPMTEST} / \
-            --dev /dev --proc /proc --chdir / "$@"
+            --dev /dev --proc /proc --chdir / \
+            --setenv PATH @CMAKE_INSTALL_PREFIX@/bin:/usr/bin "$@"
 }
 
 function shell()
