@@ -1,7 +1,9 @@
-set(BASE_DIR base)
-set(TREE_DIR ${BASE_DIR}/tree)
-set(INST_DIR ${BASE_DIR}/inst)
-set(UTIL_DIR ${BASE_DIR}/util)
+set(SANDBOX_DIR sandbox.dir)
+set(CONTAINER_DIR ${SANDBOX_DIR}/container)
+set(IMAGE_DIR ${SANDBOX_DIR}/image)
+set(TREE_DIR ${IMAGE_DIR}/tree)
+set(INST_DIR ${IMAGE_DIR}/inst)
+set(UTIL_DIR ${IMAGE_DIR}/util)
 set(DATA_DIR ${UTIL_DIR}/data)
 
 set(MACRO_DIR ${RPMCONFIGDIR}/macros.d)
