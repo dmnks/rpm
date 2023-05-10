@@ -24,8 +24,8 @@ function sandbox()
                     --setenv PATH @CMAKE_INSTALL_PREFIX@/bin:/usr/bin "$@"
         ;;
         run)
-            mkdir -p shell
-            cd shell
+            mkdir -p sandbox.dir
+            cd sandbox.dir
             sandbox create
             sandbox exec --bind ${PWD}/.. /srv --chdir /srv "$@"
         ;;
