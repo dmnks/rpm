@@ -30,6 +30,11 @@ function sandbox()
             cd ../..
             sandbox exec --bind ${PWD} /srv --chdir /srv "$@"
         ;;
+        prune)
+            for mnt in $1/*/merged; do
+                mountpoint -q ${mnt} && umount -l ${mnt}
+            done
+        ;;
     esac
 }
 

@@ -45,12 +45,9 @@ if ! LD_PRELOAD=${MALLOC_DEBUG} /bin/true 2>&1 | grep -q ERROR; then
     export LD_PRELOAD GLIBC_TUNABLES
 fi
 
-# Unmount any leftover trees from previous runs (e.g. failed tests)
-for mnt in rpmtests.dir/*/tree; do
-    mountpoint -q ${mnt} && umount -l ${mnt}
-done
-
 source ./sandbox
+
+sandbox prune rpmtests.dir
 
 function runroot()
 {
