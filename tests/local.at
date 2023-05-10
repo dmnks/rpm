@@ -1,7 +1,7 @@
 AT_TESTED([bwrap])
 
 m4_define([RPMTEST_SETUP],[[
-[ -d tree ] || sandbox create
+[ -d merged ] || sandbox create
 ]])
 
 m4_define([RPMDB_INIT],[

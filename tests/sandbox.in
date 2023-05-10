@@ -9,14 +9,14 @@ function sandbox()
     shift
     case $cmd in
         create)
-            mkdir -p upper work tree
+            mkdir -p upper work merged
             mount -t overlay overlay -o userxattr \
-                  -o lowerdir=${LOWERDIR},upperdir=upper,workdir=work tree
-            export RPMTEST="${PWD}/tree"
+                  -o lowerdir=${LOWERDIR},upperdir=upper,workdir=work merged
+            export RPMTEST="${PWD}/merged"
         ;;
         rm)
-            umount -l tree
-            rm -rf upper work tree
+            umount -l merged
+            rm -rf upper work merged
         ;;
         exec)
             @BWRAP@ --unshare-pid --dev-bind ${RPMTEST} / \

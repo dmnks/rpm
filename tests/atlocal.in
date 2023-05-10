@@ -64,7 +64,7 @@ function runroot_other()
 
 function rundebug()
 {
-    cp ${DATA_DIR}/macros.debug tree/@MACRO_DIR@/
+    cp ${DATA_DIR}/macros.debug ${RPMTEST}/@MACRO_DIR@/
     runroot "$@"
-    rm -f tree/@MACRO_DIR@/macros.debug
+    rm -f ${RPMTEST}/@MACRO_DIR@/macros.debug
 }
