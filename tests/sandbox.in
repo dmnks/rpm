@@ -28,6 +28,10 @@ function sandbox()
             cd @CONTAINER_DIR@
             sandbox create
             cd ../..
+            if [ "$1" == "--readonly" ]; then
+                mount -o remount,ro ${RPMTEST}
+                shift
+            fi
             sandbox exec --bind ${PWD} /srv --chdir /srv "$@"
         ;;
         prune)
