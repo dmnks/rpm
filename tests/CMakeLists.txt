@@ -95,12 +95,14 @@ if (nproc GREATER 1)
 endif()
 
 add_custom_target(check
-	COMMAND ./sandbox run --readonly ./rpmtests ${JOBS} $(TESTOPTS)
+	COMMAND ./sandbox run --readonly ${CONTAINER_DIR}
+		./rpmtests ${JOBS} $(TESTOPTS)
 	DEPENDS tests
 )
 
 add_custom_target(shell
-	COMMAND ./sandbox run env HOME=/root "PS1=(shell)# " sh || true
+	COMMAND ./sandbox run ${CONTAINER_DIR}
+		env HOME=/root "PS1=(shell)# " sh || true
 	VERBATIM
 )
 
