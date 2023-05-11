@@ -22,15 +22,16 @@ function sandbox()
                     --dev /dev --proc /proc --chdir / \
                     --setenv PATH @CMAKE_INSTALL_PREFIX@/bin:/usr/bin "${@:2}"
         ;;
+        create)
+            mkdir -p $1
+            (cd $1; mountpoint -q merged || sandbox init)
+        ;;
         run)
-            mkdir -p @CONTAINER_DIR@
-            (cd @CONTAINER_DIR@; mountpoint -q merged || sandbox init)
-
+            sandbox create @CONTAINER_DIR@
             if [ "$1" == "--readonly" ]; then
                 mount -o remount,ro @CONTAINER_DIR@/merged
                 shift
             fi
-
             sandbox exec @CONTAINER_DIR@ --bind ${PWD} /srv --chdir /srv "$@"
         ;;
         prune)
