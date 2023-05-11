@@ -28,7 +28,7 @@ function sandbox()
         ;;
         run)
             local ro=0
-            if [ "$1" == "--readonly" ]; then
+            if [ "$1" == "--read-only" ]; then
                 ro=1
                 shift
             fi

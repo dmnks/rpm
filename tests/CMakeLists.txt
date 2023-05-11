@@ -95,7 +95,7 @@ if (nproc GREATER 1)
 endif()
 
 add_custom_target(check
-	COMMAND ./sandbox run --readonly ${CONTAINER_DIR}
+	COMMAND ./sandbox run --read-only ${CONTAINER_DIR}
 		./rpmtests ${JOBS} $(TESTOPTS)
 	DEPENDS tests
 )
