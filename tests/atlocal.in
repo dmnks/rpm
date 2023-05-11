@@ -51,12 +51,12 @@ sandbox prune rpmtests.dir/*
 
 function runroot()
 {
-    sandbox exec "$@" --noplugins --nouserns
+    sandbox exec ${SANDBOX} "$@" --noplugins --nouserns
 }
 
 function runroot_other()
 {
-    sandbox exec "$@"
+    sandbox exec ${SANDBOX} "$@"
 }
 
 function rundebug()

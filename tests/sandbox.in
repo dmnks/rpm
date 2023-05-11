@@ -12,16 +12,15 @@ function sandbox()
             mkdir -p upper work merged
             mount -t overlay overlay -o userxattr \
                   -o lowerdir=${LOWERDIR},upperdir=upper,workdir=work merged
-            export RPMTEST="${PWD}/merged"
         ;;
         rm)
             umount -ql merged
             rm -rf upper work merged
         ;;
         exec)
-            @BWRAP@ --unshare-pid --dev-bind ${RPMTEST} / \
+            @BWRAP@ --unshare-pid --dev-bind $1/merged / \
                     --dev /dev --proc /proc --chdir / \
-                    --setenv PATH @CMAKE_INSTALL_PREFIX@/bin:/usr/bin "$@"
+                    --setenv PATH @CMAKE_INSTALL_PREFIX@/bin:/usr/bin "${@:2}"
         ;;
         run)
             mkdir -p @CONTAINER_DIR@
@@ -30,11 +29,11 @@ function sandbox()
             cd ../..
 
             if [ "$1" == "--readonly" ]; then
-                mount -o remount,ro ${RPMTEST}
+                mount -o remount,ro @CONTAINER_DIR@/merged
                 shift
             fi
 
-            sandbox exec --bind ${PWD} /srv --chdir /srv "$@"
+            sandbox exec @CONTAINER_DIR@ --bind ${PWD} /srv --chdir /srv "$@"
         ;;
         prune)
             for dir in "$@"; do
