@@ -24,9 +24,7 @@ function sandbox()
         ;;
         run)
             mkdir -p @CONTAINER_DIR@
-            cd @CONTAINER_DIR@
-            sandbox create
-            cd ../..
+            (cd @CONTAINER_DIR@; mountpoint -q merged || sandbox create)
 
             if [ "$1" == "--readonly" ]; then
                 mount -o remount,ro @CONTAINER_DIR@/merged
