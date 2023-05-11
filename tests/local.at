@@ -1,7 +1,7 @@
 AT_TESTED([bwrap])
 
 m4_define([RPMTEST_SETUP],[[
-[ -d merged ] || sandbox create
+[ -d merged ] || sandbox init
 export SANDBOX="${PWD}"
 export RPMTEST="${PWD}/merged"
 ]])
