@@ -42,7 +42,5 @@ function sandbox()
 }
 
 if [ "$(basename $0)" == "sandbox" ]; then
-    export LOWERDIR
-    export -f sandbox
-    @UNSHARE_CMD@ sh -c 'sandbox "$@"' $0 "$@"
+    @UNSHARE_CMD@ sh -c 'source ./sandbox; sandbox "$@"' "sh" "$@"
 fi
