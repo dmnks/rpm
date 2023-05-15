@@ -16,10 +16,16 @@ function sandbox()
                   -o lowerdir=$LOWERDIR,upperdir=$dir/upper,workdir=$dir/work \
                   $dir/merged
         ;;
-        rm)
+        stop)
             local dir=${1-.}
             umount -ql $dir/merged
-            rm -rf $dir/{upper,work,merged}
+            rmdir $dir/merged
+        ;;
+        rm)
+            local dir=${1-.}
+            sandbox stop $dir
+            rm -rf $dir/{upper,work}
+            rmdir $dir
         ;;
         exec)
             @BWRAP@ --unshare-pid --dev-bind $1/merged / \

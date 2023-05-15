@@ -45,7 +45,7 @@ AT_CHECK($@)
 ])
 
 m4_define([RPMTEST_CLEANUP],[
-sandbox rm
+sandbox stop
 AT_CLEANUP
 ])
 
