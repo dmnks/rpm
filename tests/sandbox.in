@@ -9,22 +9,22 @@ function sandbox()
     shift
     case $cmd in
         init)
-            mkdir -p upper work merged
+            local dir=${1-.}
+            [ -d $dir/merged ] && return
+            mkdir -p $dir/{upper,work,merged}
             mount -t overlay overlay -o userxattr \
-                  -o lowerdir=${LOWERDIR},upperdir=upper,workdir=work merged
+                  -o lowerdir=$LOWERDIR,upperdir=$dir/upper,workdir=$dir/work \
+                  $dir/merged
         ;;
         rm)
-            umount -ql merged
-            rm -rf upper work merged
+            local dir=${1-.}
+            umount -ql $dir/merged
+            rm -rf $dir/{upper,work,merged}
         ;;
         exec)
             @BWRAP@ --unshare-pid --dev-bind $1/merged / \
                     --dev /dev --proc /proc --chdir / \
                     --setenv PATH @CMAKE_INSTALL_PREFIX@/bin:/usr/bin "${@:2}"
-        ;;
-        create)
-            mkdir -p $1
-            (cd $1; mountpoint -q merged || sandbox init)
         ;;
         run)
             local ro=0
@@ -32,7 +32,7 @@ function sandbox()
                 ro=1
                 shift
             fi
-            sandbox create $1
+            sandbox init $1
             [ $ro == 1 ] && mount -o remount,ro $1/merged
             sandbox exec $1 --bind ${PWD} /srv --chdir /srv "${@:2}"
         ;;
