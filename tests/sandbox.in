@@ -20,6 +20,11 @@ function sandbox()
             umount -ql $dir/merged
             rmdir $dir/merged
         ;;
+        prune)
+            for dir in "$@"; do
+                [ -d $dir/merged ] && sandbox stop $dir
+            done
+        ;;
         rm)
             local dir=${1-.}
             sandbox stop $dir
@@ -40,11 +45,6 @@ function sandbox()
             sandbox init $1
             [ $ro == 1 ] && mount -o remount,ro $1/merged
             sandbox exec $1 --bind $PWD /srv --chdir /srv "${@:2}"
-        ;;
-        prune)
-            for dir in "$@"; do
-                [ -d ${dir} ] && (cd ${dir} && [ -d merged ] && sandbox rm)
-            done
         ;;
     esac
 }
