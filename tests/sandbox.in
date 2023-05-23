@@ -1,6 +1,7 @@
 #!/bin/bash
 
-LOWERDIR="$PWD/@UTIL_DIR@:$PWD/@INST_DIR@:$PWD/@TREE_DIR@"
+DIR=@CMAKE_CURRENT_BINARY_DIR@
+LOWERDIR=$DIR/@UTIL_DIR@:$DIR/@INST_DIR@:$DIR/@TREE_DIR@
 
 function sandbox()
 {
@@ -39,12 +40,14 @@ function sandbox()
             fi
             sandbox init $1
             [ $ro == 1 ] && mount -o remount,ro $1/merged
-            sandbox exec $1 --bind $PWD /srv --chdir /srv "${@:2}"
+            sandbox exec $1 --bind $DIR $DIR --chdir $DIR "${@:2}"
             sandbox stop $1
         ;;
     esac
 }
 
 if [ "$(basename $0)" == "sandbox" ]; then
-    @UNSHARE_CMD@ sh -c 'source ./sandbox; sandbox "$@"' "sh" "$@"
+    export DIR LOWERDIR
+    export -f sandbox
+    @UNSHARE_CMD@ sh -c 'sandbox "$@"' 'sh' "$@"
 fi
