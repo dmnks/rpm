@@ -18,14 +18,12 @@ function sandbox()
         ;;
         stop)
             local dir=${1-.}
-            mountpoint -q $dir/merged || return
-            umount -l $dir/merged
+            [ -d $dir/merged ] && umount -ql $dir/merged
         ;;
-        rm)
-            local dir=${1-.}
-            sandbox stop $dir
-            rm -rf $dir/{upper,work,merged}
-            rmdir $dir
+        prune)
+            for dir in "$@"; do
+                sandbox stop $dir
+            done
         ;;
         exec)
             @BWRAP@ --unshare-pid --dev-bind $1/merged / \
