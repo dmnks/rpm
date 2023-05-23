@@ -9,7 +9,7 @@ function sandbox()
     case $cmd in
         init)
             local dir=${1-.}
-            [ -d $dir/merged ] && return
+            mountpoint -q $dir/merged && return
             mkdir -p $dir/{upper,work,merged}
             mount -t overlay overlay -o userxattr \
                   -o lowerdir=$LOWERDIR,upperdir=$dir/upper,workdir=$dir/work \
@@ -17,14 +17,13 @@ function sandbox()
         ;;
         stop)
             local dir=${1-.}
-            [ -d $dir/merged ] || return
-            umount -ql $dir/merged
-            rm -rf $dir/merged
+            mountpoint -q $dir/merged || return
+            umount -l $dir/merged
         ;;
         rm)
             local dir=${1-.}
             sandbox stop $dir
-            rm -rf $dir/{upper,work}
+            rm -rf $dir/{upper,work,merged}
             rmdir $dir
         ;;
         exec)
