@@ -106,10 +106,6 @@ add_custom_target(shell
 	VERBATIM
 )
 
-add_custom_target(clean-shell
-	COMMAND ./sandbox prune ${CONTAINER_DIR}
-)
-
 add_custom_target(tests
 	DEPENDS suite
 	DEPENDS image
