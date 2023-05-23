@@ -41,6 +41,9 @@ function sandbox()
             sandbox exec $1 --bind $DIR $DIR --chdir $DIR "${@:2}"
             sandbox stop $1
         ;;
+        shell)
+            sandbox run $1 env PS1="(shell)# " HOME=/root sh
+        ;;
     esac
 }
 

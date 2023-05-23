@@ -101,9 +101,8 @@ add_custom_target(check
 )
 
 add_custom_target(shell
-	COMMAND ./sandbox run ${CONTAINER_DIR}
-		env HOME=/root "PS1=(shell)# " sh || true
-	VERBATIM
+	COMMAND ./sandbox shell ${CONTAINER_DIR}
+	DEPENDS tests
 )
 
 add_custom_target(tests
