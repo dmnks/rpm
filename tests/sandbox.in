@@ -2,14 +2,7 @@
 
 PROGNAME=$(basename $0)
 LOWERDIR=$PWD/@UTIL_DIR@:$PWD/@INST_DIR@:$PWD/@TREE_DIR@
-
-if [ "$PROGNAME" == "rpmtests" ]; then
-    # No need to scan the mount table (possibly faster)
-    MOUNTCHECK="test -d"
-else
-    # Interactive use, prevent overmounts (possibly slower)
-    MOUNTCHECK="mountpoint -q"
-fi
+MOUNTCHECK="mountpoint -q"
 
 function sandbox()
 {
@@ -59,10 +52,16 @@ function sandbox()
 export LOWERDIR MOUNTCHECK
 export -f sandbox
 
-if [ "$PROGNAME" == "sandbox" ]; then
-    if [ $# == 0 ]; then
-        @UNSHARE_CMD@ sh -c 'source '$0'; PS1="(namespace)# " sh'
-    else
-        @UNSHARE_CMD@ sh -c 'source '$0'; sandbox "$@"' 'sh' "$@"
-    fi
-fi
+case $PROGNAME in
+    rpmtests)
+        # No need to scan the mount table (possibly faster)
+        MOUNTCHECK="test -d"
+    ;;
+    sandbox)
+        if [ $# == 0 ]; then
+            @UNSHARE_CMD@ sh -c 'source '$0'; PS1="(namespace)# " sh'
+        else
+            @UNSHARE_CMD@ sh -c 'source '$0'; sandbox "$@"' 'sh' "$@"
+        fi
+    ;;
+esac
