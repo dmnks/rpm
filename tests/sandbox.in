@@ -1,5 +1,6 @@
 #!/bin/bash
 
+PROGNAME=$(basename $0)
 LOWERDIR=$PWD/@UTIL_DIR@:$PWD/@INST_DIR@:$PWD/@TREE_DIR@
 
 function sandbox()
@@ -49,7 +50,7 @@ function sandbox()
 export LOWERDIR
 export -f sandbox
 
-if [ "$(basename $0)" == "sandbox" ]; then
+if [ "$PROGNAME" == "sandbox" ]; then
     if [ $# == 0 ]; then
         @UNSHARE_CMD@ sh -c 'source '$0'; PS1="(namespace)# " sh'
     else
