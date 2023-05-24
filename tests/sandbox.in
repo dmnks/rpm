@@ -51,7 +51,7 @@ export -f sandbox
 
 if [ "$(basename $0)" == "sandbox" ]; then
     if [ $# == 0 ]; then
-        @UNSHARE_CMD@ sh -c "source $0; PS1='(env)# ' sh"
+        @UNSHARE_CMD@ sh -c 'source '$0'; PS1="(env)# " sh'
     else
         @UNSHARE_CMD@ sh -c 'source '$0'; sandbox "$@"' 'sh' "$@"
     fi
