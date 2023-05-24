@@ -37,11 +37,11 @@ function sandbox()
             fi
             sandbox init $1
             [ $ro == 1 ] && mount -o remount,ro $1/merged
-            sandbox exec $1 --bind $PWD /srv --chdir /srv "${@:2}"
+            sandbox exec $1 --bind $PWD $PWD --chdir $PWD "${@:2}"
             sandbox stop $1
         ;;
         shell)
-            sandbox run $1 env PS1="(shell)# " HOME=/root sh
+            sandbox run $1 env PS1="(shell)# " sh
         ;;
     esac
 }
