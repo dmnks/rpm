@@ -18,6 +18,7 @@ function sandbox()
     case $cmd in
         create)
             local dir=${1-.}
+            echo $dir/merged
             $MOUNTCHECK $dir/merged && return
             mkdir -p $dir/{upper,work,merged}
             mount -t overlay overlay -o userxattr \
@@ -44,7 +45,7 @@ function sandbox()
                 ro=1
                 shift
             fi
-            sandbox create $1
+            sandbox create $1 >/dev/null
             [ $ro == 1 ] && mount -o remount,ro $1/merged
             sandbox exec $1 --bind $PWD $PWD --chdir $PWD "${@:2}"
             sandbox umount $1
