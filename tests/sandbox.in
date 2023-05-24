@@ -25,12 +25,12 @@ function sandbox()
                   $dir/merged
         ;;
         umount)
-            local dir=${1-.}
-            [ -d $dir/merged ] && umount -ql $dir/merged
+            umount -l ${1-.}/merged
         ;;
         prune)
+            local dir=${1-.}
             for dir in "$@"; do
-                sandbox umount $dir
+                [ -d $dir/merged ] && umount -ql $dir/merged
             done
         ;;
         exec)
