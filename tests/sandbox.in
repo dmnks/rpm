@@ -47,12 +47,13 @@ function sandbox()
     esac
 }
 
+export DIR LOWERDIR
+export -f sandbox
+
 if [ "$(basename $0)" == "sandbox" ]; then
-    export DIR LOWERDIR
-    export -f sandbox
     if [ $# == 0 ]; then
-        @UNSHARE_CMD@ env PS1="(env)# " sh
+        @UNSHARE_CMD@ sh -c "source $0; PS1='(env)# ' sh"
     else
-        @UNSHARE_CMD@ sh -c 'sandbox "$@"' 'sh' "$@"
+        @UNSHARE_CMD@ sh -c 'source '$0'; sandbox "$@"' 'sh' "$@"
     fi
 fi
