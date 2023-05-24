@@ -15,13 +15,13 @@ function sandbox()
                   -o lowerdir=$LOWERDIR,upperdir=$dir/upper,workdir=$dir/work \
                   $dir/merged
         ;;
-        stop)
+        umount)
             local dir=${1-.}
             [ -d $dir/merged ] && umount -ql $dir/merged
         ;;
         prune)
             for dir in "$@"; do
-                sandbox stop $dir
+                sandbox umount $dir
             done
         ;;
         exec)
@@ -38,7 +38,7 @@ function sandbox()
             sandbox create $1
             [ $ro == 1 ] && mount -o remount,ro $1/merged
             sandbox exec $1 --bind $PWD $PWD --chdir $PWD "${@:2}"
-            sandbox stop $1
+            sandbox umount $1
         ;;
         shell)
             sandbox run $1 env PS1="(shell)# " sh
