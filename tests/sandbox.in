@@ -3,6 +3,14 @@
 PROGNAME=$(basename $0)
 LOWERDIR=$PWD/@UTIL_DIR@:$PWD/@INST_DIR@:$PWD/@TREE_DIR@
 
+if [ "$PROGNAME" == "rpmtests" ]; then
+    # No need to scan the mount table (possibly faster)
+    MOUNTCHECK="test -d"
+else
+    # Interactive use, prevent overmounts (possibly slower)
+    MOUNTCHECK="mountpoint -q"
+fi
+
 function sandbox()
 {
     local cmd=$1
@@ -10,7 +18,7 @@ function sandbox()
     case $cmd in
         create)
             local dir=${1-.}
-            mountpoint -q $dir/merged && return
+            $MOUNTCHECK $dir/merged && return
             mkdir -p $dir/{upper,work,merged}
             mount -t overlay overlay -o userxattr \
                   -o lowerdir=$LOWERDIR,upperdir=$dir/upper,workdir=$dir/work \
@@ -47,7 +55,7 @@ function sandbox()
     esac
 }
 
-export LOWERDIR
+export LOWERDIR MOUNTCHECK
 export -f sandbox
 
 if [ "$PROGNAME" == "sandbox" ]; then
