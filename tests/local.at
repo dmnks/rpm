@@ -2,7 +2,8 @@ AT_TESTED([bwrap])
 
 m4_define([RPMTEST_SETUP],[[
 export SANDBOX="${PWD}"
-export RPMTEST="${PWD}/$(sandbox mount)"
+export RPMTEST="${PWD}/merged"
+[ -d $RPMTEST ] || sandbox mount
 ]])
 
 m4_define([RPMDB_INIT],[

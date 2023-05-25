@@ -47,16 +47,16 @@ fi
 
 source ./sandbox
 
-sandbox prune rpmtests.dir/*
+sandbox prune rpmtests.dir/*/merged
 
 function runroot()
 {
-    sandbox exec ${SANDBOX} "$@" --noplugins --nouserns
+    sandbox exec "$@" --noplugins --nouserns
 }
 
 function runroot_other()
 {
-    sandbox exec ${SANDBOX} "$@"
+    sandbox exec "$@"
 }
 
 function rundebug()

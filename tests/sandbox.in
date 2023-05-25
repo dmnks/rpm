@@ -2,7 +2,6 @@
 
 PROGNAME=$(basename $0)
 LOWERDIR=$PWD/@UTIL_DIR@:$PWD/@INST_DIR@:$PWD/@TREE_DIR@
-MOUNTCHECK="mountpoint -q"
 
 function sandbox()
 {
@@ -10,27 +9,23 @@ function sandbox()
     shift
     case $cmd in
         mount)
-            local dir=${1-.}
-            echo $dir/merged
-            $MOUNTCHECK $dir/merged && return
-            mkdir -p $dir/{upper,work,merged}
+            mkdir -p $SANDBOX/{upper,work} $RPMTEST
             mount -t overlay overlay -o userxattr \
-                  -o lowerdir=$LOWERDIR,upperdir=$dir/upper,workdir=$dir/work \
-                  $dir/merged
+                  -o lowerdir=$LOWERDIR,upperdir=$SANDBOX/upper,workdir=$SANDBOX/work \
+                  $RPMTEST
         ;;
         umount)
-            umount -l ${1-.}/merged
+            umount -l $RPMTEST
         ;;
         prune)
-            local dir=${1-.}
             for dir in "$@"; do
-                [ -d $dir/merged ] && umount -ql $dir/merged
+                umount -ql $dir
             done
         ;;
         exec)
-            @BWRAP@ --unshare-pid --dev-bind $1/merged / \
+            @BWRAP@ --unshare-pid --dev-bind $RPMTEST / \
                     --dev /dev --proc /proc --chdir / \
-                    --setenv PATH @CMAKE_INSTALL_PREFIX@/bin:/usr/bin "${@:2}"
+                    --setenv PATH @CMAKE_INSTALL_PREFIX@/bin:/usr/bin "$@"
         ;;
         run)
             local ro=0
@@ -49,7 +44,7 @@ function sandbox()
     esac
 }
 
-export LOWERDIR MOUNTCHECK
+export LOWERDIR
 export -f sandbox
 
 case $PROGNAME in
