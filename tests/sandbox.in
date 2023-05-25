@@ -46,4 +46,5 @@ if [ "$PROGNAME" == "sandbox" ]; then
     else
         @UNSHARE_CMD@ sh -c 'source '$0'; sandbox run "$@"' 'sh' "$@"
     fi
+    exit 0
 fi
