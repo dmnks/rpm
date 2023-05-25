@@ -104,6 +104,11 @@ add_custom_target(shell
 	DEPENDS tests
 )
 
+add_custom_target(env
+	COMMAND ./sandbox
+	DEPENDS tests
+)
+
 add_custom_target(tests
 	DEPENDS suite
 	DEPENDS image

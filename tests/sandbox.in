@@ -45,7 +45,7 @@ export -f sandbox
 
 if [ "$PROGNAME" == "sandbox" ]; then
     if [ $# == 0 ]; then
-        @UNSHARE_CMD@ sh -c 'source '$0'; PS1="(shell)# " sh'
+        @UNSHARE_CMD@ sh -c 'source '$0'; PS1="(env) \W# " sh'
     else
         @UNSHARE_CMD@ sh -c 'source '$0'; sandbox run "$@"' 'sh' "$@"
     fi
