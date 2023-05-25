@@ -24,7 +24,7 @@ function sandbox()
         ;;
         prune)
             for dir in "$@"; do
-                umount -ql $dir
+                [ -d $dir ] && umount -ql $dir
             done
         ;;
         exec)
