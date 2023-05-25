@@ -2,6 +2,8 @@
 
 PROGNAME=$(basename $0)
 LOWERDIR=$PWD/@UTIL_DIR@:$PWD/@INST_DIR@:$PWD/@TREE_DIR@
+SANDBOX=@CONTAINER_DIR@
+RPMTEST=@CONTAINER_DIR@/merged
 
 function sandbox()
 {
@@ -28,35 +30,20 @@ function sandbox()
                     --setenv PATH @CMAKE_INSTALL_PREFIX@/bin:/usr/bin "$@"
         ;;
         run)
-            local ro=0
-            if [ "$1" == "--read-only" ]; then
-                ro=1
-                shift
-            fi
-            sandbox mount $1 >/dev/null
-            [ $ro == 1 ] && mount -o remount,ro $1/merged
-            sandbox exec $1 --bind $PWD $PWD --chdir $PWD "${@:2}"
-            sandbox umount $1
-        ;;
-        shell)
-            sandbox run $1 env PS1="(shell)# " sh
+            sandbox mount
+            sandbox exec --bind $PWD $PWD --chdir $PWD "$@"
+            sandbox umount
         ;;
     esac
 }
 
-export LOWERDIR
+export LOWERDIR SANDBOX RPMTEST
 export -f sandbox
 
-case $PROGNAME in
-    rpmtests)
-        # No need to scan the mount table (possibly faster)
-        MOUNTCHECK="test -d"
-    ;;
-    sandbox)
-        if [ $# == 0 ]; then
-            @UNSHARE_CMD@ sh -c 'source '$0'; PS1="(namespace)# " sh'
-        else
-            @UNSHARE_CMD@ sh -c 'source '$0'; sandbox "$@"' 'sh' "$@"
-        fi
-    ;;
-esac
+if [ "$PROGNAME" == "sandbox" ]; then
+    if [ $# == 0 ]; then
+        @UNSHARE_CMD@ sh -c 'source '$0'; PS1="(shell)# " sh'
+    else
+        @UNSHARE_CMD@ sh -c 'source '$0'; sandbox run "$@"' 'sh' "$@"
+    fi
+fi
