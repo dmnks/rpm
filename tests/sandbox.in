@@ -12,9 +12,12 @@ function sandbox()
     case $cmd in
         mount)
             mkdir -p $SANDBOX/{upper,work} $RPMTEST
-            mount -t overlay overlay -o userxattr $MOUNTARGS \
-                  -o lowerdir=$LOWERDIR,upperdir=$SANDBOX/upper,workdir=$SANDBOX/work \
-                  $RPMTEST
+            mount -t overlay overlay \
+                  -o userxattr \
+                  -o lowerdir=$LOWERDIR \
+                  -o upperdir=$SANDBOX/upper \
+                  -o workdir=$SANDBOX/work \
+                  $MOUNTARGS $RPMTEST
         ;;
         umount)
             umount -l $RPMTEST
