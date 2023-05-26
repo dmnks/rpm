@@ -25,6 +25,7 @@ mkdir -p home && echo '%_netsharedpath %nil' > home/.rpmmacros
     --setopt=keepcache=1 \
     --setopt=install_weak_deps=0 \
     --disablerepo=\* --enablerepo=fedora,updates \
+    --exclude=rpm \
     audit \
     bash \
     binutils \
