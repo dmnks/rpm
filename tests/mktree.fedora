@@ -16,7 +16,11 @@
 # This script MUST work if executed as a regular user as well as root.
 
 cachedir=$(python3 -c 'import dnf; print(dnf.conf.Conf().cachedir)')
-mkdir -p home && echo '%_netsharedpath %nil' > home/.rpmmacros
+mkdir -p home
+cat << EOF > home/.rpmmacros
+%_netsharedpath %nil
+%_dbpath /var/lib/rpm-tests
+EOF
 
 @UNSHARE_CMD@ env HOME=${PWD}/home dnf -y install \
     --installroot=${PWD}/@TREE_DIR@ \
