@@ -7,6 +7,7 @@ set(UTIL_DIR ${IMAGE_DIR}/util)
 set(DATA_DIR ${UTIL_DIR}/data)
 
 set(MACRO_DIR ${RPMCONFIGDIR}/macros.d)
+set(LD_CONF_DIR ${INST_DIR}/${CMAKE_INSTALL_SYSCONFDIR}/ld.so.conf.d)
 
 set(pyexecdir ${Python3_SITEARCH})
 set(usrbindir ${CMAKE_INSTALL_FULL_BINDIR})
@@ -146,8 +147,9 @@ add_custom_command(OUTPUT ${INST_DIR}
 	COMMAND rm -rf ${INST_DIR} &&
 		${CMAKE_MAKE_PROGRAM} -C ${CMAKE_BINARY_DIR}
 		DESTDIR=${CMAKE_CURRENT_BINARY_DIR}/${INST_DIR} install &&
-		mkdir -p ${INST_DIR}/etc &&
-		ldconfig -r ${INST_DIR} ${CMAKE_INSTALL_PREFIX}/lib64
+		mkdir -p ${LD_CONF_DIR} &&
+		echo ${CMAKE_INSTALL_FULL_LIBDIR} > ${LD_CONF_DIR}/rpm.conf &&
+		ldconfig -r ${INST_DIR} ${CMAKE_INSTALL_FULL_LIBDIR}
 	DEPENDS ${TOP_TARGETS}
 )
 
