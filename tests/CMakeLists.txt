@@ -9,8 +9,6 @@ set(DATA_DIR ${UTIL_DIR}/data)
 set(MACRO_DIR ${RPMCONFIGDIR}/macros.d)
 set(LD_CONF_DIR ${INST_DIR}/${CMAKE_INSTALL_SYSCONFDIR}/ld.so.conf.d)
 
-set(pyexecdir ${Python3_SITEARCH})
-set(usrbindir ${CMAKE_INSTALL_FULL_BINDIR})
 if (${WITH_INTERNAL_OPENPGP})
 	if (${WITH_OPENSSL})
 		set(CRYPTO openssl)
