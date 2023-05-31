@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PROGNAME=$(basename $0)
+PROGRAM=$(basename $0)
 LOWERDIR=$PWD/@UTIL_DIR@:$PWD/@INST_DIR@:$PWD/@TREE_DIR@
 SANDBOX=$PWD/@CONTAINER_DIR@
 RPMTEST=$SANDBOX/merged
@@ -55,7 +55,7 @@ function cmd()
     esac
 }
 
-case $PROGNAME in
+case $PROGRAM in
     rpmtests)
         unset cmd
     ;;
