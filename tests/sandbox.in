@@ -49,11 +49,8 @@ function cmd()
             export PS1='(env) \W# '
             sh
         ;;
-        run) shift
+        shell) shift
             sandbox shell "$@"
-        ;;
-        shell)
-            sandbox shell
         ;;
     esac
     sandbox umount
