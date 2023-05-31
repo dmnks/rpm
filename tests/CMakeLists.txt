@@ -94,12 +94,12 @@ if (nproc GREATER 1)
 endif()
 
 add_custom_target(check
-	COMMAND MOUNTARGS=-r ./sandbox ./rpmtests ${JOBS} $(TESTOPTS)
+	COMMAND MOUNTARGS=-r ./sandbox run ./rpmtests ${JOBS} $(TESTOPTS)
 	DEPENDS tests
 )
 
 add_custom_target(shell
-	COMMAND ./sandbox env "PS1=(shell) \\W# " sh
+	COMMAND ./sandbox run env "PS1=(shell) \\W# " sh
 	VERBATIM
 	DEPENDS tests
 )

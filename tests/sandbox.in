@@ -32,7 +32,13 @@ function sandbox()
                     --dev /dev --proc /proc --chdir / \
                     --setenv PATH @CMAKE_INSTALL_PREFIX@/bin:/usr/bin "$@"
         ;;
-        env)
+    esac
+}
+
+function cmd()
+{
+    case $1 in
+        "")
             sandbox mount
             export LOWERDIR SANDBOX RPMTEST
             export -f sandbox
@@ -41,6 +47,7 @@ function sandbox()
             sandbox umount
         ;;
         run)
+            shift
             sandbox mount
             sandbox exec --bind $PWD $PWD --chdir $PWD "$@"
             sandbox umount
@@ -48,11 +55,12 @@ function sandbox()
     esac
 }
 
-if [ "$PROGNAME" == "sandbox" ]; then
-    if [ $# == 0 ]; then
-        @UNSHARE_CMD@ sh -c 'source '$0'; sandbox env'
-    else
-        @UNSHARE_CMD@ sh -c 'source '$0'; sandbox run "$@"' 'sh' "$@"
-    fi
-    exit 0
-fi
+case $PROGNAME in
+    rpmtests)
+        unset cmd
+    ;;
+    sandbox)
+        @UNSHARE_CMD@ sh -c 'source '$0'; cmd "$@"' - "$@"
+        exit 0
+    ;;
+esac
