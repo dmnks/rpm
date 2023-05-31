@@ -51,8 +51,7 @@ function cmd()
         "")
             export LOWERDIR SANDBOX RPMTEST
             export -f sandbox
-            export PS1='(env) \W# '
-            sh
+            $SHELL
         ;;
         shell) shift
             sandbox shell "$@"
