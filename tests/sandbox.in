@@ -39,7 +39,7 @@ function sandbox()
             fi
             sandbox exec --unshare-uts --hostname $(basename $SANDBOX) \
                          --unsetenv PS1 --setenv HOME /root \
-                         --bind $PWD $PWD --chdir $PWD $cmd "$@"
+                         --bind $PWD /srv --chdir /srv $cmd "$@"
         ;;
     esac
 }
@@ -62,7 +62,7 @@ function cmd()
 
 case $PROGRAM in
     rpmtests)
-        unset cmd
+        unset MOUNTARGS cmd
     ;;
     sandbox)
         @UNSHARE_CMD@ sh -c 'source '$0'; cmd "$@"' - "$@"
