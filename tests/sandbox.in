@@ -37,22 +37,20 @@ function sandbox()
 
 function cmd()
 {
+    sandbox mount
     case $1 in
         "")
-            sandbox mount
             export LOWERDIR SANDBOX RPMTEST
             export -f sandbox
             export PS1='(env) \W# '
             sh
-            sandbox umount
         ;;
         run)
             shift
-            sandbox mount
             sandbox exec --bind $PWD $PWD --chdir $PWD "$@"
-            sandbox umount
         ;;
     esac
+    sandbox umount
 }
 
 case $PROGRAM in
