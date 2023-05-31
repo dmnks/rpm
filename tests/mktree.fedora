@@ -10,7 +10,7 @@
 #
 # Useful CMake variables:
 #   TREE_DIR: destination directory for the tree (relative to PWD)
-#   UNSHARE_CMD: runs a program as root in a user namespace (unset if root)
+#   UNSHARE: runs a program as root in a user namespace (empty if root)
 #   LSB_RELEASE: OS version
 #
 # This script MUST work if executed as a regular user as well as root.
@@ -22,7 +22,7 @@ cat << EOF > home/.rpmmacros
 %_dbpath /var/lib/rpm-tests
 EOF
 
-@UNSHARE_CMD@ env HOME=${PWD}/home dnf -y install \
+@UNSHARE@ env HOME=${PWD}/home dnf -y install \
     --installroot=${PWD}/@TREE_DIR@ \
     --releasever=@LSB_RELEASE@ \
     --setopt=cachedir=${cachedir} \
@@ -77,4 +77,4 @@ EOF
     zlib \
     zstd
 
-@UNSHARE_CMD@ cp -r @TREE_DIR@/{etc/skel/.,/root}
+@UNSHARE@ cp -r @TREE_DIR@/{etc/skel/.,/root}

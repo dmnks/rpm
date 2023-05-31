@@ -65,7 +65,7 @@ case $PROGRAM in
         unset MOUNTARGS cmd
     ;;
     sandbox)
-        @UNSHARE_CMD@ sh -c 'source '$0'; cmd "$@"' - "$@"
+        @UNSHARE@ sh -c 'source '$0'; cmd "$@"' - "$@"
         exit 0
     ;;
 esac
