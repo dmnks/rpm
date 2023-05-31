@@ -99,8 +99,7 @@ add_custom_target(check
 )
 
 add_custom_target(shell
-	COMMAND ./sandbox run env "PS1=(shell) \\W# " sh
-	VERBATIM
+	COMMAND ./sandbox shell
 	DEPENDS tests
 )
 

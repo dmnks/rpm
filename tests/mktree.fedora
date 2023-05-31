@@ -76,3 +76,5 @@ EOF
     xz-libs \
     zlib \
     zstd
+
+@UNSHARE_CMD@ cp -r @TREE_DIR@/{etc/skel/.,/root}

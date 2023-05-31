@@ -32,6 +32,11 @@ function sandbox()
                     --dev /dev --proc /proc --chdir / \
                     --setenv PATH @CMAKE_INSTALL_PREFIX@/bin:/usr/bin "$@"
         ;;
+        shell)
+            sandbox exec --unshare-uts --hostname $(basename $SANDBOX) \
+                         --unsetenv PS1 --setenv HOME /root \
+                         $(grep ^root: $RPMTEST/etc/passwd | cut -d: -f7)
+        ;;
     esac
 }
 
@@ -48,6 +53,9 @@ function cmd()
         run)
             shift
             sandbox exec --bind $PWD $PWD --chdir $PWD "$@"
+        ;;
+        shell)
+            sandbox shell
         ;;
     esac
     sandbox umount
