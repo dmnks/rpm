@@ -7,9 +7,7 @@ RPMTEST=$SANDBOX/merged
 
 function sandbox()
 {
-    local cmd=$1
-    shift
-    case $cmd in
+    case $1 in
         mount)
             mkdir -p $SANDBOX/{upper,work} $RPMTEST
             mount -t overlay overlay \
@@ -23,11 +21,13 @@ function sandbox()
             umount -l $RPMTEST
         ;;
         prune)
+            shift
             for dir in "$@"; do
                 [ -d $dir ] && umount -ql $dir
             done
         ;;
         exec)
+            shift
             @BWRAP@ --unshare-pid --dev-bind $RPMTEST / \
                     --dev /dev --proc /proc --chdir / \
                     --setenv PATH @CMAKE_INSTALL_PREFIX@/bin:/usr/bin "$@"
