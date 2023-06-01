@@ -45,10 +45,6 @@ if ! LD_PRELOAD=${MALLOC_DEBUG} /bin/true 2>&1 | grep -q ERROR; then
     export LD_PRELOAD GLIBC_TUNABLES
 fi
 
-source ./sandbox
-
-sandbox prune rpmtests.dir/*/merged
-
 function runroot()
 {
     sandbox exec "$@" --noplugins --nouserns
@@ -65,3 +61,6 @@ function rundebug()
     runroot "$@"
     rm -f ${RPMTEST}/@MACRO_DIR@/macros.debug
 }
+
+source ./sandbox
+sandbox prune rpmtests.dir/*/merged

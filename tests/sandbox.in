@@ -24,6 +24,7 @@ function sandbox()
             for dir in "$@"; do
                 [ -d $dir ] && umount -ql $dir
             done
+            return 0
         ;;
         exec) shift
             @BWRAP@ --unshare-pid --dev-bind $RPMTEST / \
