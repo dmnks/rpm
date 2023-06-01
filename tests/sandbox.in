@@ -31,10 +31,11 @@ function sandbox()
                     --setenv PATH @CMAKE_INSTALL_PREFIX@/bin:/usr/bin "$@"
         ;;
         shell) shift
-            local cmd=$1
+            local cmd
             if [ $# == 0 ]; then
                 cmd=$(grep ^root: $RPMTEST/etc/passwd | cut -d: -f7)
             else
+                cmd=$1
                 shift
             fi
             sandbox exec --unshare-uts --hostname $(basename $SANDBOX) \
