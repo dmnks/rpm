@@ -41,6 +41,11 @@ function sandbox()
                          --unsetenv PS1 --setenv HOME /root \
                          --bind $PWD /srv --chdir /srv $cmd "$@"
         ;;
+        wrap) shift
+            sandbox mount
+            "$@"
+            sandbox umount
+        ;;
     esac
 }
 
@@ -49,21 +54,15 @@ case $PROGRAM in
         unset MOUNTARGS
     ;;
     sandbox)
-        @UNSHARE@ sh -c "source $0" env "$@"
+        if [ $# == 0 ]; then
+            src="set -a; source ./atlocal"
+            cmd=$SHELL
+        else
+            shift
+            src="source $0"
+            cmd="sandbox shell"
+        fi
+        @UNSHARE@ sh -c "$src"'; sandbox wrap "$@"' - $cmd "$@"
         exit 0
-    ;;
-    env)
-        sandbox mount
-        case $1 in
-            "")
-                export LOWERDIR SANDBOX RPMTEST
-                export -f sandbox
-                $SHELL
-            ;;
-            shell) shift
-                sandbox shell "$@"
-            ;;
-        esac
-        sandbox umount
     ;;
 esac
