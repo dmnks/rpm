@@ -44,28 +44,26 @@ function sandbox()
     esac
 }
 
-function cmd()
-{
-    sandbox mount
-    case $1 in
-        "")
-            export LOWERDIR SANDBOX RPMTEST
-            export -f sandbox
-            $SHELL
-        ;;
-        shell) shift
-            sandbox shell "$@"
-        ;;
-    esac
-    sandbox umount
-}
-
 case $PROGRAM in
     rpmtests)
-        unset MOUNTARGS cmd
+        unset MOUNTARGS
     ;;
     sandbox)
-        @UNSHARE@ sh -c 'source '$0'; cmd "$@"' - "$@"
+        @UNSHARE@ sh -c "source $0" env "$@"
         exit 0
+    ;;
+    env)
+        sandbox mount
+        case $1 in
+            "")
+                export LOWERDIR SANDBOX RPMTEST
+                export -f sandbox
+                $SHELL
+            ;;
+            shell) shift
+                sandbox shell "$@"
+            ;;
+        esac
+        sandbox umount
     ;;
 esac
