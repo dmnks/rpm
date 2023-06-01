@@ -38,9 +38,9 @@ RPMTEST_CLEANUP
 # Check that libtool versioning matches expectations, it's easy to screw up.
 AT_SETUP([rpm library version])
 AT_KEYWORDS([basic])
-AT_SKIP_IF(test -f "${RPMTEST}/${LIBDIR}/librpm.a")
+AT_SKIP_IF(test -f "${RPMTEST}/${RPMLIBDIR}/librpm.a")
 RPMTEST_CHECK([
-cd ${RPMTEST}/${LIBDIR}
+cd ${RPMTEST}/${RPMLIBDIR}
 ls lib*.so.*.*
 ],
 [0],
