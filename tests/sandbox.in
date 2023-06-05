@@ -15,7 +15,7 @@ function sandbox()
                   -o lowerdir=$LOWERDIR \
                   -o upperdir=$SANDBOX/upper \
                   -o workdir=$SANDBOX/work \
-                  $MOUNTARGS $RPMTEST
+                  $RPMTEST
         ;;
         umount)
             umount -l $RPMTEST
@@ -47,9 +47,6 @@ function sandbox()
 }
 
 case $PROGRAM in
-    rpmtests)
-        unset MOUNTARGS
-    ;;
     sandbox)
         @UNSHARE@ sh -c "source $0" wrap "$@"
         exit 0
@@ -61,6 +58,10 @@ case $PROGRAM in
                 sh -c "set -a; source ./atlocal; $SHELL"
             ;;
             shell) shift
+                if [ "$1" == "--read-only" ]; then
+                    mount -o remount,ro $RPMTEST
+                    shift
+                fi
                 sandbox shell "$@"
             ;;
         esac

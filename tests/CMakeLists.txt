@@ -94,7 +94,7 @@ if (nproc GREATER 1)
 endif()
 
 add_custom_target(check
-	COMMAND MOUNTARGS=-r ./sandbox shell ./rpmtests ${JOBS} $(TESTOPTS)
+	COMMAND ./sandbox shell --read-only ./rpmtests ${JOBS} $(TESTOPTS)
 	DEPENDS tests
 )
 
