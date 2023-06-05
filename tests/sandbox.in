@@ -56,11 +56,14 @@ case $PROGRAM in
     ;;
     wrap)
         sandbox mount
-        if [ $# == 0 ]; then
-            sh -c "set -a; source ./atlocal; $SHELL"
-        else
-            sandbox "$@"
-        fi
+        case $1 in
+            "")
+                sh -c "set -a; source ./atlocal; $SHELL"
+            ;;
+            shell) shift
+                sandbox shell "$@"
+            ;;
+        esac
         sandbox umount
     ;;
 esac
