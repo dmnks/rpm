@@ -48,7 +48,7 @@ function sandbox()
 
 case $PROGRAM in
     sandbox)
-        @UNSHARE@ bash -c "source $0" wrap "$@"
+        @UNSHARE_CMD@ bash -c "source $0" wrap "$@"
         exit 0
     ;;
     wrap)

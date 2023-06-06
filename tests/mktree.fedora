@@ -5,14 +5,17 @@
 # (see below) MUST also be included.  An existing RPM installation SHOULD NOT
 # be included.
 #
-# This script MUST implement the following subcommands:
-#   install: builds the tree
-#   clean: removes an existing tree
-#   env: defines handy variables and/or functions for use within "make env"
+# This script MUST implement the "env" subcommand which MAY define handy shell
+# variables and/or functions for use in "make env" or do nothing otherwise.
+# Other commands MAY also be implemented for when the script is invoked
+# directly (e.g. to manually install additional packages).
+#
+# When finished, the script MUST source the "mktree.extra" file from PWD if it
+# exists and then exit with the return code 0.
 #
 # Useful CMake variables:
 #   TREE_DIR: destination directory for the tree (relative to PWD)
-#   UNSHARE: runs a program as root in a user namespace (if non-root user)
+#   UNSHARE_CMD: runs a program as root in a user namespace (if non-root user)
 #   LSB_RELEASE: OS version
 #
 # Test-suite dependencies:
@@ -24,7 +27,7 @@ function dnf()
 {
     local cachedir=$(python3 -c 'import dnf; print(dnf.conf.Conf().cachedir)')
     echo '%_netsharedpath %nil' > .rpmmacros
-    @UNSHARE@ env HOME=$PWD /usr/bin/dnf \
+    @UNSHARE_CMD@ env HOME=$PWD /usr/bin/dnf \
         --installroot=$PWD/@TREE_DIR@ \
         --releasever=@LSB_RELEASE@ \
         --setopt=cachedir=$cachedir \
@@ -35,78 +38,78 @@ function dnf()
 }
 
 case $1 in
-    install) shift
-        # Allow for manual package installation
-        if [ $# != 0 ]; then
-            dnf install "$@"
-            exit 0
-        fi
-
-        # Bootstrap tree
-        dnf install -y \
-            audit \
-            bash \
-            binutils \
-            bubblewrap \
-            bzip2 \
-            coreutils \
-            cpio \
-            curl \
-            debugedit \
-            diffutils \
-            elfutils-libelf \
-            elfutils-libs \
-            file \
-            file-libs \
-            findutils \
-            gawk \
-            gcc \
-            gdb-headless \
-            gdb-minimal \
-            glibc \
-            gpg \
-            grep \
-            gzip \
-            ima-evm-utils \
-            libacl \
-            libarchive \
-            libcap \
-            libfsverity \
-            libgomp \
-            libzstd \
-            lua-libs \
-            make \
-            openssl-libs \
-            patch \
-            pkgconf-pkg-config \
-            python3 \
-            rpm-sequoia \
-            sed \
-            sqlite-libs \
-            tar \
-            unzip \
-            util-linux-core \
-            xz \
-            xz-libs \
-            zlib \
-            zstd
-
-        # Point in-tree RPM to newly installed database
-        @UNSHARE@ mkdir -p @TREE_DIR@/@MACRO_DIR@
-        echo "%_dbpath $(rpm --eval '%_dbpath')" |
-            @UNSHARE@ tee @TREE_DIR@/@MACRO_DIR@/macros.dbpath >/dev/null
-
-        # Configure default shell for root user
-        @UNSHARE@ cp -r @TREE_DIR@/{etc/skel/.,/root}
-    ;;
-    remove) shift
-        # Not required but handy
-        dnf remove "$@"
-    ;;
-    clean)
-        @UNSHARE@ rm -rf @TREE_DIR@
-    ;;
     env)
         function dnf() { /usr/bin/dnf --installroot=$RPMTEST "$@"; }
+        return 0
+    ;;
+    # These are not required but handy for manual use
+    install) shift
+        dnf install "$@"
+        exit 0
+    ;;
+    remove) shift
+        dnf remove "$@"
+        exit 0
     ;;
 esac
+
+# Bootstrap tree
+dnf install -y \
+    audit \
+    bash \
+    binutils \
+    bubblewrap \
+    bzip2 \
+    coreutils \
+    cpio \
+    curl \
+    debugedit \
+    diffutils \
+    elfutils-libelf \
+    elfutils-libs \
+    file \
+    file-libs \
+    findutils \
+    gawk \
+    gcc \
+    gdb-headless \
+    gdb-minimal \
+    glibc \
+    gpg \
+    grep \
+    gzip \
+    ima-evm-utils \
+    libacl \
+    libarchive \
+    libcap \
+    libfsverity \
+    libgomp \
+    libzstd \
+    lua-libs \
+    make \
+    openssl-libs \
+    patch \
+    pkgconf-pkg-config \
+    python3 \
+    rpm-sequoia \
+    sed \
+    sqlite-libs \
+    tar \
+    unzip \
+    util-linux-core \
+    xz \
+    xz-libs \
+    zlib \
+    zstd
+
+# Point in-tree RPM to newly installed database
+@UNSHARE_CMD@ mkdir -p @TREE_DIR@/@MACRO_DIR@
+echo "%_dbpath $(rpm --eval '%_dbpath')" |
+    @UNSHARE_CMD@ tee @TREE_DIR@/@MACRO_DIR@/macros.dbpath >/dev/null
+
+# Configure default shell for root user
+@UNSHARE_CMD@ cp -r @TREE_DIR@/{etc/skel/.,/root}
+
+export -f dnf
+[ -x mktree.extra ] && ./mktree.extra
+exit 0

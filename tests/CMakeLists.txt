@@ -80,12 +80,13 @@ execute_process(COMMAND id -u OUTPUT_VARIABLE UID)
 if (${UID} EQUAL 0)
 	set(UNSHARE "")
 elseif(EXISTS /run/.toolboxenv)
-	set(UNSHARE "sudo -E")
+	set(UNSHARE sudo -E)
 else()
 	find_program(UNSHARE unshare REQUIRED)
-	set(UNSHARE "${UNSHARE} -rm --map-auto")
+	set(UNSHARE ${UNSHARE} -rm --map-auto)
 endif()
 
+string(REPLACE ";" " " UNSHARE_CMD "${UNSHARE}")
 configure_file(sandbox.in sandbox @ONLY)
 configure_file(mktree.${LSB_NAME} mktree @ONLY)
 
@@ -106,8 +107,7 @@ add_custom_target(shell
 )
 
 add_custom_target(reset
-	COMMAND chmod -R u+rw ${CONTAINER_DIR} &&
-		rm -rf ${CONTAINER_DIR}
+	COMMAND ${UNSHARE} rm -rf ${CONTAINER_DIR}
 )
 
 add_custom_target(env
@@ -154,8 +154,7 @@ add_custom_command(OUTPUT ${INST_DIR}
 )
 
 add_custom_command(OUTPUT ${TREE_DIR}
-	COMMAND ./mktree clean &&
-		./mktree install &&
-		test -x mktree.extra && ./mktree.extra || true
+	COMMAND ${UNSHARE} rm -rf ${TREE_DIR} &&
+		./mktree
 	DEPENDS mktree
 )
