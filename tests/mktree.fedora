@@ -15,66 +15,90 @@
 #
 # This script MUST work if executed as a regular user as well as root.
 
-cachedir=$(python3 -c 'import dnf; print(dnf.conf.Conf().cachedir)')
-mkdir -p home
-cat << EOF > home/.rpmmacros
-%_netsharedpath %nil
-%_dbpath /var/lib/rpm-tests
-EOF
+function dnf()
+{
+    local cachedir=$(python3 -c 'import dnf; print(dnf.conf.Conf().cachedir)')
+    mkdir -p home
+    echo '%_netsharedpath %nil' > home/.rpmmacros
+    @UNSHARE@ env HOME=${PWD}/home /usr/bin/dnf \
+        --installroot=${PWD}/@TREE_DIR@ \
+        --releasever=@LSB_RELEASE@ \
+        --setopt=cachedir=${cachedir} \
+        --setopt=keepcache=1 \
+        --setopt=install_weak_deps=0 \
+        --disablerepo=\* --enablerepo=fedora,updates \
+        --exclude=rpm "$@"
+}
 
-@UNSHARE@ env HOME=${PWD}/home dnf -y install \
-    --installroot=${PWD}/@TREE_DIR@ \
-    --releasever=@LSB_RELEASE@ \
-    --setopt=cachedir=${cachedir} \
-    --setopt=keepcache=1 \
-    --setopt=install_weak_deps=0 \
-    --disablerepo=\* --enablerepo=fedora,updates \
-    --exclude=rpm \
-    audit \
-    bash \
-    binutils \
-    bubblewrap \
-    bzip2 \
-    coreutils \
-    cpio \
-    curl \
-    debugedit \
-    diffutils \
-    elfutils-libelf \
-    elfutils-libs \
-    file \
-    file-libs \
-    findutils \
-    gawk \
-    gcc \
-    gdb-headless \
-    gdb-minimal \
-    glibc \
-    gpg \
-    grep \
-    gzip \
-    ima-evm-utils \
-    libacl \
-    libarchive \
-    libcap \
-    libfsverity \
-    libgomp \
-    libzstd \
-    lua-libs \
-    make \
-    openssl-libs \
-    patch \
-    pkgconf-pkg-config \
-    python3 \
-    rpm-sequoia \
-    sed \
-    sqlite-libs \
-    tar \
-    unzip \
-    util-linux-core \
-    xz \
-    xz-libs \
-    zlib \
-    zstd
+case $1 in
+    install) shift
+        if [ $# != 0 ]; then
+            dnf install "$@"
+            exit 0
+        fi
 
-@UNSHARE@ cp -r @TREE_DIR@/{etc/skel/.,/root}
+        dnf install -y \
+            audit \
+            bash \
+            binutils \
+            bubblewrap \
+            bzip2 \
+            coreutils \
+            cpio \
+            curl \
+            debugedit \
+            diffutils \
+            elfutils-libelf \
+            elfutils-libs \
+            file \
+            file-libs \
+            findutils \
+            gawk \
+            gcc \
+            gdb-headless \
+            gdb-minimal \
+            glibc \
+            gpg \
+            grep \
+            gzip \
+            ima-evm-utils \
+            libacl \
+            libarchive \
+            libcap \
+            libfsverity \
+            libgomp \
+            libzstd \
+            lua-libs \
+            make \
+            openssl-libs \
+            patch \
+            pkgconf-pkg-config \
+            python3 \
+            rpm-sequoia \
+            sed \
+            sqlite-libs \
+            tar \
+            unzip \
+            util-linux-core \
+            xz \
+            xz-libs \
+            zlib \
+            zstd
+
+        # Point in-tree RPM to newly installed database
+        mkdir -p @TREE_DIR@/@MACRO_DIR@
+        echo "%_dbpath $(rpm --eval '%_dbpath')" > @TREE_DIR@/@MACRO_DIR@/macros.dbpath
+
+        # Configure default shell for root user
+        @UNSHARE@ cp -r @TREE_DIR@/{etc/skel/.,/root}
+    ;;
+    remove) shift
+        dnf remove "$@"
+    ;;
+    clean)
+        @UNSHARE@ rm -rf @TREE_DIR@
+    ;;
+    env)
+        function dnf() { /usr/bin/dnf --installroot=$RPMTEST "$@"; }
+    ;;
+esac

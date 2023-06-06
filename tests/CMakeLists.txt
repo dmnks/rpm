@@ -151,7 +151,7 @@ add_custom_command(OUTPUT ${INST_DIR}
 )
 
 add_custom_command(OUTPUT ${TREE_DIR}
-	COMMAND rm -rf ${TREE_DIR} &&
-		./mktree
+	COMMAND ./mktree clean &&
+		./mktree install
 	DEPENDS mktree
 )

@@ -63,4 +63,6 @@ function rundebug()
 }
 
 source ./sandbox
+source ./mktree env
+
 sandbox prune rpmtests.dir/*/merged
