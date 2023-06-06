@@ -152,6 +152,7 @@ add_custom_command(OUTPUT ${INST_DIR}
 
 add_custom_command(OUTPUT ${TREE_DIR}
 	COMMAND ./mktree clean &&
-		./mktree install
+		./mktree install &&
+		test -x mktree.extra && ./mktree.extra || true
 	DEPENDS mktree
 )
