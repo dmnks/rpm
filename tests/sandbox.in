@@ -48,14 +48,14 @@ function sandbox()
 
 case $PROGRAM in
     sandbox)
-        @UNSHARE@ sh -c "source $0" wrap "$@"
+        @UNSHARE@ bash -c "source $0" wrap "$@"
         exit 0
     ;;
     wrap)
         sandbox mount
         case $1 in
             "")
-                sh -c "set -a; source ./atlocal; $SHELL"
+                bash -c "set -a; source ./atlocal; $SHELL"
             ;;
             shell) shift
                 if [ "$1" == "--read-only" ]; then
