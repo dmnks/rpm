@@ -102,7 +102,7 @@ add_custom_target(check
 
 add_custom_target(shell
 	COMMAND ./sandbox shell
-	DEPENDS tests
+	DEPENDS image
 )
 
 add_custom_target(env
@@ -111,14 +111,10 @@ add_custom_target(env
 )
 
 add_custom_target(tests
-	DEPENDS suite
-	DEPENDS image
-)
-
-add_custom_target(suite
 	DEPENDS rpmtests
 	DEPENDS ${TESTPROGS}
 	DEPENDS ${DATA_DIR}
+	DEPENDS image
 )
 
 add_custom_target(image
