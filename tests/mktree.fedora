@@ -5,13 +5,18 @@
 # (see below) MUST also be included.  An existing RPM installation SHOULD NOT
 # be included.
 #
-# Test-suite dependencies (program names):
-#   bwrap cpio diff file gzip mount readelf tar
+# This script MUST implement the following subcommands:
+#   install: builds the tree
+#   clean: removes an existing tree
+#   env: defines handy variables and/or functions for use within "make env"
 #
 # Useful CMake variables:
 #   TREE_DIR: destination directory for the tree (relative to PWD)
-#   UNSHARE: runs a program as root in a user namespace (empty if root)
+#   UNSHARE: runs a program as root in a user namespace (if non-root user)
 #   LSB_RELEASE: OS version
+#
+# Test-suite dependencies:
+#   bwrap cpio diff file gzip mount readelf sh tar /etc/passwd
 #
 # This script MUST work if executed as a regular user as well as root.
 
@@ -32,11 +37,13 @@ function dnf()
 
 case $1 in
     install) shift
+        # Allow for manual package installation
         if [ $# != 0 ]; then
             dnf install "$@"
             exit 0
         fi
 
+        # Bootstrap tree
         dnf install -y \
             audit \
             bash \
@@ -94,6 +101,7 @@ case $1 in
         @UNSHARE@ cp -r @TREE_DIR@/{etc/skel/.,/root}
     ;;
     remove) shift
+        # Not required but handy
         dnf remove "$@"
     ;;
     clean)
