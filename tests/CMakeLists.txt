@@ -105,6 +105,11 @@ add_custom_target(shell
 	DEPENDS image
 )
 
+add_custom_target(reset
+	COMMAND chmod -R u+rw ${CONTAINER_DIR} &&
+		rm -rf ${CONTAINER_DIR}
+)
+
 add_custom_target(env
 	COMMAND ./sandbox
 	DEPENDS tests
