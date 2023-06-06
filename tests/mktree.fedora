@@ -86,8 +86,9 @@ case $1 in
             zstd
 
         # Point in-tree RPM to newly installed database
-        mkdir -p @TREE_DIR@/@MACRO_DIR@
-        echo "%_dbpath $(rpm --eval '%_dbpath')" > @TREE_DIR@/@MACRO_DIR@/macros.dbpath
+        @UNSHARE@ mkdir -p @TREE_DIR@/@MACRO_DIR@
+        echo "%_dbpath $(rpm --eval '%_dbpath')" |
+            @UNSHARE@ tee @TREE_DIR@/@MACRO_DIR@/macros.dbpath >/dev/null
 
         # Configure default shell for root user
         @UNSHARE@ cp -r @TREE_DIR@/{etc/skel/.,/root}
