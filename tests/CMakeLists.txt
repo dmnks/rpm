@@ -62,6 +62,8 @@ foreach(prg ${TESTPROGS})
 	target_link_libraries(${prg} PRIVATE librpmio)
 	set_target_properties(${prg} PROPERTIES
 		RUNTIME_OUTPUT_DIRECTORY ${UTIL_DIR}/usr/bin)
+	add_custom_command(TARGET ${prg} PRE_BUILD
+		COMMAND mkdir -p ${UTIL_DIR}/usr/bin)
 endforeach()
 
 find_program(LSB lsb_release REQUIRED)
