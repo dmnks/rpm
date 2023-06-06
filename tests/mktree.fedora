@@ -23,12 +23,11 @@
 function dnf()
 {
     local cachedir=$(python3 -c 'import dnf; print(dnf.conf.Conf().cachedir)')
-    mkdir -p home
-    echo '%_netsharedpath %nil' > home/.rpmmacros
-    @UNSHARE@ env HOME=${PWD}/home /usr/bin/dnf \
-        --installroot=${PWD}/@TREE_DIR@ \
+    echo '%_netsharedpath %nil' > .rpmmacros
+    @UNSHARE@ env HOME=$PWD /usr/bin/dnf \
+        --installroot=$PWD/@TREE_DIR@ \
         --releasever=@LSB_RELEASE@ \
-        --setopt=cachedir=${cachedir} \
+        --setopt=cachedir=$cachedir \
         --setopt=keepcache=1 \
         --setopt=install_weak_deps=0 \
         --disablerepo=\* --enablerepo=fedora,updates \
