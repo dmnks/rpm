@@ -135,26 +135,26 @@ add_custom_command(OUTPUT rpmtests
 )
 
 add_custom_command(OUTPUT ${DATA_DIR}
-	COMMAND rm -rf ${DATA_DIR} &&
-		cp -r ${CMAKE_CURRENT_SOURCE_DIR}/data ${UTIL_DIR}/ &&
-		mkdir -p ${UTIL_DIR}/{build,${MACRO_DIR}} &&
-		ln -sf /data/SOURCES ${UTIL_DIR}/build/ &&
-		ln -sf /data/macros.test ${UTIL_DIR}/${MACRO_DIR}/
+	COMMAND rm -rf ${DATA_DIR}
+	COMMAND cp -r ${CMAKE_CURRENT_SOURCE_DIR}/data ${UTIL_DIR}/
+	COMMAND mkdir -p ${UTIL_DIR}/{build,${MACRO_DIR}}
+	COMMAND ln -sf /data/SOURCES ${UTIL_DIR}/build/
+	COMMAND ln -sf /data/macros.test ${UTIL_DIR}/${MACRO_DIR}/
 	DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/data
 )
 
 add_custom_command(OUTPUT ${INST_DIR}
-	COMMAND rm -rf ${INST_DIR} &&
-		${CMAKE_MAKE_PROGRAM} -C ${CMAKE_BINARY_DIR}
-		DESTDIR=${CMAKE_CURRENT_BINARY_DIR}/${INST_DIR} install &&
-		mkdir -p ${LD_CONF_DIR} &&
-		echo ${CMAKE_INSTALL_FULL_LIBDIR} > ${LD_CONF_DIR}/rpm.conf &&
-		ldconfig -r ${INST_DIR} ${CMAKE_INSTALL_FULL_LIBDIR}
+	COMMAND rm -rf ${INST_DIR}
+	COMMAND ${CMAKE_MAKE_PROGRAM} -C ${CMAKE_BINARY_DIR}
+		DESTDIR=${CMAKE_CURRENT_BINARY_DIR}/${INST_DIR} install
+	COMMAND mkdir -p ${LD_CONF_DIR}
+	COMMAND echo ${CMAKE_INSTALL_FULL_LIBDIR} > ${LD_CONF_DIR}/rpm.conf
+	COMMAND ldconfig -r ${INST_DIR} ${CMAKE_INSTALL_FULL_LIBDIR}
 	DEPENDS ${TOP_TARGETS}
 )
 
 add_custom_command(OUTPUT ${TREE_DIR}
-	COMMAND ${UNSHARE} rm -rf ${TREE_DIR} &&
-		./mktree
+	COMMAND ${UNSHARE} rm -rf ${TREE_DIR}
+	COMMAND ./mktree
 	DEPENDS mktree
 )
