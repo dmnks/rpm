@@ -5,18 +5,18 @@
 # (see below) MUST also be included.  An existing RPM installation SHOULD NOT
 # be included.
 #
-# This script MUST implement the "env" subcommand which MAY define handy shell
-# variables and/or functions for use in "make env" or do nothing otherwise.
-# Other commands MAY also be implemented for when the script is invoked
-# directly (e.g. to manually install additional packages).
+# This script MUST implement the "env" subcommand which MAY define handy
+# OS-specific shell variables and/or functions for use in "make env" or do
+# nothing otherwise.  Other commands MAY also be implemented for when the
+# script is invoked directly (e.g. to manually install additional packages).
 #
-# When finished, the script MUST source the "mktree.extra" file from PWD if it
+# When finished, the script MUST run the "mktree.extra" script from PWD if it
 # exists and then exit with the return code 0.
 #
 # Useful CMake variables:
 #   TREE_DIR: destination directory for the tree (relative to PWD)
 #   UNSHARE_CMD: runs a program as root in a user namespace (if non-root user)
-#   LSB_RELEASE: OS version
+#   OS_VERSION: distribution version
 #
 # Test-suite dependencies:
 #   bwrap cpio diff file gzip mount readelf sh tar /etc/passwd
@@ -29,7 +29,7 @@ function dnf()
     echo '%_netsharedpath %nil' > .rpmmacros
     @UNSHARE_CMD@ env HOME=$PWD /usr/bin/dnf \
         --installroot=$PWD/@TREE_DIR@ \
-        --releasever=@LSB_RELEASE@ \
+        --releasever=@OS_VERSION@ \
         --setopt=cachedir=$cachedir \
         --setopt=keepcache=1 \
         --setopt=install_weak_deps=0 \

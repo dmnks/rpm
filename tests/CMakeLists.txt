@@ -66,17 +66,17 @@ foreach(prg ${TESTPROGS})
 		COMMAND mkdir -p ${UTIL_DIR}/usr/bin)
 endforeach()
 
-find_program(LSB lsb_release REQUIRED)
-execute_process(COMMAND ${LSB} -is
-		OUTPUT_VARIABLE LSB_NAME
+execute_process(COMMAND sh -c "grep ^ID /etc/os-release | cut -d= -f2"
+		OUTPUT_VARIABLE OS_NAME
 		OUTPUT_STRIP_TRAILING_WHITESPACE)
-execute_process(COMMAND ${LSB} -rs
-		OUTPUT_VARIABLE LSB_RELEASE
+execute_process(COMMAND sh -c "grep ^VERSION_ID /etc/os-release | cut -d= -f2"
+		OUTPUT_VARIABLE OS_VERSION
 		OUTPUT_STRIP_TRAILING_WHITESPACE)
-string(TOLOWER ${LSB_NAME} LSB_NAME)
+string(TOLOWER ${OS_NAME} OS_NAME)
 
 find_program(BWRAP bwrap REQUIRED)
-execute_process(COMMAND id -u OUTPUT_VARIABLE UID)
+find_program(ID id REQUIRED)
+execute_process(COMMAND ${ID} -u OUTPUT_VARIABLE UID)
 if (${UID} EQUAL 0)
 	set(UNSHARE "")
 elseif(EXISTS /run/.toolboxenv)
@@ -88,7 +88,7 @@ endif()
 
 string(REPLACE ";" " " UNSHARE_CMD "${UNSHARE}")
 configure_file(sandbox.in sandbox @ONLY)
-configure_file(mktree.${LSB_NAME} mktree @ONLY)
+configure_file(mktree.${OS_NAME} mktree @ONLY)
 
 include(ProcessorCount)
 ProcessorCount(nproc)
