@@ -52,24 +52,21 @@ You can run arbitrary non-RPM commands in the container using the
 
 ## Isolation
 
-Each test gets a pristine filesystem tree mounted at `$RPMTEST` with RPM
-installed and ready to use.  Issuing `runroot` then runs a container (using
-bubblewrap) on top of that tree.
+Each test gets a pristine, minimal OS filesystem mounted at `$RPMTEST` with an
+RPM installation inside.  Issuing `runroot` then runs the given command in a
+lightweight container on top of that tree.
 
-CONTINUE HERE
-The filesystem consists of four layers.  The first three (the "image" or
-overlayfs lowerdirs) are: the *base* layer (RPM's runtime and test
-dependencies), the *data* layer (test resource files), and the *install* layer
-(RPM installation).  The fourth layer records during test execution).
+The filesystem is a union mount of the *image* tree (immutable) and *test* tree
+(writable).  The image tree is itself a union of the *base* tree (RPM's runtime
+and test dependencies) made by the host distribution specific `mktree` script,
+the *data* tree (test resource files) and the RPM *installation* tree.
 
-All the layers are stored in the build directory and reused if unchanged.  The
-base layer is composed by the host distribution specific `mktree` script.
+All trees are stored in the build directory and recreated separately if their
+corresponding sources have changed, except for the test tree which is created
+once for each test and starts empty.
 
-Any changes made to `$RPMTEST` trees during test execution are stored in
-Autotest specific per-test directories under `rpmtests.dir`.
-
-For extra safety, `make check` runs the `rpmtests` script itself in a container
-(using the same image) to prevent a misbehaving test from modifying your host
+For extra safety, `make check` runs the `rpmtests` script in its own container
+(using the same image) to prevent a misbehaved test from modifying your host
 filesystem.  The container is also made read-only to preemptively detect such
 accidental writes.
 
@@ -77,59 +74,63 @@ accidental writes.
 
 To drop into a shell that replicates the environment of a single test, run:
 
-    make env
+    make sandbox
 
 There, you can use the usual commands and variables available in a test, e.g:
 
     runroot rpm ...
     ls $RPMTEST
 
-On a Fedora host, you can also manage the `$RPMTEST` tree with DNF from the
-host using a builtin wrapper, e.g:
+Unlike an actual test, the shell runs in your host filesystem, allowing you to
+use all your programs normally and manage the contents of `$RPMTEST` like any
+other directory on the host.  For example, on Fedora, you can install extra
+packages into the filesystem like this:
 
-    dnf install ...
+    dnf install --installroot=$RPMTEST ...
 
-The `$RPMTEST` tree is persistent across `make env` runs.  To factory-reset it,
-run:
+The `$RPMTEST` filesystem is persistent across `make sandbox` runs.  To factory
+reset it, run:
 
     make reset
 
-Any changes made to `$RPMTEST` are stored in the `$SANDBOX` directory.  You can
-change these values arbitrarily to create multiple trees.  To mount/unmount a
-tree, use the `sandbox` builtin, see `sandbox --help` for details.
+### Handy aliases
 
-## Development container
+Some common operations have useful aliases defined in `make sandbox`, namely:
 
-To quickly test-drive your RPM checkout in a container, run:
+* `rpm` for `runroot rpm`
+* `dnf` for `dnf --installroot=$RPMTEST` (only on Fedora)
 
-    make shell
-    rpm ...
+### Managing filesystems
 
-This is just a shorthand for
+You can create multiple filesystems from the same image with the `rpmtest`
+command, e.g:
 
-    make env
-    runroot_other <shell>
+    rpmtest umount          # unmount $RPMTEST
+    rpmtest mount mytest    # mount a new "mytest" filesystem at $RPMTEST
+    runroot rpm ...
 
-Where `<shell>` is root's default shell as configured in the image.
+Note that the filesystem that's automatically mounted when executing `make
+sandbox` is named "default".
 
-You can also manually run the test suite from this container:
+For all available options, see the output of the command:
 
-    ./rpmtests ...
+    rpmtest --help
 
-This is exactly what `make check` does behind the scenes.  Note that while this
-will also work in `make env`, it is recommended that you only run the test
-suite in a container, as discussed above.
+### Development container
+
+TODO
 
 ## Extending the image
 
 To adjust the image to your liking, such as to install your favorite
-development tools, create an executable script named `mktree.extra` in this
-directory.  It will be automatically run by `mktree`.  Ideally, `mktree`
-exports a convenience wrapper to invoke the host's package manager with the
-necessary flags, such as that defined in `mktree.fedora` for DNF.  Thus on
-Fedora, the `mktree.extra` script may be as simple as:
+development tools, create an executable script named `mktree.extra` in the
+built `tests` directory.  It will be automatically run by `mktree`.
 
-    #!/bin/bash
+Ideally, `mktree` exports a convenience wrapper to invoke the host's package
+manager with the necessary flags, such as that defined in `mktree.fedora` for
+DNF.  Thus on Fedora, the `mktree.extra` script may be as simple as:
+
+    #!/bin/sh
     dnf install -y ...
 
 Note that this feature is only meant for the `make shell` use case.  If the
