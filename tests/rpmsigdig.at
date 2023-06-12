@@ -200,8 +200,7 @@ RPMTEST_CLEANUP
 # when the key is imported; other implementations should not do this.
 AT_SETUP([rpmkeys --import rsa (rpmdb)])
 AT_KEYWORDS([rpmkeys import])
-RPMTEST_SETUP
-AT_CHECK_UNQUOTED([
+RPMTEST_CHECK_UNQUOTED([
 RPMDB_INIT
 
 runroot rpmkeys --import /data/keys/rpm.org-rsa-2048-test.pub
@@ -521,7 +520,7 @@ RPMDB_INIT
 # check for validity is when the key is used, not when it is imported.
 # The internal OpenPGP implementation checks for validity when the key
 # is imported; other implementations should not do this.
-AT_CHECK_UNQUOTED([
+RPMTEST_CHECK_UNQUOTED([
 runroot rpmkeys --quiet --import /data/keys/CVE-2021-3521-badbind.asc
 echo exit code: $? >&2
 ],
@@ -536,7 +535,7 @@ else
 fi`]
 )
 
-AT_CHECK_UNQUOTED([
+RPMTEST_CHECK_UNQUOTED([
 runroot rpmkeys --quiet --import /data/keys/CVE-2021-3521-nosubsig.asc
 echo exit code: $? >&2
 ],
@@ -551,7 +550,7 @@ else
 fi`]
 )
 
-AT_CHECK_UNQUOTED([
+RPMTEST_CHECK_UNQUOTED([
 runroot rpmkeys --quiet --import /data/keys/CVE-2021-3521-nosubsig-last.asc
 echo exit code: $? >&2
 ],
