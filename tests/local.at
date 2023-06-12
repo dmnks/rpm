@@ -1,4 +1,4 @@
-AT_TESTED([bwrap])
+AT_TESTED([rpm rpmbuild rpmquery])
 
 m4_define([RPMTEST_SETUP],[[
 export SANDBOX="${PWD}"
