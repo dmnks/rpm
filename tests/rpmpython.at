@@ -190,8 +190,6 @@ myprint(rpm.labelCompare("2:1.0-1", "2.0-1"))
 )
 
 RPMPY_TEST([vfyflags API],[
-ts = rpm.ts()
-ts.setFlags(rpm.RPMTRANS_FLAG_NOPLUGINS)
 dlv = ts.getVfyFlags()
 tlv = dlv | rpm.RPMVSF_NOSHA1HEADER
 olv = ts.setVfyFlags(tlv)
@@ -202,8 +200,6 @@ myprint('%s %s %s' % (hex(dlv), hex(olv), hex(nlv)))
 )
 
 RPMPY_TEST([vfylevel API],[
-ts = rpm.ts()
-ts.setFlags(rpm.RPMTRANS_FLAG_NOPLUGINS)
 dlv = ts.getVfyLevel()
 olv = ts.setVfyLevel(rpm.RPMSIG_SIGNATURE_TYPE|rpm.RPMSIG_DIGEST_TYPE)
 nlv = ts.getVfyLevel()
@@ -214,8 +210,6 @@ myprint('%s %s %s' % (hex(dlv), hex(olv), hex(nlv)))
 
 
 RPMPY_TEST([reading a package file],[
-ts = rpm.ts()
-ts.setFlags(rpm.RPMTRANS_FLAG_NOPLUGINS)
 h = ts.hdrFromFdno('/data/RPMS/hello-1.0-1.ppc64.rpm')
 myprint(h['arch'])
 ],
@@ -223,8 +217,6 @@ myprint(h['arch'])
 )
 
 RPMPY_TEST([reading a signed package file 1],[
-ts = rpm.ts()
-ts.setFlags(rpm.RPMTRANS_FLAG_NOPLUGINS)
 # avoid rpmlog spew with absolute path to package
 sink = open('/dev/null', 'w')
 rpm.setLogFile(sink)
@@ -245,8 +237,6 @@ pubkey = rpm.pubkey(keydata)
 keyring = rpm.keyring()
 keyring.addKey(pubkey)
 
-ts = rpm.ts()
-ts.setFlags(rpm.RPMTRANS_FLAG_NOPLUGINS)
 ts.setKeyring(keyring)
 try:
     h = ts.hdrFromFdno('/data/RPMS/hello-2.0-1.x86_64-signed.rpm')
@@ -258,8 +248,6 @@ except rpm.error as e:
 )
 
 RPMPY_TEST([add package to transaction],[
-ts = rpm.ts()
-ts.setFlags(rpm.RPMTRANS_FLAG_NOPLUGINS)
 ts.addInstall('/data/RPMS/foo-1.0-1.noarch.rpm', 'u')
 for e in ts:
     myprint(e.NEVRA())
@@ -271,8 +259,6 @@ for e in ts:
 )
 
 RPMPY_TEST([add erasure to transaction],[
-ts = rpm.ts()
-ts.setFlags(rpm.RPMTRANS_FLAG_NOPLUGINS)
 for i in ['foo', 1234]:
     myprint('addErase %s' % i)
     try:
@@ -294,8 +280,6 @@ addErase mi]
 )
 
 RPMPY_TEST([add restore to transaction],[
-ts = rpm.ts()
-ts.setFlags(rpm.RPMTRANS_FLAG_NOPLUGINS)
 for i in ['foo', 1234]:
     myprint('addRestore %s' % i)
     try:
@@ -317,8 +301,6 @@ addRestore mi]
 )
 
 RPMPY_TEST([add bogus package to transaction 1],[
-ts = rpm.ts()
-ts.setFlags(rpm.RPMTRANS_FLAG_NOPLUGINS)
 h = rpm.hdr()
 h['name'] = "foo"
 try:
@@ -332,8 +314,6 @@ for e in ts:
 )
 
 RPMPY_TEST([add bogus package to transaction 2],[
-ts = rpm.ts()
-ts.setFlags(rpm.RPMTRANS_FLAG_NOPLUGINS)
 h = rpm.hdr()
 h['name'] = 'foo'
 h['version'] = '1.0'
@@ -355,8 +335,6 @@ for e in ts:
 
 RPMPY_TEST([transaction element userdata],[
 mydata = { 'foo': 'bar', 'capstest': 'lock' }
-ts = rpm.ts()
-ts.setFlags(rpm.RPMTRANS_FLAG_NOPLUGINS)
 ts.addInstall('/data/RPMS/foo-1.0-1.noarch.rpm', 'u')
 ts.addInstall('/data/RPMS/capstest-1.0-1.noarch.rpm', 'u')
 for e in ts:
@@ -378,8 +356,6 @@ def ncb(arg, what, amount, total, data):
     return -1
 
 cbd = "mine"
-ts = rpm.ts()
-ts.setFlags(rpm.RPMTRANS_FLAG_NOPLUGINS)
 ts.addInstall('/data/RPMS/foo-1.0-1.noarch.rpm', 'mykey', 'u')
 ts.setFlags(rpm.RPMTRANS_FLAG_TEST)
 print("- old -")
@@ -420,8 +396,6 @@ runroot rpm -i \
 [])
 
 RPMPY_CHECK([
-ts = rpm.ts()
-ts.setFlags(rpm.RPMTRANS_FLAG_NOPLUGINS)
 ix = 0
 mi = ts.dbMatch()
 mi.pattern('name', rpm.RPMMIRE_STRCMP, 'hello')
@@ -437,8 +411,6 @@ for h in ts.dbMatch('packages', ix):
 [])
 
 RPMPY_CHECK([
-ts = rpm.ts()
-ts.setFlags(rpm.RPMTRANS_FLAG_NOPLUGINS)
 mi = ts.dbMatch()
 mi.pattern('name', rpm.RPMMIRE_DEFAULT, 'f*')
 for h in mi:
@@ -449,8 +421,6 @@ for h in mi:
 [])
 
 RPMPY_CHECK([
-ts = rpm.ts()
-ts.setFlags(rpm.RPMTRANS_FLAG_NOPLUGINS)
 for h in ts.dbMatch('name'):
     myprint(h['nevra'])
 ],
@@ -460,8 +430,6 @@ hello-2.0-1.i686
 [])
 
 RPMPY_CHECK([
-ts = rpm.ts()
-ts.setFlags(rpm.RPMTRANS_FLAG_NOPLUGINS)
 for h in ts.dbMatch('obsoletes'):
     myprint(h['nevra'])
 ],
@@ -470,8 +438,6 @@ for h in ts.dbMatch('obsoletes'):
 [])
 
 RPMPY_CHECK([
-ts = rpm.ts()
-ts.setFlags(rpm.RPMTRANS_FLAG_NOPLUGINS)
 for h in ts.dbMatch('provides', 'hi'):
     myprint(h['nevra'])
 ],
@@ -480,8 +446,6 @@ for h in ts.dbMatch('provides', 'hi'):
 [])
 
 RPMPY_CHECK([
-ts = rpm.ts()
-ts.setFlags(rpm.RPMTRANS_FLAG_NOPLUGINS)
 for h in ts.dbMatch('basenames', '/usr/share/doc/hello-2.0/FAQ'):
     myprint(h['nevra'])
 ],
@@ -489,8 +453,6 @@ for h in ts.dbMatch('basenames', '/usr/share/doc/hello-2.0/FAQ'):
 ],
 [])
 RPMPY_CHECK([
-ts = rpm.ts()
-ts.setFlags(rpm.RPMTRANS_FLAG_NOPLUGINS)
 for di in sorted(ts.dbIndex('obsoletes')):
     myprint(di)
 ],
@@ -499,8 +461,6 @@ for di in sorted(ts.dbIndex('obsoletes')):
 [])
 
 RPMPY_CHECK([
-ts = rpm.ts()
-ts.setFlags(rpm.RPMTRANS_FLAG_NOPLUGINS)
 for di in sorted(ts.dbIndex('provides')):
     myprint(di)
 ],
@@ -522,8 +482,6 @@ RPMTEST_CHECK([
 [])
 
 RPMPY_CHECK([
-ts = rpm.ts()
-ts.setFlags(rpm.RPMTRANS_FLAG_NOPLUGINS)
 ts.openDB()
 c1 = ts.dbCookie()
 ts.closeDB()
@@ -547,8 +505,6 @@ runroot rpm -i \
 [])
 
 RPMPY_CHECK([
-ts = rpm.ts()
-ts.setFlags(rpm.RPMTRANS_FLAG_NOPLUGINS)
 ts.openDB()
 c1 = ts.dbCookie()
 c2 = open("/dbcookie", "r").read()
@@ -571,8 +527,6 @@ runroot rpm -i \
 [])
 
 RPMPY_CHECK([
-ts = rpm.ts()
-ts.setFlags(rpm.RPMTRANS_FLAG_NOPLUGINS)
 ts.openDB()
 c1 = ts.dbCookie()
 c2 = open("/dbcookie", "r").read()
@@ -584,8 +538,6 @@ myprint(c1 != c2)
 RPMTEST_CLEANUP
 
 RPMPY_TEST([dependency sets 1],[
-ts = rpm.ts()
-ts.setFlags(rpm.RPMTRANS_FLAG_NOPLUGINS)
 h = ts.hdrFromFdno('/data/RPMS/hello-1.0-1.ppc64.rpm')
 for dep in rpm.ds(h, 'requires'):
     myprint(dep.DNEVR())
@@ -602,8 +554,6 @@ R rtld(GNU_HASH)]
 )
 
 RPMPY_TEST([dependency sets 2],[
-ts = rpm.ts()
-ts.setFlags(rpm.RPMTRANS_FLAG_NOPLUGINS)
 h = ts.hdrFromFdno('/data/RPMS/hello-2.0-1.i686.rpm')
 ds = rpm.ds(h, 'provides')
 myprint('%d %d' % (ds.Instance(), ds.Count()))
@@ -633,8 +583,6 @@ S (foo if bar) True True True
 [])
 
 RPMPY_TEST([file info sets 1],[
-ts = rpm.ts()
-ts.setFlags(rpm.RPMTRANS_FLAG_NOPLUGINS)
 h = ts.hdrFromFdno('/data/RPMS/hello-2.0-1.i686.rpm')
 fi = rpm.files(h)
 myprint(len(fi))
@@ -651,8 +599,6 @@ for f in fi:
 [])
 
 RPMPY_TEST([file sets 1],[
-ts = rpm.ts()
-ts.setFlags(rpm.RPMTRANS_FLAG_NOPLUGINS)
 for p in ['imatest-1.0-1.fc34.noarch.rpm', 'capstest-1.0-1.noarch.rpm']:
   h = ts.hdrFromFdno('/data/RPMS/%s' % p)
   files = rpm.files(h)
@@ -705,8 +651,6 @@ P bar = 2.0
 
 RPMPY_TEST([archive 1],[
 import hashlib
-ts = rpm.ts()
-ts.setFlags(rpm.RPMTRANS_FLAG_NOPLUGINS)
 fd = rpm.fd.open('/data/SRPMS/hello-1.0-1.src.rpm')
 h = ts.hdrFromFdno(fd)
 payload = rpm.fd.open(fd, flags=h['payloadcompressor'])
@@ -725,8 +669,6 @@ for f in archive:
 [])
 
 RPMPY_TEST([header unload],[
-ts = rpm.ts()
-ts.setFlags(rpm.RPMTRANS_FLAG_NOPLUGINS)
 h = ts.hdrFromFdno('/data/RPMS/hello-2.0-1.i686.rpm')
 # Add some garbage to header to make it non-sorted
 h['installtime'] = 0
