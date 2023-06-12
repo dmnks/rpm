@@ -3,6 +3,7 @@
 DATA_DIR="${PWD}/@DATA_DIR@"
 RPMCONFIGDIR="@RPMCONFIGDIR@"
 RPMLIBDIR="@CMAKE_INSTALL_FULL_LIBDIR@"
+PYTHON="@PYTHON@"
 RPM_XFAIL=${RPM_XFAIL-1}
 DBFORMAT=$(awk '/^%_db_backend/{print $2}' "@INST_DIR@/@RPMCONFIGDIR@/macros")
 TZ=UTC
@@ -29,6 +30,12 @@ if test -x "@__FIND_DEBUGINFO@"; then
     DEBUGINFO_DISABLED=false;
 else
     DEBUGINFO_DISABLED=true;
+fi
+
+if test "${PYTHON}"; then
+    PYTHON_DISABLED=false;
+else
+    PYTHON_DISABLED=true;
 fi
 
 if [ "@WITH_CAP@" == "ON" ]; then

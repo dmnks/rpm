@@ -6,6 +6,7 @@ set(INST_DIR ${IMAGE_DIR}/inst)
 set(UTIL_DIR ${IMAGE_DIR}/util)
 set(DATA_DIR ${UTIL_DIR}/data)
 
+set(PYTHON ${Python3_EXECUTABLE})
 set(MACRO_DIR ${RPMCONFIGDIR}/macros.d)
 set(LD_CONF_DIR ${INST_DIR}/${CMAKE_INSTALL_SYSCONFDIR}/ld.so.conf.d)
 
