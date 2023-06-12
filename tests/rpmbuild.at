@@ -866,6 +866,7 @@ RPMTEST_CLEANUP
 # Check if rpmbuild creates the minisymtab section in the main hello binary
 AT_SETUP([rpmbuild debuginfo minisymtab])
 AT_KEYWORDS([build] [debuginfo])
+AT_SKIP_IF([$DEBUGINFO_DISABLED])
 RPMTEST_CHECK([
 RPMDB_INIT
 
@@ -903,6 +904,7 @@ RPMTEST_CLEANUP
 # but the debug symbols/info in the debuginfo package.
 AT_SETUP([rpmbuild debuginfo minisymtab strip -g])
 AT_KEYWORDS([build] [debuginfo])
+AT_SKIP_IF([$DEBUGINFO_DISABLED])
 RPMTEST_CHECK([
 RPMDB_INIT
 
@@ -942,6 +944,7 @@ RPMTEST_CLEANUP
 # Test the case without unique debug file names.
 AT_SETUP([rpmbuild debuginfo dwz])
 AT_KEYWORDS([build] [debuginfo] [dwz])
+AT_SKIP_IF([$DEBUGINFO_DISABLED])
 RPMTEST_CHECK([
 RPMDB_INIT
 
@@ -1028,6 +1031,7 @@ RPMTEST_CLEANUP
 # Check that rpmbuild creates no debuginfo when --nodebuginfo is passed
 AT_SETUP([rpmbuild no debuginfo])
 AT_KEYWORDS([build] [debuginfo])
+AT_SKIP_IF([$DEBUGINFO_DISABLED])
 RPMTEST_CHECK([
 RPMDB_INIT
 
@@ -1061,6 +1065,7 @@ RPMTEST_CLEANUP
 # Test with unique debug file names.
 AT_SETUP([rpmbuild debuginfo dwz unique debug names])
 AT_KEYWORDS([build] [debuginfo] [dwz])
+AT_SKIP_IF([$DEBUGINFO_DISABLED])
 RPMTEST_CHECK([
 RPMDB_INIT
 
@@ -1147,6 +1152,7 @@ RPMTEST_CLEANUP
 # We explicitly build with all debug.macros to test those helpers.
 AT_SETUP([rpmbuild implicit suid binary])
 AT_KEYWORDS([build] [debuginfo] [dwz] [suid])
+AT_SKIP_IF([$DEBUGINFO_DISABLED])
 RPMTEST_CHECK([
 RPMDB_INIT
 
@@ -1178,6 +1184,7 @@ RPMTEST_CLEANUP
 # Check that a GDB index is included when requested.
 AT_SETUP([rpmbuild debuginfo gdb index included])
 AT_KEYWORDS([build] [debuginfo] [gdb])
+AT_SKIP_IF([$DEBUGINFO_DISABLED])
 RPMTEST_CHECK([
 RPMDB_INIT
 
@@ -1204,6 +1211,7 @@ RPMTEST_CLEANUP
 # Check that a GDB index is NOT included when not requested.
 AT_SETUP([rpmbuild debuginfo no gdb index included])
 AT_KEYWORDS([build] [debuginfo] [gdb])
+AT_SKIP_IF([$DEBUGINFO_DISABLED])
 RPMTEST_CHECK([
 RPMDB_INIT
 
@@ -1229,6 +1237,7 @@ RPMTEST_CLEANUP
 # Check that a -g3 (macros) build creates a valid .debug file.
 AT_SETUP([rpmbuild debuginfo -g3 .debug_macro])
 AT_KEYWORDS([build] [debuginfo] [gdb])
+AT_SKIP_IF([$DEBUGINFO_DISABLED])
 RPMTEST_CHECK([
 RPMDB_INIT
 
@@ -1259,6 +1268,7 @@ RPMTEST_CLEANUP
 # Check that a debug source is in a "unique" directory when requested.
 AT_SETUP([rpmbuild debuginfo unique debug src dir])
 AT_KEYWORDS([build] [debuginfo])
+AT_SKIP_IF([$DEBUGINFO_DISABLED])
 RPMTEST_CHECK([
 RPMDB_INIT
 
@@ -1295,6 +1305,7 @@ RPMTEST_CLEANUP
 # It will be in the "build directory" name under /usr/src/debug.
 AT_SETUP([rpmbuild debuginfo no unique debug src dir])
 AT_KEYWORDS([build] [debuginfo])
+AT_SKIP_IF([$DEBUGINFO_DISABLED])
 RPMTEST_CHECK([
 RPMDB_INIT
 
@@ -1328,6 +1339,7 @@ RPMTEST_CLEANUP
 # Check that defining _debugsource_packages creates -debugsource package
 AT_SETUP([rpmbuild debugsource])
 AT_KEYWORDS([build] [debuginfo] [debugsource])
+AT_SKIP_IF([$DEBUGINFO_DISABLED])
 RPMTEST_CHECK([
 RPMDB_INIT
 
@@ -1359,6 +1371,7 @@ RPMTEST_CLEANUP
 # should be in expected build dir).
 AT_SETUP([rpmbuild debugsource debugsourcefiles.list path])
 AT_KEYWORDS([build] [debuginfo] [debugsource])
+AT_SKIP_IF([$DEBUGINFO_DISABLED])
 RPMTEST_CHECK([
 RPMDB_INIT
 
@@ -1383,6 +1396,7 @@ RPMTEST_CLEANUP
 # Check that undefining _debuginfo_subpackages creates one single -debuginfo.
 AT_SETUP([rpmbuild debuginfo subpackages single])
 AT_KEYWORDS([build] [debuginfo] [debugsubpackage])
+AT_SKIP_IF([$DEBUGINFO_DISABLED])
 RPMTEST_CHECK([
 RPMDB_INIT
 
@@ -1421,6 +1435,7 @@ RPMTEST_CLEANUP
 # Check that defining _debuginfo_subpackages creates multiple -debuginfos.
 AT_SETUP([rpmbuild debuginfo subpackages multiple])
 AT_KEYWORDS([build] [debuginfo] [debugsubpackage])
+AT_SKIP_IF([$DEBUGINFO_DISABLED])
 RPMTEST_CHECK([
 RPMDB_INIT
 
@@ -1501,6 +1516,7 @@ RPMTEST_CLEANUP
 # With unique debug and source names
 AT_SETUP([rpmbuild debuginfo subpackages multiple unique])
 AT_KEYWORDS([build] [debuginfo] [debugsubpackage])
+AT_SKIP_IF([$DEBUGINFO_DISABLED])
 RPMTEST_CHECK([
 RPMDB_INIT
 
@@ -1581,6 +1597,7 @@ RPMTEST_CLEANUP
 # Unique with debugsources.
 AT_SETUP([rpmbuild debuginfo subpackages multiple unique debugsource])
 AT_KEYWORDS([build] [debuginfo] [debugsubpackage] [debugsource])
+AT_SKIP_IF([$DEBUGINFO_DISABLED])
 RPMTEST_CHECK([
 RPMDB_INIT
 
@@ -1664,6 +1681,7 @@ RPMTEST_CLEANUP
 # Check that defining _debuginfo_subpackages works with excluded files.
 AT_SETUP([rpmbuild debuginfo subpackages multiple excluded])
 AT_KEYWORDS([build] [debuginfo] [debugsubpackage] [debugsource])
+AT_SKIP_IF([$DEBUGINFO_DISABLED])
 RPMTEST_CHECK([
 RPMDB_INIT
 
@@ -1724,6 +1742,7 @@ RPMTEST_CLEANUP
 # Check that defining _debuginfo_subpackages works with RemovePathPostfixes.
 AT_SETUP([rpmbuild debuginfo subpackages multiple excluded])
 AT_KEYWORDS([build] [debuginfo] [debugsubpackage] [debugsource])
+AT_SKIP_IF([$DEBUGINFO_DISABLED])
 RPMTEST_CHECK([
 RPMDB_INIT
 
