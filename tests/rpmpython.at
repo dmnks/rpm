@@ -488,7 +488,7 @@ ts.closeDB()
 ts.openDB()
 c2 = ts.dbCookie()
 myprint(c1 == c2 != None)
-open("/dbcookie", "w+").write(c1)
+open("dbcookie", "w+").write(c1)
 ],
 [True
 ],
@@ -507,9 +507,9 @@ runroot rpm -i \
 RPMPY_CHECK([
 ts.openDB()
 c1 = ts.dbCookie()
-c2 = open("/dbcookie", "r").read()
+c2 = open("dbcookie", "r").read()
 myprint(c1 != c2)
-open("/dbcookie", "w+").write(c1)
+open("dbcookie", "w+").write(c1)
 ],
 [True
 ],
@@ -529,7 +529,7 @@ runroot rpm -i \
 RPMPY_CHECK([
 ts.openDB()
 c1 = ts.dbCookie()
-c2 = open("/dbcookie", "r").read()
+c2 = open("dbcookie", "r").read()
 myprint(c1 != c2)
 ],
 [True
