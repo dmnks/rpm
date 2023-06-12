@@ -89,8 +89,8 @@ RPMTEST_CLEANUP
 
 AT_SETUP([parametrized macro 1])
 AT_KEYWORDS([macros])
-RPMTEST_CHECK([
 RPMDB_INIT
+RPMTEST_CHECK([
 cat << EOF > ${RPMTEST}/mtest
 %bar() bar
 %foo()\\
@@ -896,8 +896,8 @@ RPMTEST_CLEANUP
 
 AT_SETUP([%define + %undefine in nested levels 3])
 AT_KEYWORDS([macros define])
-RPMTEST_CHECK([
 AT_XFAIL_IF([test $RPM_XFAIL -ne 0])
+RPMTEST_CHECK([
 # %define macro twice in a nested scope
 runroot rpm \
     --define '%foo() %{expand:%define xxx 1} %{echo:%xxx} %{expand: %define xxx 2} %{echo:%xxx}' \
@@ -914,8 +914,8 @@ RPMTEST_CLEANUP
 
 AT_SETUP([%define + %undefine in nested levels 4])
 AT_KEYWORDS([macros define global])
-RPMTEST_CHECK([
 AT_XFAIL_IF([test $RPM_XFAIL -ne 0])
+RPMTEST_CHECK([
 # %define in a nested level covered by %global
 runroot rpm \
     --define '%foo() %{expand:%define xxx 1} %{echo:%xxx} %{expand: %global xxx 2} %{echo:%xxx}' \

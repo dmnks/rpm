@@ -1,10 +1,10 @@
 # vi:filetype=sh
 
 DATA_DIR="${PWD}/@DATA_DIR@"
-RPMCONFIGDIR="@RPMCONFIGDIR@"
-RPMLIBDIR="@CMAKE_INSTALL_FULL_LIBDIR@"
-PYTHON="@PYTHON@"
-RPM_XFAIL=${RPM_XFAIL-1}
+export RPMCONFIGDIR="@RPMCONFIGDIR@"
+export RPMLIBDIR="@CMAKE_INSTALL_FULL_LIBDIR@"
+export PYTHON="@PYTHON@"
+export RPM_XFAIL=${RPM_XFAIL-1}
 DBFORMAT=$(awk '/^%_db_backend/{print $2}' "@INST_DIR@/@RPMCONFIGDIR@/macros")
 TZ=UTC
 
@@ -64,12 +64,14 @@ function runroot_other()
 
 function rundebug()
 {
-    cp ${DATA_DIR}/macros.debug ${RPMTEST}/@MACRO_DIR@/
-    runroot "$@"
-    rm -f ${RPMTEST}/@MACRO_DIR@/macros.debug
+    cp /data/macros.debug /@MACRO_DIR@/
+    "$@"
+    rm -f /@MACRO_DIR@/macros.debug
 }
 
 source ./sandbox
 source ./mktree env
 
 sandbox prune rpmtests.dir/*/merged
+
+export -f runroot runroot_other rundebug

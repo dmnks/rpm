@@ -5,6 +5,8 @@ AT_BANNER([RPM dependencies])
 # ------------------------------
 AT_SETUP([unversioned requires])
 AT_KEYWORDS([install depends])
+# missing dependency
+RPMTEST_CHECK([
 RPMDB_INIT
 
 runroot rpmbuild --quiet -bb \
@@ -17,10 +19,6 @@ runroot rpmbuild --quiet -bb \
 	--define "reqs deptest-one" \
 	  /data/SPECS/deptest.spec
 
-# missing dependency
-RPMTEST_CHECK([
-RPMDB_INIT
-
 runroot rpm -U /build/RPMS/noarch/deptest-one-1.0-1.noarch.rpm
 ],
 [1],
@@ -32,6 +30,16 @@ runroot rpm -U /build/RPMS/noarch/deptest-one-1.0-1.noarch.rpm
 # cross-depending packages
 RPMTEST_CHECK([
 RPMDB_INIT
+
+runroot rpmbuild --quiet -bb \
+	--define "pkg one" \
+	--define "reqs deptest-two" \
+	  /data/SPECS/deptest.spec
+
+runroot rpmbuild --quiet -bb \
+	--define "pkg two" \
+	--define "reqs deptest-one" \
+	  /data/SPECS/deptest.spec
 
 runroot rpm -U /build/RPMS/noarch/deptest-one-1.0-1.noarch.rpm /build/RPMS/noarch/deptest-two-1.0-1.noarch.rpm
 ],

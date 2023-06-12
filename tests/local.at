@@ -2,18 +2,19 @@ AT_TESTED([rpm rpmbuild rpmquery])
 
 m4_define([RPMTEST_SETUP],[[
 export SANDBOX="${PWD}"
-export RPMTEST="${PWD}/merged"
-[ -d $RPMTEST ] || sandbox mount
+export RPMTEST=/
+export RPMTEST2="${PWD}/merged"
+[ -d $RPMTEST2 ] || sandbox mount
 ]])
 
 m4_define([RPMDB_INIT],[
 RPMTEST_SETUP
-rm -rf "${RPMTEST}"`runroot rpm --eval '%_dbpath'`
-runroot rpm --initdb
+sandbox exec sh -c 'rm -rf $(rpm --eval "%_dbpath")'
+sandbox exec rpm --initdb
 ])
 
 m4_define([RPMPY_RUN],[[
-cat << EOF > ${RPMTEST}/test.py
+cat << EOF > ${RPMTEST2}/test.py
 # coding=utf-8
 import rpm, sys, os
 dbpath=rpm.expandMacro('%_dbpath')
@@ -23,7 +24,7 @@ def myprint(msg = ''):
     sys.stdout.write('%s\n' % msg)
 $1
 EOF
-runroot_other python3 /test.py
+sandbox exec python3 /test.py
 ]])
 
 m4_define([RPMPY_CHECK],[
@@ -34,6 +35,7 @@ AT_CHECK([RPMPY_RUN([$1])], [], [$2], [$3])
 m4_define([RPMPY_TEST],[
 AT_SETUP([$1])
 AT_KEYWORDS([python])
+RPMTEST_SETUP
 RPMDB_INIT
 RPMPY_CHECK([$2], [$3], [$4])
 RPMTEST_CLEANUP
@@ -41,7 +43,14 @@ RPMTEST_CLEANUP
 
 m4_define([RPMTEST_CHECK],[
 RPMTEST_SETUP
-AT_CHECK($@)
+AT_CHECK([
+sandbox exec bash << 'EOFF'
+function sandbox() { "${@:2}"; }
+function runroot() { "${@:1}" --noplugins --nouserns; }
+function runroot_other() { "${@:1}"; }
+$1
+EOFF
+], [$2], [$3], [$4])
 ])
 
 m4_define([RPMTEST_CLEANUP],[

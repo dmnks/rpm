@@ -189,7 +189,6 @@ AT_SETUP([rpm -e and verify colored files removed 1.2])
 AT_KEYWORDS([install erase rpmdb])
 RPMDB_INIT
 RPMTEST_CHECK([
-RPMDB_INIT
 
 runroot rpm -U --ignoreos --ignorearch --nodeps \
 	--define "_transaction_color 3" \
@@ -214,7 +213,6 @@ AT_XFAIL_IF([test $RPM_XFAIL -ne 0])
 AT_KEYWORDS([install erase rpmdb])
 RPMDB_INIT
 RPMTEST_CHECK([
-RPMDB_INIT
 
 runroot rpm -U --ignoreos --ignorearch --nodeps \
 	--define "_transaction_color 2" \
@@ -239,7 +237,6 @@ AT_XFAIL_IF([test $RPM_XFAIL -ne 0])
 AT_KEYWORDS([install erase rpmdb])
 RPMDB_INIT
 RPMTEST_CHECK([
-RPMDB_INIT
 
 runroot rpm -U --ignoreos --ignorearch --nodeps \
 	--define "_transaction_color 2" \

@@ -3,22 +3,22 @@
 PROGRAM=$(basename $0)
 LOWERDIR=$PWD/@UTIL_DIR@:$PWD/@INST_DIR@:$PWD/@TREE_DIR@
 SANDBOX=$PWD/@CONTAINER_DIR@
-RPMTEST=$SANDBOX/merged
+RPMTEST2=$SANDBOX/merged
 
 function sandbox()
 {
     case $1 in
         mount)
-            mkdir -p $SANDBOX/{upper,work} $RPMTEST
+            mkdir -p $SANDBOX/{upper,work} $RPMTEST2
             mount -t overlay overlay \
                   -o userxattr \
                   -o lowerdir=$LOWERDIR \
                   -o upperdir=$SANDBOX/upper \
                   -o workdir=$SANDBOX/work \
-                  $RPMTEST
+                  $RPMTEST2
         ;;
         umount)
-            umount -l $RPMTEST
+            umount -l $RPMTEST2
         ;;
         prune) shift
             for dir in "$@"; do
@@ -27,14 +27,14 @@ function sandbox()
             return 0
         ;;
         exec) shift
-            @BWRAP@ --unshare-pid --dev-bind $RPMTEST / \
+            @BWRAP@ --unshare-pid --dev-bind $RPMTEST2 / \
                     --dev /dev --proc /proc --chdir / \
                     --setenv PATH @CMAKE_INSTALL_PREFIX@/bin:/usr/bin "$@"
         ;;
         shell) shift
             local cmd
             if [ $# == 0 ]; then
-                cmd=$(grep ^root: $RPMTEST/etc/passwd | cut -d: -f7)
+                cmd=$(grep ^root: $RPMTEST2/etc/passwd | cut -d: -f7)
             else
                 cmd=$1
                 shift
@@ -59,7 +59,7 @@ case $PROGRAM in
             ;;
             shell) shift
                 if [ "$1" == "--read-only" ]; then
-                    mount -o remount,ro $RPMTEST
+                    mount -o remount,ro $RPMTEST2
                     shift
                 fi
                 sandbox shell "$@"
