@@ -77,9 +77,9 @@ runroot rpm -ql -p /build/RPMS/*/hello-debuginfo-1.0-1.*.rpm \
 
 # Extract the both packages to check the build-id files link to the
 # main and .debug files.
-rpm2cpio ${RPMTEST}/build/RPMS/*/hello-1.0-1.*.rpm \
+runroot sh -c "rpm2cpio /build/RPMS/*/hello-1.0-1.*.rpm" \
   | cpio -diu
-rpm2cpio ${RPMTEST}/build/RPMS/*/hello-debuginfo-1.0-1.*.rpm \
+runroot sh -c "rpm2cpio /build/RPMS/*/hello-debuginfo-1.0-1.*.rpm" \
   | cpio -diu
 
 # Check there is a build-id symlink for the main file.
@@ -165,9 +165,9 @@ runroot rpm -ql -p /build/RPMS/*/hello-debuginfo-1.0-1.*.rpm \
 
 # Extract the both packages to check the build-id files link to the
 # main and .debug files.
-rpm2cpio ${RPMTEST}/build/RPMS/*/hello-1.0-1.*.rpm \
+runroot sh -c "rpm2cpio /build/RPMS/*/hello-1.0-1.*.rpm" \
   | cpio -diu
-rpm2cpio ${RPMTEST}/build/RPMS/*/hello-debuginfo-1.0-1.*.rpm \
+runroot sh -c "rpm2cpio /build/RPMS/*/hello-debuginfo-1.0-1.*.rpm" \
   | cpio -diu
 
 # Check there is a build-id symlink for the main file.
@@ -253,9 +253,9 @@ runroot rpm -ql -p /build/RPMS/*/hello-debuginfo-1.0-1.*.rpm \
 
 # Extract the both packages to check the build-id files link to the
 # main and .debug files.
-rpm2cpio ${RPMTEST}/build/RPMS/*/hello-1.0-1.*.rpm \
+runroot sh -c "rpm2cpio /build/RPMS/*/hello-1.0-1.*.rpm" \
   | cpio -diu
-rpm2cpio ${RPMTEST}/build/RPMS/*/hello-debuginfo-1.0-1.*.rpm \
+runroot sh -c "rpm2cpio /build/RPMS/*/hello-debuginfo-1.0-1.*.rpm" \
   | cpio -diu
 
 # Check there is a build-id symlink for the main file.
@@ -340,9 +340,9 @@ runroot rpm -ql -p /build/RPMS/*/hello-debuginfo-1.0-1.*.rpm \
 
 # Extract the both packages to check the build-id files link to the
 # main and .debug files.
-rpm2cpio ${RPMTEST}/build/RPMS/*/hello-1.0-1.*.rpm \
+runroot sh -c "rpm2cpio /build/RPMS/*/hello-1.0-1.*.rpm" \
   | cpio -diu
-rpm2cpio ${RPMTEST}/build/RPMS/*/hello-debuginfo-1.0-1.*.rpm \
+runroot sh -c "rpm2cpio /build/RPMS/*/hello-debuginfo-1.0-1.*.rpm" \
   | cpio -diu
 
 # Check there is a build-id symlink for the main file.
@@ -429,9 +429,9 @@ runroot rpm -ql -p /build/RPMS/*/hello-debuginfo-1.0-1.*.rpm \
 
 # Extract the both packages to check the build-id files link to the
 # main and .debug files.
-rpm2cpio ${RPMTEST}/build/RPMS/*/hello-1.0-1.*.rpm \
+runroot sh -c "rpm2cpio /build/RPMS/*/hello-1.0-1.*.rpm" \
   | cpio -diu
-rpm2cpio ${RPMTEST}/build/RPMS/*/hello-debuginfo-1.0-1.*.rpm \
+runroot sh -c "rpm2cpio /build/RPMS/*/hello-debuginfo-1.0-1.*.rpm" \
   | cpio -diu
 
 # Check there is a build-id symlink for the main file.
@@ -529,9 +529,9 @@ runroot rpm -ql -p /build/RPMS/*/hello-debuginfo-1.0-1.*.rpm \
 
 # Extract the both packages to check the build-id files link to the
 # main and .debug files.
-rpm2cpio ${RPMTEST}/build/RPMS/*/hello-1.0-1.*.rpm \
+runroot sh -c "rpm2cpio /build/RPMS/*/hello-1.0-1.*.rpm" \
   | cpio -diu
-rpm2cpio ${RPMTEST}/build/RPMS/*/hello-debuginfo-1.0-1.*.rpm \
+runroot sh -c "rpm2cpio /build/RPMS/*/hello-debuginfo-1.0-1.*.rpm" \
   | cpio -diu
 
 # Check there is a build-id symlink for the main file.
@@ -616,7 +616,7 @@ rundebug rpmbuild --quiet \
   -ba "${abs_srcdir}"/data/SPECS/hello2cp.spec 2>&1 | grep "^warning: " \
   | cut -f1-3 -d' '
 
-rpm2cpio ${RPMTEST}/build/RPMS/*/hello2-1.0-1.*.rpm \
+runroot sh -c "rpm2cpio /build/RPMS/*/hello2-1.0-1.*.rpm" \
   | cpio -diu --quiet
 
 hello_file=./usr/local/bin/hello
@@ -630,7 +630,7 @@ test -L "$id_file" && echo "main id in main package"
 id_dup_file="./usr/lib/debug/.build-id/${id:0:2}/${id:2}.1"
 test -L "$id_dup_file" && echo "main dup id in main package"
 
-rpm2cpio ${RPMTEST}/build/RPMS/*/hello2-debuginfo-1.0-1.*.rpm \
+runroot sh -c "rpm2cpio /build/RPMS/*/hello2-debuginfo-1.0-1.*.rpm" \
   | cpio -diu --quiet
 
 # alldebug, so they are all here
@@ -681,7 +681,7 @@ rundebug rpmbuild --quiet \
   -ba "${abs_srcdir}"/data/SPECS/hello2ln.spec 2>&1 | grep "^warning: " \
   | cut -f1-3 -d' '
 
-rpm2cpio ${RPMTEST}/build/RPMS/*/hello2-1.0-1.*.rpm \
+runroot sh -c "rpm2cpio /build/RPMS/*/hello2-1.0-1.*.rpm" \
   | cpio -diu --quiet
 
 hello_file=./usr/local/bin/hello
@@ -695,7 +695,7 @@ test -L "$id_file" && echo "main id in main package"
 id_dup_file="./usr/lib/debug/.build-id/${id:0:2}/${id:2}.1"
 test -L "$id_dup_file" && echo "main dup id in main package"
 
-rpm2cpio ${RPMTEST}/build/RPMS/*/hello2-debuginfo-1.0-1.*.rpm \
+runroot sh -c "rpm2cpio /build/RPMS/*/hello2-debuginfo-1.0-1.*.rpm" \
   | cpio -diu --quiet
 
 # alldebug, so they are all here
@@ -743,7 +743,7 @@ rundebug rpmbuild --quiet \
   -ba "${abs_srcdir}"/data/SPECS/hello2cp.spec 2>&1 | grep "^warning: " \
   | cut -f1-3 -d' '
 
-rpm2cpio ${RPMTEST}/build/RPMS/*/hello2-1.0-1.*.rpm \
+runroot sh -c "rpm2cpio /build/RPMS/*/hello2-1.0-1.*.rpm" \
   | cpio -diu --quiet
 
 hello_file=./usr/local/bin/hello
@@ -757,7 +757,7 @@ test -L "$id_file" && echo "main id in main package"
 id_dup_file="./usr/lib/.build-id/${id:0:2}/${id:2}.1"
 test -L "$id_dup_file" && echo "main dup id in main package"
 
-rpm2cpio ${RPMTEST}/build/RPMS/*/hello2-debuginfo-1.0-1.*.rpm \
+runroot sh -c "rpm2cpio /build/RPMS/*/hello2-debuginfo-1.0-1.*.rpm" \
   | cpio -diu --quiet
 
 # separate, so debug ids are here
@@ -805,7 +805,7 @@ rundebug rpmbuild --quiet \
   -ba "${abs_srcdir}"/data/SPECS/hello2ln.spec 2>&1 | grep "^warning: " \
   | cut -f1-3 -d' '
 
-rpm2cpio ${RPMTEST}/build/RPMS/*/hello2-1.0-1.*.rpm \
+runroot sh -c "rpm2cpio /build/RPMS/*/hello2-1.0-1.*.rpm" \
   | cpio -diu --quiet
 
 hello_file=./usr/local/bin/hello
@@ -819,7 +819,7 @@ test -L "$id_file" && echo "main id in main package"
 id_dup_file="./usr/lib/.build-id/${id:0:2}/${id:2}.1"
 test -L "$id_dup_file" && echo "main dup id in main package"
 
-rpm2cpio ${RPMTEST}/build/RPMS/*/hello2-debuginfo-1.0-1.*.rpm \
+runroot sh -c "rpm2cpio /build/RPMS/*/hello2-debuginfo-1.0-1.*.rpm" \
   | cpio -diu --quiet
 
 # separate, so debug ids are here
@@ -864,7 +864,7 @@ rundebug rpmbuild --quiet \
   -ba "${abs_srcdir}"/data/SPECS/hello2cp.spec 2>&1 | grep "^warning: " \
   | cut -f1-3 -d' '
 
-rpm2cpio ${RPMTEST}/build/RPMS/*/hello2-1.0-1.*.rpm \
+runroot sh -c "rpm2cpio /build/RPMS/*/hello2-1.0-1.*.rpm" \
   | cpio -diu --quiet
 
 hello_file=./usr/local/bin/hello
@@ -878,7 +878,7 @@ test -L "$id_file" && echo "main id in main package"
 id_dup_file="./usr/lib/.build-id/${id:0:2}/${id:2}.1"
 test -L "$id_dup_file" && echo "main dup id in main package"
 
-rpm2cpio ${RPMTEST}/build/RPMS/*/hello2-debuginfo-1.0-1.*.rpm \
+runroot sh -c "rpm2cpio /build/RPMS/*/hello2-debuginfo-1.0-1.*.rpm" \
   | cpio -diu --quiet
 
 # compat, so main (and debug) ids are (also) here
@@ -938,7 +938,7 @@ rundebug rpmbuild --quiet \
   -ba "${abs_srcdir}"/data/SPECS/hello2ln.spec 2>&1 | grep "^warning: " \
   | cut -f1-3 -d' '
 
-rpm2cpio ${RPMTEST}/build/RPMS/*/hello2-1.0-1.*.rpm \
+runroot sh -c "rpm2cpio /build/RPMS/*/hello2-1.0-1.*.rpm" \
   | cpio -diu --quiet
 
 hello_file=./usr/local/bin/hello
@@ -952,7 +952,7 @@ test -L "$id_file" && echo "main id in main package"
 id_dup_file="./usr/lib/.build-id/${id:0:2}/${id:2}.1"
 test -L "$id_dup_file" && echo "main dup id in main package"
 
-rpm2cpio ${RPMTEST}/build/RPMS/*/hello2-debuginfo-1.0-1.*.rpm \
+runroot sh -c "rpm2cpio /build/RPMS/*/hello2-debuginfo-1.0-1.*.rpm" \
   | cpio -diu --quiet
 
 # compat, so main (and debug) ids are (also) here
@@ -1011,7 +1011,7 @@ rundebug rpmbuild --quiet \
   --undefine="_no_recompute_build_ids" \
   -ba "${abs_srcdir}"/data/SPECS/hello.spec
 
-rpm2cpio ${RPMTEST}/build/RPMS/*/hello-1.0-1.*.rpm \
+runroot sh -c "rpm2cpio /build/RPMS/*/hello-1.0-1.*.rpm" \
   | cpio -diu --quiet
 
 hello_file=./usr/local/bin/hello
@@ -1030,7 +1030,7 @@ rundebug rpmbuild --quiet \
   --undefine="_no_recompute_build_ids" \
   -ba "${abs_srcdir}"/data/SPECS/hello-r2.spec
 
-rpm2cpio ${RPMTEST}/build/RPMS/*/hello-1.0-2.*.rpm \
+runroot sh -c "rpm2cpio /build/RPMS/*/hello-1.0-2.*.rpm" \
   | cpio -diu --quiet
 
 # Extract the build-id from the main file
@@ -1055,7 +1055,7 @@ rundebug rpmbuild --quiet \
   --define="_no_recompute_build_ids 1" \
   -ba "${abs_srcdir}"/data/SPECS/hello.spec
 
-rpm2cpio ${RPMTEST}/build/RPMS/*/hello-1.0-1.*.rpm \
+runroot sh -c "rpm2cpio /build/RPMS/*/hello-1.0-1.*.rpm" \
   | cpio -diu --quiet
 
 hello_file=./usr/local/bin/hello
@@ -1083,7 +1083,7 @@ rundebug rpmbuild --quiet \
   --define="_no_recompute_build_ids 1" \
   -ba "${abs_srcdir}"/data/SPECS/hello-r2.spec
 
-rpm2cpio ${RPMTEST}/build/RPMS/*/hello-1.0-2.*.rpm \
+runroot sh -c "rpm2cpio /build/RPMS/*/hello-1.0-2.*.rpm" \
   | cpio -diu --quiet
 
 # Extract the build-id from the main file
@@ -1118,7 +1118,7 @@ rundebug rpmbuild --quiet \
   --define="_unique_build_ids 1" \
   -ba "${abs_srcdir}"/data/SPECS/hello.spec
 
-rpm2cpio ${RPMTEST}/build/RPMS/*/hello-1.0-1.*.rpm \
+runroot sh -c "rpm2cpio /build/RPMS/*/hello-1.0-1.*.rpm" \
   | cpio -diu --quiet
 
 hello_file=./usr/local/bin/hello
@@ -1135,7 +1135,7 @@ rundebug rpmbuild --quiet \
   --define="_unique_build_ids 1" \
   -ba "${abs_srcdir}"/data/SPECS/hello-r2.spec
 
-rpm2cpio ${RPMTEST}/build/RPMS/*/hello-1.0-2.*.rpm \
+runroot sh -c "rpm2cpio /build/RPMS/*/hello-1.0-2.*.rpm" \
   | cpio -diu --quiet
 
 # Extract the build-id from the main file
@@ -1165,7 +1165,7 @@ rundebug rpmbuild --quiet \
   --undefine="_unique_debug_srcs" \
   -ba "${abs_srcdir}"/data/SPECS/hello.spec
 
-rpm2cpio ${RPMTEST}/build/RPMS/*/hello-1.0-1.*.rpm \
+runroot sh -c "rpm2cpio /build/RPMS/*/hello-1.0-1.*.rpm" \
   | cpio -diu --quiet
 
 hello_file=./usr/local/bin/hello
@@ -1184,7 +1184,7 @@ rundebug rpmbuild --quiet \
   --undefine="_unique_debug_srcs" \
   -ba "${abs_srcdir}"/data/SPECS/hello-r2.spec
 
-rpm2cpio ${RPMTEST}/build/RPMS/*/hello-1.0-2.*.rpm \
+runroot sh -c "rpm2cpio /build/RPMS/*/hello-1.0-2.*.rpm" \
   | cpio -diu --quiet
 
 # Extract the build-id from the main file
