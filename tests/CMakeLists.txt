@@ -1,7 +1,5 @@
 set(PYTHON ${Python3_EXECUTABLE})
 set(pyexecdir ${Python3_SITEARCH})
-set(usrbindir ${CMAKE_INSTALL_FULL_BINDIR})
-set(usrlibdir ${CMAKE_INSTALL_FULL_LIBDIR})
 if (${WITH_INTERNAL_OPENPGP})
 	if (${WITH_OPENSSL})
 		set(CRYPTO openssl)
