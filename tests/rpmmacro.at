@@ -776,7 +776,7 @@ AT_SETUP([lua library path])
 AT_KEYWORDS([macros lua])
 RPMTEST_CHECK([
 RPMDB_INIT
-f=$(run rpm --eval "%{_rpmconfigdir}/lua/foo.lua")
+f=$(runroot rpm --eval "${RPMTEST}/%{_rpmconfigdir}/lua/foo.lua")
 echo "bar = 'graak'" > ${f}
 runroot rpm \
   --eval '%{lua:require "foo"; print(bar)}'
@@ -1022,8 +1022,9 @@ RPMTEST_CLEANUP
 
 AT_SETUP([macro file errors])
 AT_KEYWORDS([macros])
+RPMTEST_SETUP
 RPMTEST_CHECK([
-cat << EOF > macros.bad
+cat << EOF > ${RPMTEST}/macros.bad
 %1 foo
 
 %multi \\
@@ -1034,13 +1035,13 @@ thing
 %bad-name 123
 EOF
 
-run rpm --macros "macros.bad" --eval "%foo"
+runroot rpm --macros "/macros.bad" --eval "%foo"
 ],
 [0],
 [bar
 ],
-[error: macros.bad: line 1: Macro %1 has illegal name (%define)
-warning: macros.bad: line 8: Macro %bad needs whitespace before body
+[error: /macros.bad: line 1: Macro %1 has illegal name (%define)
+warning: /macros.bad: line 8: Macro %bad needs whitespace before body
 ])
 RPMTEST_CLEANUP
 
