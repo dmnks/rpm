@@ -858,7 +858,7 @@ for e in 1 2; do
     runroot_other cp /build/RPMS/noarch/versiontest-1.0-1.noarch.rpm /tmp/epoch${e}.rpm
 done
 # for testing sanity
-echo '%_query_all_fmt %%{nevra}' > ${RPMTEST}/${RPM_CONFIGDIR}/macros.d/macros.epoch
+echo '%_query_all_fmt %%{nevra}' > ${RPMTEST}/root/.rpmmacros
 
 RPMTEST_CHECK([
 RPMDB_INIT
