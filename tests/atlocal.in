@@ -1,16 +1,12 @@
 # vi:filetype=sh
 
 RPMLIBDIR="@CMAKE_INSTALL_FULL_LIBDIR@"
-RPM_CONFIGDIR="@RPMCONFIGDIR@"
-PYTHON="@PYTHON@"
-RPM_XFAIL=${RPM_XFAIL-1}
-DBFORMAT=$(awk '/^%_db_backend/{print $2}' "@INST_DIR@/@RPMCONFIGDIR@/macros")
-TZ=UTC
+export RPMLIBDIR
 
-export DBFORMAT TZ
-unset SOURCE_DATE_EPOCH
+PYTHON=@PYTHON@
 
 CRYPTO=@CRYPTO@
+export CRYPTO
 if test x$CRYPTO = xlibgcrypt
 then
     PGP=internal
@@ -25,18 +21,28 @@ else
     exit
 fi
 
+RPM_CONFIGDIR=@RPMCONFIGDIR@
+export RPM_CONFIGDIR
+
+DBFORMAT=$(awk '/^%_db_backend/{print $2}' "@INST_DIR@/${RPM_CONFIGDIR}/macros")
+export DBFORMAT
+
+TZ=UTC
+export TZ
+
+unset SOURCE_DATE_EPOCH
+
+RPM_XFAIL=${RPM_XFAIL-1}
 if test -x "@__FIND_DEBUGINFO@"; then
     DEBUGINFO_DISABLED=false;
 else
     DEBUGINFO_DISABLED=true;
 fi
-
 if test "${PYTHON}"; then
     PYTHON_DISABLED=false;
 else
     PYTHON_DISABLED=true;
 fi
-
 if [ "@WITH_CAP@" == "ON" ]; then
     CAP_DISABLED=false;
 else
@@ -51,6 +57,18 @@ if ! LD_PRELOAD=${MALLOC_DEBUG} /bin/true 2>&1 | grep -q ERROR; then
     export LD_PRELOAD GLIBC_TUNABLES
 fi
 
+function run()
+{
+    runroot "$@"
+}
+
+function rundebug()
+{
+    cp ${RPMTEST}/data/macros.debug ${RPMTEST}/@MACRO_DIR@/
+    run "$@"
+    rm -f ${RPMTEST}/@MACRO_DIR@/macros.debug
+}
+
 function runroot()
 {
     sandbox exec "$@" --noplugins --nouserns
@@ -59,13 +77,6 @@ function runroot()
 function runroot_other()
 {
     sandbox exec "$@"
-}
-
-function rundebug()
-{
-    cp ${RPMTEST}/data/macros.debug ${RPMTEST}/@MACRO_DIR@/
-    runroot "$@"
-    rm -f ${RPMTEST}/@MACRO_DIR@/macros.debug
 }
 
 source ./sandbox
