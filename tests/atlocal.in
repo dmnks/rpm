@@ -1,6 +1,5 @@
 # vi:filetype=sh
 
-DATA_DIR="${PWD}/@DATA_DIR@"
 RPM_CONFIGDIR="@RPMCONFIGDIR@"
 RPMLIBDIR="@CMAKE_INSTALL_FULL_LIBDIR@"
 PYTHON="@PYTHON@"
@@ -64,7 +63,7 @@ function runroot_other()
 
 function rundebug()
 {
-    cp ${DATA_DIR}/macros.debug ${RPMTEST}/@MACRO_DIR@/
+    cp ${RPMTEST}/data/macros.debug ${RPMTEST}/@MACRO_DIR@/
     runroot "$@"
     rm -f ${RPMTEST}/@MACRO_DIR@/macros.debug
 }
