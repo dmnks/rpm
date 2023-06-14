@@ -1,8 +1,8 @@
 #!/bin/bash
 
 PROGRAM=$(basename $0)
-LOWERDIR=$PWD/@UTIL_DIR@:$PWD/@INST_DIR@:$PWD/@TREE_DIR@
 SANDBOX=$PWD/@CONTAINER_DIR@
+RPMIMAG=$PWD/@UTIL_DIR@:$PWD/@INST_DIR@:$PWD/@TREE_DIR@
 RPMTEST=$SANDBOX/merged
 
 function sandbox()
@@ -12,7 +12,7 @@ function sandbox()
             mkdir -p $SANDBOX/{upper,work} $RPMTEST
             mount -t overlay overlay \
                   -o userxattr \
-                  -o lowerdir=$LOWERDIR \
+                  -o lowerdir=$RPMIMAG \
                   -o upperdir=$SANDBOX/upper \
                   -o workdir=$SANDBOX/work \
                   $RPMTEST
