@@ -138,9 +138,8 @@ add_custom_command(OUTPUT rpmtests
 add_custom_command(OUTPUT ${DATA_DIR}
 	COMMAND rm -rf ${DATA_DIR}
 	COMMAND cp -r ${CMAKE_CURRENT_SOURCE_DIR}/data ${UTIL_DIR}/
-	COMMAND mkdir -p ${UTIL_DIR}/{build,${MACRO_DIR}}
+	COMMAND mkdir -p ${UTIL_DIR}/build
 	COMMAND ln -sf /data/SOURCES ${UTIL_DIR}/build/
-	COMMAND ln -sf /data/macros.test ${UTIL_DIR}/${MACRO_DIR}/
 	DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/data
 )
 
