@@ -105,7 +105,7 @@ function run()
 
 function rundebug()
 {
-    cp ${RPMDATA}/macros.debug ${RPMTEST}/@RPM_CONFIGDIR@/macros.d/
+    cp ${RPMTEST}/data/macros.debug ${RPMTEST}/@RPM_CONFIGDIR@/macros.d/
     run "$@"
     rm -f ${RPMTEST}/@RPM_CONFIGDIR@/macros.d/macros.debug
 }
