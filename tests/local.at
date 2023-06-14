@@ -42,7 +42,7 @@ AT_CLEANUP
 
 m4_define([RPMPY_CHECK],[
 AT_SKIP_IF([$PYTHON_DISABLED])
-AT_CHECK([RPMPY_RUN([$1])], [], [$2], [$3])
+RPMTEST_CHECK([RPMPY_RUN([$1])], [], [$2], [$3])
 ])
 
 m4_define([RPMPY_TEST],[
