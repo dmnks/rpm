@@ -21,6 +21,8 @@ else
     exit
 fi
 
+RPMDATA="/data"
+
 RPM_CONFIGDIR=@RPMCONFIGDIR@
 export RPM_CONFIGDIR
 

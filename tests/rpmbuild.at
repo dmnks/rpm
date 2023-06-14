@@ -291,7 +291,7 @@ RPMDB_INIT
 RPMTEST_CHECK([
 
 runroot rpmbuild \
-  -ta "/data/SOURCES/hello-2.0.tar.gz"
+  -ta "${RPMDATA}/SOURCES/hello-2.0.tar.gz"
 ],
 [0],
 [ignore],
