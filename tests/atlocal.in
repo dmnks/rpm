@@ -24,9 +24,6 @@ fi
 RPM_CONFIGDIR=@RPMCONFIGDIR@
 export RPM_CONFIGDIR
 
-DBFORMAT=$(awk '/^%_db_backend/{print $2}' "@INST_DIR@/${RPM_CONFIGDIR}/macros")
-export DBFORMAT
-
 TZ=UTC
 export TZ
 
