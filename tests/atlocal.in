@@ -96,7 +96,7 @@ function rundebug()
 {
     RPM_CONFIGDIR=${RPMTEST}/@RPMCONFIGDIR@
     export RPM_CONFIGDIR
-    cp ${RPMDATA}/macros.debug ${RPM_CONFIGDIR}/macros.d/
+    cp ${RPMTEST}/data/macros.debug ${RPM_CONFIGDIR}/macros.d/
     run "$@"
     rm -f ${RPM_CONFIGDIR}/macros.d/macros.debug
 }
