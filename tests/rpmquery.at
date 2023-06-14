@@ -246,8 +246,8 @@ RPMTEST_CLEANUP
 AT_SETUP([rpm -q on installed package])
 AT_KEYWORDS([rpmdb install query])
 
-RPMTEST_CHECK([
 RPMDB_INIT
+RPMTEST_CHECK([
 
 runroot rpm \
   --noscripts --nodeps --ignorearch --relocate=/usr=/check \
