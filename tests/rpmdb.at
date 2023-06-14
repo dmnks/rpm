@@ -143,8 +143,8 @@ RPMTEST_CLEANUP
 
 AT_SETUP([rpm -q --querybynumber])
 AT_KEYWORDS([rpmdb query])
-RPMTEST_CHECK([
 RPMDB_INIT
+RPMTEST_CHECK([
 
 runroot rpm -i \
   /data/RPMS/foo-1.0-1.noarch.rpm
