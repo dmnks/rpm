@@ -82,14 +82,14 @@ fi
 function run()
 {
     export RPM_CONFIGDIR=${RPMTEST}/@RPM_CONFIGDIR@
-    "$@" --define "_buildhost testhost" --define "_tmppath ${RPMTEST}/tmp" --define "_topdir ${HOME}/build" --define "_db_backend ${DBFORMAT}" --dbpath="${RPMTEST}/var/lib/rpm/"
+    "$@" --define "_buildhost testhost" --define "_tmppath ${RPMTEST}/tmp" --define "_topdir ${HOME}/build"
 }
 
 function rundebug()
 {
     export RPM_CONFIGDIR=${RPMTEST}/@RPM_CONFIGDIR@
     cp ${RPMDATA}/macros.debug ${RPM_CONFIGDIR}/macros.d/
-    "$@" --define "_buildhost testhost" --define "_tmppath ${RPMTEST}/tmp" --define "_topdir ${HOME}/build" --define "_db_backend ${DBFORMAT}" --dbpath="${RPMTEST}/var/lib/rpm/"
+    "$@" --define "_buildhost testhost" --define "_tmppath ${RPMTEST}/tmp" --define "_topdir ${HOME}/build"
     rm -f ${RPM_CONFIGDIR}/macros.d/macros.debug
 }
 
