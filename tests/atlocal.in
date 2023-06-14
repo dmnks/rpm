@@ -75,10 +75,14 @@ fi
 
 function sandbox()
 {
-    (unset RPM_CONFIGDIR RPM_POPTEXEC_PATH
-     cd ${RPMTEST} && \
-     FAKECHROOT_BASE="${RPMTEST}" fakechroot "$@"
-    )
+    case $1 in
+        exec) shift
+            (unset RPM_CONFIGDIR RPM_POPTEXEC_PATH
+             cd ${RPMTEST} && \
+             FAKECHROOT_BASE="${RPMTEST}" fakechroot "$@"
+            )
+        ;;
+    esac
 }
 
 function run()
@@ -99,7 +103,7 @@ function rundebug()
 
 function runroot()
 {
-    sandbox env MAGIC="/magic/magic" "$@" \
+    sandbox exec env MAGIC="/magic/magic" "$@" \
             --define "_buildhost testhost" \
             --define "_topdir /build" \
             --noplugins --nouserns
@@ -107,5 +111,5 @@ function runroot()
 
 function runroot_other()
 {
-    sandbox "$@"
+    sandbox exec "$@"
 }
