@@ -3,7 +3,7 @@ AT_TESTED([rpm rpmbuild rpmquery])
 m4_define([RPMTEST_SETUP],[[
 export SANDBOX="${PWD}"
 export RPMTEST="${PWD}/merged"
-[ -d $RPMTEST ] || sandbox mount
+[ -d merged ] || sandbox mount
 ]])
 
 m4_define([RPMDB_INIT],[
@@ -25,21 +25,6 @@ EOF
 runroot_other ${PYTHON} /test.py
 ]])
 
-m4_define([RPMTEST_CHECK],[
-RPMTEST_SETUP
-AT_CHECK($@)
-])
-
-m4_define([RPMTEST_CHECK_UNQUOTED],[
-RPMTEST_SETUP
-AT_CHECK_UNQUOTED($@)
-])
-
-m4_define([AT_CLEANUP],[
-sandbox umount
-AT_CLEANUP
-])
-
 m4_define([RPMPY_CHECK],[
 AT_SKIP_IF([$PYTHON_DISABLED])
 AT_CHECK([RPMPY_RUN([$1])], [], [$2], [$3])
@@ -57,3 +42,9 @@ AT_CLEANUP
 m4_ifdef([AT_COLOR_TESTS], [AT_COLOR_TESTS])
 
 AT_INIT
+
+m4_rename([AT_CLEANUP], [AT_CLEANUP_ORIG])
+m4_define([AT_CLEANUP],[
+[[ -d merged ]] && umount -ql merged
+AT_CLEANUP_ORIG($@)
+])

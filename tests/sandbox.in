@@ -18,7 +18,8 @@ function sandbox()
                   $RPMTEST
         ;;
         umount)
-            umount -l $RPMTEST
+            umount -ql $RPMTEST
+            return 0
         ;;
         prune) shift
             for dir in "$@"; do
