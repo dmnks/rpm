@@ -776,7 +776,7 @@ AT_SETUP([lua library path])
 AT_KEYWORDS([macros lua])
 RPMTEST_CHECK([
 RPMDB_INIT
-f=$(runroot rpm --eval "${RPMTEST}/%{_rpmconfigdir}/lua/foo.lua")
+f=$(run rpm --eval "${RPMTEST}/%{_rpmconfigdir}/lua/foo.lua")
 echo "bar = 'graak'" > ${f}
 runroot rpm \
   --eval '%{lua:require "foo"; print(bar)}'
