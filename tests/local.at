@@ -35,14 +35,14 @@ RPMTEST_SETUP
 AT_CHECK_UNQUOTED($@)
 ])
 
-m4_define([RPMTEST_CLEANUP],[
+m4_define([AT_CLEANUP],[
 sandbox umount
 AT_CLEANUP
 ])
 
 m4_define([RPMPY_CHECK],[
 AT_SKIP_IF([$PYTHON_DISABLED])
-RPMTEST_CHECK([RPMPY_RUN([$1])], [], [$2], [$3])
+AT_CHECK([RPMPY_RUN([$1])], [], [$2], [$3])
 ])
 
 m4_define([RPMPY_TEST],[
@@ -50,7 +50,7 @@ AT_SETUP([$1])
 AT_KEYWORDS([python])
 RPMDB_INIT
 RPMPY_CHECK([$2], [$3], [$4])
-RPMTEST_CLEANUP
+AT_CLEANUP
 ])
 
 # Enable colored test output if available
