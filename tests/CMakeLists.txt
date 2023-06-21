@@ -102,7 +102,7 @@ add_custom_target(check
 
 add_custom_target(shell
 	COMMAND ./sandbox shell
-	DEPENDS image
+	DEPENDS tree
 )
 
 add_custom_target(reset
@@ -117,12 +117,12 @@ add_custom_target(env
 add_custom_target(tests
 	DEPENDS rpmtests
 	DEPENDS ${UTIL_DIR}
-	DEPENDS image
+	DEPENDS tree
 )
 
-add_custom_target(image
-	DEPENDS ${INST_DIR}
+add_custom_target(tree
 	DEPENDS ${BASE_DIR}
+	DEPENDS ${INST_DIR}
 )
 
 add_custom_command(OUTPUT rpmtests
