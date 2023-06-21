@@ -14,7 +14,7 @@
 # exists and then exit with the return code 0.
 #
 # Useful CMake variables:
-#   TREE_DIR: destination directory for the tree (relative to PWD)
+#   BASE_DIR: destination directory for the tree (relative to PWD)
 #   UNSHARE_CMD: runs a program as root in a user namespace (if non-root user)
 #   OS_VERSION: distribution version
 #
@@ -28,7 +28,7 @@ function dnf()
     local cachedir=$(python3 -c 'import dnf; print(dnf.conf.Conf().cachedir)')
     echo '%_netsharedpath %nil' > .rpmmacros
     @UNSHARE_CMD@ env HOME=$PWD /usr/bin/dnf \
-        --installroot=$PWD/@TREE_DIR@ \
+        --installroot=$PWD/@BASE_DIR@ \
         --releasever=@OS_VERSION@ \
         --setopt=cachedir=$cachedir \
         --setopt=keepcache=1 \
@@ -103,12 +103,12 @@ dnf install -y \
     zstd
 
 # Point in-tree RPM to newly installed database
-@UNSHARE_CMD@ mkdir -p @TREE_DIR@/@MACRO_DIR@
+@UNSHARE_CMD@ mkdir -p @BASE_DIR@/@MACRO_DIR@
 echo "%_dbpath $(rpm --eval '%_dbpath')" |
-    @UNSHARE_CMD@ tee @TREE_DIR@/@MACRO_DIR@/macros.dbpath >/dev/null
+    @UNSHARE_CMD@ tee @BASE_DIR@/@MACRO_DIR@/macros.dbpath >/dev/null
 
 # Configure default shell for root user
-@UNSHARE_CMD@ cp -r @TREE_DIR@/{etc/skel/.,/root}
+@UNSHARE_CMD@ cp -r @BASE_DIR@/{etc/skel/.,/root}
 
 export -f dnf
 [ -x mktree.extra ] && ./mktree.extra

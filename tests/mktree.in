@@ -2,7 +2,7 @@
 
 case $1 in
     base)
-        @UNSHARE_CMD@ rm -rf @TREE_DIR@
+        @UNSHARE_CMD@ rm -rf @BASE_DIR@
         ./mktree.@OS_NAME@
     ;;
     inst)

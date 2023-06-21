@@ -1,7 +1,7 @@
 set(SANDBOX_DIR sandbox.dir)
 set(CONTAINER_DIR ${SANDBOX_DIR}/container)
 set(IMAGE_DIR ${SANDBOX_DIR}/image)
-set(TREE_DIR ${IMAGE_DIR}/tree)
+set(BASE_DIR ${IMAGE_DIR}/base)
 set(INST_DIR ${IMAGE_DIR}/inst)
 set(UTIL_DIR ${IMAGE_DIR}/util)
 
@@ -122,7 +122,7 @@ add_custom_target(tests
 
 add_custom_target(image
 	DEPENDS ${INST_DIR}
-	DEPENDS ${TREE_DIR}
+	DEPENDS ${BASE_DIR}
 )
 
 add_custom_command(OUTPUT rpmtests
@@ -145,7 +145,7 @@ add_custom_command(OUTPUT ${INST_DIR}
 	DEPENDS mktree.in
 )
 
-add_custom_command(OUTPUT ${TREE_DIR}
+add_custom_command(OUTPUT ${BASE_DIR}
 	COMMAND ./mktree base
 	DEPENDS mktree.${OS_NAME}
 	DEPENDS mktree.in
