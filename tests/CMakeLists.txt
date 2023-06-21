@@ -9,17 +9,6 @@ set(MACRO_DIR ${RPMCONFIGDIR}/macros.d)
 set(LD_CONF_DIR ${INST_DIR}/${CMAKE_INSTALL_SYSCONFDIR}/ld.so.conf.d)
 set(PROFILE_DIR ${INST_DIR}/${CMAKE_INSTALL_SYSCONFDIR}/profile.d)
 
-set(PYTHON ${Python3_EXECUTABLE})
-if (${WITH_INTERNAL_OPENPGP})
-	if (${WITH_OPENSSL})
-		set(CRYPTO openssl)
-	else()
-		set(CRYPTO libgcrypt)
-	endif()
-else()
-	set(CRYPTO sequoia)
-endif()
-
 execute_process(COMMAND sh -c "grep ^ID /etc/os-release | cut -d= -f2"
 		OUTPUT_VARIABLE OS_NAME
 		OUTPUT_STRIP_TRAILING_WHITESPACE)
@@ -40,6 +29,17 @@ endif()
 string(REPLACE ";" " " UNSHARE_CMD "${UNSHARE}")
 
 get_property(TOP_TARGETS DIRECTORY .. PROPERTY BUILDSYSTEM_TARGETS)
+
+set(PYTHON ${Python3_EXECUTABLE})
+if (${WITH_INTERNAL_OPENPGP})
+	if (${WITH_OPENSSL})
+		set(CRYPTO openssl)
+	else()
+		set(CRYPTO libgcrypt)
+	endif()
+else()
+	set(CRYPTO sequoia)
+endif()
 
 set(TESTSUITE_AT
 	rpmtests.at
