@@ -1034,13 +1034,13 @@ thing
 %bad-name 123
 EOF
 
-runroot rpm --macros "/macros.bad" --eval "%foo"
+run rpm --macros "macros.bad" --eval "%foo"
 ],
 [0],
 [bar
 ],
-[error: /macros.bad: line 1: Macro %1 has illegal name (%define)
-warning: /macros.bad: line 8: Macro %bad needs whitespace before body
+[error: macros.bad: line 1: Macro %1 has illegal name (%define)
+warning: macros.bad: line 8: Macro %bad needs whitespace before body
 ])
 RPMTEST_CLEANUP
 
