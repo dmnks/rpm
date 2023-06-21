@@ -8,8 +8,6 @@ set(MACRO_DIR ${RPMCONFIGDIR}/macros.d)
 set(LD_CONF_DIR ${INST_DIR}/${CMAKE_INSTALL_SYSCONFDIR}/ld.so.conf.d)
 set(PROFILE_DIR ${INST_DIR}/${CMAKE_INSTALL_SYSCONFDIR}/profile.d)
 
-get_property(TOP_TARGETS DIRECTORY .. PROPERTY BUILDSYSTEM_TARGETS)
-
 set(PYTHON ${Python3_EXECUTABLE})
 if (${WITH_INTERNAL_OPENPGP})
 	if (${WITH_OPENSSL})
@@ -21,9 +19,30 @@ else()
 	set(CRYPTO sequoia)
 endif()
 
+execute_process(COMMAND sh -c "grep ^ID /etc/os-release | cut -d= -f2"
+		OUTPUT_VARIABLE OS_NAME
+		OUTPUT_STRIP_TRAILING_WHITESPACE)
+execute_process(COMMAND sh -c "grep ^VERSION_ID /etc/os-release | cut -d= -f2"
+		OUTPUT_VARIABLE OS_VERSION
+		OUTPUT_STRIP_TRAILING_WHITESPACE)
+string(TOLOWER ${OS_NAME} OS_NAME)
+
+execute_process(COMMAND ${ID} -u OUTPUT_VARIABLE UID)
+if (${UID} EQUAL 0)
+	set(UNSHARE "")
+elseif(EXISTS /run/.toolboxenv)
+	set(UNSHARE sudo -E)
+else()
+	find_program(UNSHARE unshare REQUIRED)
+	set(UNSHARE ${UNSHARE} -rm --map-auto)
+endif()
+string(REPLACE ";" " " UNSHARE_CMD "${UNSHARE}")
+
 configure_file(atlocal.in atlocal @ONLY)
 configure_file(atconfig.in atconfig @ONLY)
 configure_file(package.m4.in package.m4 @ONLY)
+
+get_property(TOP_TARGETS DIRECTORY .. PROPERTY BUILDSYSTEM_TARGETS)
 
 set(TESTSUITE_AT
 	rpmtests.at
@@ -55,6 +74,7 @@ set(TESTSUITE_AT
 )
 
 set(AUTOTEST ${AUTOM4TE} --language=autotest)
+
 set(TESTPROGS rpmpgpcheck rpmpgppubkeyfingerprint)
 foreach(prg ${TESTPROGS})
 	add_executable(${prg} EXCLUDE_FROM_ALL ${prg}.c)
@@ -62,25 +82,6 @@ foreach(prg ${TESTPROGS})
 endforeach()
 string(REPLACE ";" " " TESTPROGS_STR "${TESTPROGS}")
 
-execute_process(COMMAND sh -c "grep ^ID /etc/os-release | cut -d= -f2"
-		OUTPUT_VARIABLE OS_NAME
-		OUTPUT_STRIP_TRAILING_WHITESPACE)
-execute_process(COMMAND sh -c "grep ^VERSION_ID /etc/os-release | cut -d= -f2"
-		OUTPUT_VARIABLE OS_VERSION
-		OUTPUT_STRIP_TRAILING_WHITESPACE)
-string(TOLOWER ${OS_NAME} OS_NAME)
-
-execute_process(COMMAND ${ID} -u OUTPUT_VARIABLE UID)
-if (${UID} EQUAL 0)
-	set(UNSHARE "")
-elseif(EXISTS /run/.toolboxenv)
-	set(UNSHARE sudo -E)
-else()
-	find_program(UNSHARE unshare REQUIRED)
-	set(UNSHARE ${UNSHARE} -rm --map-auto)
-endif()
-
-string(REPLACE ";" " " UNSHARE_CMD "${UNSHARE}")
 configure_file(sandbox.in sandbox @ONLY)
 configure_file(mktree.in mktree @ONLY)
 configure_file(mktree.${OS_NAME} mktree.${OS_NAME} @ONLY)
