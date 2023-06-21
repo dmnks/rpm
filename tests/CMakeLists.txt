@@ -2,14 +2,15 @@ set(TREE_DIR mktree.output)
 set(BASE_DIR ${TREE_DIR}/base)
 set(INST_DIR ${TREE_DIR}/inst)
 set(UTIL_DIR ${TREE_DIR}/util)
-
 set(SANDBOX_DIR sandbox.default)
 
-set(PYTHON ${Python3_EXECUTABLE})
 set(MACRO_DIR ${RPMCONFIGDIR}/macros.d)
 set(LD_CONF_DIR ${INST_DIR}/${CMAKE_INSTALL_SYSCONFDIR}/ld.so.conf.d)
 set(PROFILE_DIR ${INST_DIR}/${CMAKE_INSTALL_SYSCONFDIR}/profile.d)
 
+get_property(TOP_TARGETS DIRECTORY .. PROPERTY BUILDSYSTEM_TARGETS)
+
+set(PYTHON ${Python3_EXECUTABLE})
 if (${WITH_INTERNAL_OPENPGP})
 	if (${WITH_OPENSSL})
 		set(CRYPTO openssl)
@@ -23,8 +24,6 @@ endif()
 configure_file(atlocal.in atlocal @ONLY)
 configure_file(atconfig.in atconfig @ONLY)
 configure_file(package.m4.in package.m4 @ONLY)
-
-get_property(TOP_TARGETS DIRECTORY .. PROPERTY BUILDSYSTEM_TARGETS)
 
 set(TESTSUITE_AT
 	rpmtests.at
@@ -55,7 +54,6 @@ set(TESTSUITE_AT
 	rpmpgp.at
 )
 
-find_program(AUTOM4TE autom4te REQUIRED)
 set(AUTOTEST ${AUTOM4TE} --language=autotest)
 set(TESTPROGS rpmpgpcheck rpmpgppubkeyfingerprint)
 foreach(prg ${TESTPROGS})
@@ -72,8 +70,6 @@ execute_process(COMMAND sh -c "grep ^VERSION_ID /etc/os-release | cut -d= -f2"
 		OUTPUT_STRIP_TRAILING_WHITESPACE)
 string(TOLOWER ${OS_NAME} OS_NAME)
 
-find_program(BWRAP bwrap REQUIRED)
-find_program(ID id REQUIRED)
 execute_process(COMMAND ${ID} -u OUTPUT_VARIABLE UID)
 if (${UID} EQUAL 0)
 	set(UNSHARE "")
