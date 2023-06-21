@@ -132,10 +132,9 @@ add_custom_command(OUTPUT rpmtests
 	DEPENDS local.at
 )
 
-add_custom_command(OUTPUT ${UTIL_DIR}
-	COMMAND ./mktree util
-	DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/data
-	DEPENDS ${TESTPROGS}
+add_custom_command(OUTPUT ${BASE_DIR}
+	COMMAND ./mktree base
+	DEPENDS mktree.${OS_NAME}
 	DEPENDS mktree.in
 )
 
@@ -145,8 +144,9 @@ add_custom_command(OUTPUT ${INST_DIR}
 	DEPENDS mktree.in
 )
 
-add_custom_command(OUTPUT ${BASE_DIR}
-	COMMAND ./mktree base
-	DEPENDS mktree.${OS_NAME}
+add_custom_command(OUTPUT ${UTIL_DIR}
+	COMMAND ./mktree util
+	DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/data
+	DEPENDS ${TESTPROGS}
 	DEPENDS mktree.in
 )
