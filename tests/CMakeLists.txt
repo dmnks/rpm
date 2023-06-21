@@ -2,6 +2,7 @@ set(TREE_DIR mktree.output)
 set(BASE_DIR ${TREE_DIR}/base)
 set(INST_DIR ${TREE_DIR}/inst)
 set(UTIL_DIR ${TREE_DIR}/util)
+
 set(SANDBOX_DIR sandbox.default)
 
 set(MACRO_DIR ${RPMCONFIGDIR}/macros.d)
@@ -37,10 +38,6 @@ else()
 	set(UNSHARE ${UNSHARE} -rm --map-auto)
 endif()
 string(REPLACE ";" " " UNSHARE_CMD "${UNSHARE}")
-
-configure_file(atlocal.in atlocal @ONLY)
-configure_file(atconfig.in atconfig @ONLY)
-configure_file(package.m4.in package.m4 @ONLY)
 
 get_property(TOP_TARGETS DIRECTORY .. PROPERTY BUILDSYSTEM_TARGETS)
 
@@ -82,6 +79,9 @@ foreach(prg ${TESTPROGS})
 endforeach()
 string(REPLACE ";" " " TESTPROGS_STR "${TESTPROGS}")
 
+configure_file(atlocal.in atlocal @ONLY)
+configure_file(atconfig.in atconfig @ONLY)
+configure_file(package.m4.in package.m4 @ONLY)
 configure_file(sandbox.in sandbox @ONLY)
 configure_file(mktree.in mktree @ONLY)
 configure_file(mktree.${OS_NAME} mktree.${OS_NAME} @ONLY)
