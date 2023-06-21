@@ -15,6 +15,7 @@ endif()
 
 configure_file(atlocal.in atlocal @ONLY)
 configure_file(package.m4.in package.m4 @ONLY)
+configure_file(mktree.in mktree @ONLY)
 
 set(TESTSUITE_AT
 	rpmtests.at
@@ -63,9 +64,7 @@ endif()
 
 add_custom_target(check
 	COMMAND ./rpmtests ${JOBS} $(TESTOPTS)
-	DEPENDS populate_testing
-	DEPENDS rpmtests
-	DEPENDS ${TESTPROGS}
+	DEPENDS tree
 )
 
 add_custom_command(OUTPUT rpmtests
@@ -75,18 +74,14 @@ add_custom_command(OUTPUT rpmtests
 	DEPENDS local.at
 )
 
-add_custom_target(populate_testing
-	COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/populate
-		${CMAKE_BINARY_DIR}
-		${CMAKE_CURRENT_BINARY_DIR}
-		${CMAKE_CURRENT_SOURCE_DIR}
-		${CMAKE_INSTALL_FULL_BINDIR}
-		${CMAKE_MAKE_PROGRAM}
-	SOURCES populate
+add_custom_target(tree
+	COMMAND ./mktree
 	DEPENDS ${TOP_TARGETS}
+	DEPENDS ${TESTPROGS}
+	DEPENDS rpmtests
 )
 
-add_custom_command(TARGET populate_testing POST_BUILD
+add_custom_command(TARGET tree POST_BUILD
 	COMMAND chmod -R u-w testing
 )
 add_custom_command(TARGET check POST_BUILD
