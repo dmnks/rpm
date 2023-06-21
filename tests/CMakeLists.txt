@@ -9,13 +9,18 @@ set(MACRO_DIR ${RPMCONFIGDIR}/macros.d)
 set(LD_CONF_DIR ${INST_DIR}/${CMAKE_INSTALL_SYSCONFDIR}/ld.so.conf.d)
 set(PROFILE_DIR ${INST_DIR}/${CMAKE_INSTALL_SYSCONFDIR}/profile.d)
 
-execute_process(COMMAND sh -c "grep ^ID /etc/os-release | cut -d= -f2"
-		OUTPUT_VARIABLE OS_NAME
-		OUTPUT_STRIP_TRAILING_WHITESPACE)
-execute_process(COMMAND sh -c "grep ^VERSION_ID /etc/os-release | cut -d= -f2"
-		OUTPUT_VARIABLE OS_VERSION
-		OUTPUT_STRIP_TRAILING_WHITESPACE)
-string(TOLOWER ${OS_NAME} OS_NAME)
+function(os_release var key)
+	execute_process(
+		COMMAND sh -c "grep ^${key} /etc/os-release | cut -d= -f2"
+		OUTPUT_STRIP_TRAILING_WHITESPACE
+		OUTPUT_VARIABLE value
+	)
+	string(TOLOWER ${value} value)
+	set(${var} ${value} PARENT_SCOPE)
+endfunction()
+
+os_release(OS_NAME ID)
+os_release(OS_VERSION VERSION_ID)
 
 execute_process(COMMAND ${ID} -u OUTPUT_VARIABLE UID)
 if (${UID} EQUAL 0)
