@@ -59,11 +59,11 @@ endforeach()
 include(ProcessorCount)
 ProcessorCount(nproc)
 if (nproc GREATER 1)
-	set(jobs -j${nproc})
+	set(JOBS -j${nproc})
 endif()
 
 add_custom_target(check
-	COMMAND ./rpmtests ${jobs} $(TESTOPTS)
+	COMMAND ./rpmtests ${JOBS} $(TESTOPTS)
 	DEPENDS tree
 )
 
