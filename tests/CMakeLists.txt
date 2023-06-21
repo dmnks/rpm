@@ -41,6 +41,10 @@ else()
 	set(CRYPTO sequoia)
 endif()
 
+configure_file(atlocal.in atlocal @ONLY)
+configure_file(atconfig.in atconfig @ONLY)
+configure_file(package.m4.in package.m4 @ONLY)
+
 set(TESTSUITE_AT
 	rpmtests.at
 	rpmgeneral.at
@@ -79,12 +83,9 @@ foreach(prg ${TESTPROGS})
 endforeach()
 string(REPLACE ";" " " TESTPROGS_STR "${TESTPROGS}")
 
-configure_file(atlocal.in atlocal @ONLY)
-configure_file(atconfig.in atconfig @ONLY)
-configure_file(package.m4.in package.m4 @ONLY)
-configure_file(sandbox.in sandbox @ONLY)
 configure_file(mktree.in mktree @ONLY)
 configure_file(mktree.${OS_NAME} mktree.${OS_NAME} @ONLY)
+configure_file(sandbox.in sandbox @ONLY)
 
 include(ProcessorCount)
 ProcessorCount(nproc)
