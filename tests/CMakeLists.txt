@@ -64,8 +64,8 @@ add_custom_target(populate_testing COMMAND
 	DEPENDS ${top_targets}
 )
 
-set (testprogs rpmpgpcheck rpmpgppubkeyfingerprint)
-foreach(prg ${testprogs})
+set(TESTPROGS rpmpgpcheck rpmpgppubkeyfingerprint)
+foreach(prg ${TESTPROGS})
 	add_executable(${prg} EXCLUDE_FROM_ALL ${prg}.c)
 	target_link_libraries(${prg} PRIVATE librpmio)
 endforeach()
@@ -80,7 +80,7 @@ add_custom_target(check COMMAND
 	./rpmtests ${jobs} $(TESTOPTS)
 	DEPENDS populate_testing
 	DEPENDS rpmtests
-	DEPENDS ${testprogs}
+	DEPENDS ${TESTPROGS}
 )
 
 add_custom_command(TARGET populate_testing POST_BUILD
