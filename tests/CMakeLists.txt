@@ -4,7 +4,6 @@ set(IMAGE_DIR ${SANDBOX_DIR}/image)
 set(TREE_DIR ${IMAGE_DIR}/tree)
 set(INST_DIR ${IMAGE_DIR}/inst)
 set(UTIL_DIR ${IMAGE_DIR}/util)
-set(DATA_DIR ${UTIL_DIR}/data)
 
 set(PYTHON ${Python3_EXECUTABLE})
 set(MACRO_DIR ${RPMCONFIGDIR}/macros.d)
@@ -62,10 +61,6 @@ set(TESTPROGS rpmpgpcheck rpmpgppubkeyfingerprint)
 foreach(prg ${TESTPROGS})
 	add_executable(${prg} EXCLUDE_FROM_ALL ${prg}.c)
 	target_link_libraries(${prg} PRIVATE librpmio)
-	set_target_properties(${prg} PROPERTIES
-		RUNTIME_OUTPUT_DIRECTORY ${UTIL_DIR}/usr/bin)
-	add_custom_command(TARGET ${prg} PRE_BUILD
-		COMMAND mkdir -p ${UTIL_DIR}/usr/bin)
 endforeach()
 
 execute_process(COMMAND sh -c "grep ^ID /etc/os-release | cut -d= -f2"
@@ -89,8 +84,10 @@ else()
 endif()
 
 string(REPLACE ";" " " UNSHARE_CMD "${UNSHARE}")
+string(REPLACE ";" " " TESTPROGS_NAMES "${TESTPROGS}")
 configure_file(sandbox.in sandbox @ONLY)
-configure_file(mktree.${OS_NAME} mktree @ONLY)
+configure_file(mktree.in mktree @ONLY)
+configure_file(mktree.${OS_NAME} mktree.${OS_NAME} @ONLY)
 
 include(ProcessorCount)
 ProcessorCount(nproc)
@@ -119,8 +116,7 @@ add_custom_target(env
 
 add_custom_target(tests
 	DEPENDS rpmtests
-	DEPENDS ${TESTPROGS}
-	DEPENDS ${DATA_DIR}
+	DEPENDS ${UTIL_DIR}
 	DEPENDS image
 )
 
@@ -136,28 +132,21 @@ add_custom_command(OUTPUT rpmtests
 	DEPENDS local.at
 )
 
-add_custom_command(OUTPUT ${DATA_DIR}
-	COMMAND rm -rf ${DATA_DIR}
-	COMMAND cp -r ${CMAKE_CURRENT_SOURCE_DIR}/data ${UTIL_DIR}/
-	COMMAND mkdir -p ${UTIL_DIR}/build
-	COMMAND ln -sf /data/SOURCES ${UTIL_DIR}/build/
+add_custom_command(OUTPUT ${UTIL_DIR}
+	COMMAND ./mktree util
 	DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/data
+	DEPENDS ${TESTPROGS}
+	DEPENDS mktree.in
 )
 
 add_custom_command(OUTPUT ${INST_DIR}
-	COMMAND rm -rf ${INST_DIR}
-	COMMAND ${CMAKE_MAKE_PROGRAM} -C ${CMAKE_BINARY_DIR}
-		DESTDIR=${CMAKE_CURRENT_BINARY_DIR}/${INST_DIR} install
-	COMMAND mkdir -p ${PROFILE_DIR} ${LD_CONF_DIR}
-	COMMAND echo "export PATH=${CMAKE_INSTALL_FULL_BINDIR}:/usr/bin" >
-		${PROFILE_DIR}/rpm.sh
-	COMMAND echo ${CMAKE_INSTALL_FULL_LIBDIR} > ${LD_CONF_DIR}/rpm.conf
-	COMMAND ldconfig -r ${INST_DIR} ${CMAKE_INSTALL_FULL_LIBDIR}
+	COMMAND ./mktree inst
 	DEPENDS ${TOP_TARGETS}
+	DEPENDS mktree.in
 )
 
 add_custom_command(OUTPUT ${TREE_DIR}
-	COMMAND ${UNSHARE} rm -rf ${TREE_DIR}
-	COMMAND ./mktree
-	DEPENDS mktree
+	COMMAND ./mktree base
+	DEPENDS mktree.${OS_NAME}
+	DEPENDS mktree.in
 )
