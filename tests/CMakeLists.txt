@@ -1,9 +1,9 @@
-set(SANDBOX_DIR sandbox.dir)
-set(CONTAINER_DIR ${SANDBOX_DIR}/container)
-set(IMAGE_DIR ${SANDBOX_DIR}/image)
-set(BASE_DIR ${IMAGE_DIR}/base)
-set(INST_DIR ${IMAGE_DIR}/inst)
-set(UTIL_DIR ${IMAGE_DIR}/util)
+set(TREE_DIR mktree.output)
+set(BASE_DIR ${TREE_DIR}/base)
+set(INST_DIR ${TREE_DIR}/inst)
+set(UTIL_DIR ${TREE_DIR}/util)
+
+set(SANDBOX_DIR sandbox.default)
 
 set(PYTHON ${Python3_EXECUTABLE})
 set(MACRO_DIR ${RPMCONFIGDIR}/macros.d)
@@ -106,7 +106,7 @@ add_custom_target(shell
 )
 
 add_custom_target(reset
-	COMMAND ${UNSHARE} rm -rf ${CONTAINER_DIR}
+	COMMAND ${UNSHARE} rm -rf ${SANDBOX_DIR}
 )
 
 add_custom_target(env
