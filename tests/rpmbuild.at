@@ -26,7 +26,7 @@ RPMDB_INIT
 RPMTEST_CHECK([
 
 run rpmbuild \
-  -ba "${abs_srcdir}"/data/SPECS/hello.spec
+  -ba ${RPMDATA}/SPECS/hello.spec
 ],
 [0],
 [ignore],
@@ -158,7 +158,7 @@ RPMDB_INIT
 RPMTEST_CHECK([
 
 run rpmbuild \
-  -ba "${abs_srcdir}"/data/SPECS/hello-auto.spec
+  -ba ${RPMDATA}/SPECS/hello-auto.spec
 ],
 [0],
 [ignore],
@@ -171,7 +171,7 @@ RPMDB_INIT
 RPMTEST_CHECK([
 
 run rpmbuild \
-  -ba "${abs_srcdir}"/data/SPECS/hello-autopatch.spec
+  -ba ${RPMDATA}/SPECS/hello-autopatch.spec
 ],
 [0],
 [ignore],
@@ -186,7 +186,7 @@ RPMDB_INIT
 RPMTEST_CHECK([
 
 run rpmbuild \
-  --rebuild "${abs_srcdir}"/data/SRPMS/hello-1.0-1.src.rpm
+  --rebuild ${RPMDATA}/SRPMS/hello-1.0-1.src.rpm
 ],
 [0],
 [ignore],
@@ -198,8 +198,8 @@ AT_KEYWORDS([build])
 RPMDB_INIT
 RPMTEST_CHECK([
 
-run rpmbuild -bi "${abs_srcdir}"/data/SPECS/hello.spec &> /dev/null
-run rpmbuild --quiet -bl --short-circuit "${abs_srcdir}"/data/SPECS/hello.spec
+run rpmbuild -bi ${RPMDATA}/SPECS/hello.spec &> /dev/null
+run rpmbuild --quiet -bl --short-circuit ${RPMDATA}/SPECS/hello.spec
 ],
 [0],
 [],
@@ -873,7 +873,7 @@ RPMDB_INIT
 # Use macros.debug to generate a debuginfo package.
 export CFLAGS="-g"
 rundebug rpmbuild --quiet \
-  --rebuild "${abs_srcdir}"/data/SRPMS/hello-1.0-1.src.rpm
+  --rebuild ${RPMDATA}/SRPMS/hello-1.0-1.src.rpm
 
 # Extract the main package and inspect the hello binary
 # It should contain .gnu_debugdata, but not the full .symtab
@@ -912,7 +912,7 @@ RPMDB_INIT
 export CFLAGS="-g"
 rundebug rpmbuild --quiet \
   --define="_find_debuginfo_opts -g" \
-  --rebuild "${abs_srcdir}"/data/SRPMS/hello-1.0-1.src.rpm
+  --rebuild ${RPMDATA}/SRPMS/hello-1.0-1.src.rpm
 
 # Extract the main package and inspect the hello binary
 # It should contain .symtab (because of strip -g), so doesn't .gnu_debugdata.
@@ -951,7 +951,7 @@ RPMDB_INIT
 rundebug rpmbuild --quiet \
   --undefine "_unique_debug_names" \
   --undefine "_unique_debug_srcs" \
-  -ba "${abs_srcdir}"/data/SPECS/hello2.spec
+  -ba ${RPMDATA}/SPECS/hello2.spec
 
 # The debuginfo package should contain a .debug file for each binary
 # and a dwz multi file that contains the shared debuginfo between them.
@@ -1039,7 +1039,7 @@ RPMDB_INIT
 # but pass --nodebuginfo to skip it.
 export CFLAGS="-g"
 rundebug rpmbuild --quiet --nodebuginfo \
-  --rebuild "${abs_srcdir}"/data/SRPMS/hello-1.0-1.src.rpm
+  --rebuild ${RPMDATA}/SRPMS/hello-1.0-1.src.rpm
 
 # Extract the main package and inspect the hello binary
 # It should not contain .gnu_debugdata, but the full .symtab
@@ -1071,7 +1071,7 @@ RPMDB_INIT
 
 rundebug rpmbuild --quiet \
   --define "_unique_debug_names 1" \
-  -ba "${abs_srcdir}"/data/SPECS/hello2.spec
+  -ba ${RPMDATA}/SPECS/hello2.spec
 
 # The debuginfo package should contain a .debug file for each binary
 # and a dwz multi file that contains the shared debuginfo between them.
@@ -1158,7 +1158,7 @@ RPMDB_INIT
 
 # Build a package that has some debuginfo
 rundebug rpmbuild --quiet \
-  -ba "${abs_srcdir}"/data/SPECS/hello2-suid.spec
+  -ba ${RPMDATA}/SPECS/hello2-suid.spec
 
 # Unpack rpm so we can check the included binaries.
 rpm2cpio ${RPMTEST}/build/RPMS/*/hello2-1.0-1.*.rpm \
@@ -1191,7 +1191,7 @@ RPMDB_INIT
 # Build a package that has some debuginfo
 rundebug rpmbuild --quiet \
   --define "_include_gdb_index 1" \
-  -ba "${abs_srcdir}"/data/SPECS/hello2.spec
+  -ba ${RPMDATA}/SPECS/hello2.spec
 
 # Unpack the debuginfo rpms so we can check the .debug files.
 rpm2cpio ${RPMTEST}/build/RPMS/*/hello2-debuginfo-1.0-1.*.rpm \
@@ -1218,7 +1218,7 @@ RPMDB_INIT
 # Build a package that has some debuginfo
 rundebug rpmbuild --quiet \
   --undefine "_include_gdb_index" \
-  -ba "${abs_srcdir}"/data/SPECS/hello2.spec
+  -ba ${RPMDATA}/SPECS/hello2.spec
 
 # Unpack the debuginfo rpms so we can check the .debug files.
 rpm2cpio ${RPMTEST}/build/RPMS/*/hello2-debuginfo-1.0-1.*.rpm \
@@ -1246,7 +1246,7 @@ RPMDB_INIT
 # in the .debug_macro section of the .debug file.
 rundebug rpmbuild --quiet \
   --define "_include_gdb_index 1" \
-  -ba "${abs_srcdir}"/data/SPECS/hello-g3.spec
+  -ba ${RPMDATA}/SPECS/hello-g3.spec
 
 # Unpack the debuginfo rpms so we can check the .debug files.
 rpm2cpio ${RPMTEST}/build/RPMS/*/hello-g3-debuginfo-1.0-1.*.rpm \
@@ -1278,7 +1278,7 @@ RPMDB_INIT
 rundebug rpmbuild --quiet \
   --undefine "_find_debuginfo_dwz_opts" \
   --define "_unique_debug_srcs 1" \
-  -ba "${abs_srcdir}"/data/SPECS/hello2.spec
+  -ba ${RPMDATA}/SPECS/hello2.spec
 
 # Unpack the debuginfo rpms so we can check the .debug files.
 rpm2cpio ${RPMTEST}/build/RPMS/*/hello2-debuginfo-1.0-1.*.rpm \
@@ -1315,7 +1315,7 @@ RPMDB_INIT
 rundebug rpmbuild --quiet \
   --undefine "_find_debuginfo_dwz_opts" \
   --undefine "_unique_debug_srcs" \
-  -ba "${abs_srcdir}"/data/SPECS/hello2.spec
+  -ba ${RPMDATA}/SPECS/hello2.spec
 
 # Unpack the debuginfo rpms so we can check the .debug files.
 rpm2cpio ${RPMTEST}/build/RPMS/*/hello2-debuginfo-1.0-1.*.rpm \
@@ -1345,7 +1345,7 @@ RPMDB_INIT
 
 rundebug rpmbuild --quiet \
   --define "_debugsource_packages 1" \
-  -ba "${abs_srcdir}"/data/SPECS/hello2.spec
+  -ba ${RPMDATA}/SPECS/hello2.spec
 
 # Unpack the debugsource rpm so we can check the sources are there.
 rpm2cpio ${RPMTEST}/build/RPMS/*/hello2-debugsource-1.0-1.*.rpm \
@@ -1377,7 +1377,7 @@ RPMDB_INIT
 
 rundebug rpmbuild --quiet \
   --define "_debugsource_packages 1" \
-  -ba "${abs_srcdir}"/data/SPECS/hello-cd.spec
+  -ba ${RPMDATA}/SPECS/hello-cd.spec
 
 # Unpack the debuginfo rpms so we can check the sources are there.
 rpm2cpio ${RPMTEST}/build/RPMS/*/test-debugsource-1.0-1.*.rpm \
@@ -1405,7 +1405,7 @@ rundebug rpmbuild --quiet \
   --undefine "_unique_debug_srcs" \
   --undefine "_debugsource_packages" \
   --undefine "_debuginfo_subpackages" \
-  -ba "${abs_srcdir}"/data/SPECS/test-subpackages.spec
+  -ba ${RPMDATA}/SPECS/test-subpackages.spec
 
 # Check that there is just one debuginfo package.
 ls ${RPMTEST}/build/RPMS/*/*debuginfo*rpm | wc --lines
@@ -1444,7 +1444,7 @@ rundebug rpmbuild --quiet \
   --undefine "_unique_debug_srcs" \
   --undefine "_debugsource_packages" \
   --define "_debuginfo_subpackages 1" \
-  -ba "${abs_srcdir}"/data/SPECS/test-subpackages.spec
+  -ba ${RPMDATA}/SPECS/test-subpackages.spec
 
 # Check that there are 3 debuginfo packages.
 ls ${RPMTEST}/build/RPMS/*/*debuginfo*rpm | wc --lines
@@ -1525,7 +1525,7 @@ rundebug rpmbuild --quiet \
   --define "_unique_debug_srcs 1" \
   --undefine "_debugsource_packages" \
   --define "_debuginfo_subpackages 1" \
-  -ba "${abs_srcdir}"/data/SPECS/test-subpackages.spec
+  -ba ${RPMDATA}/SPECS/test-subpackages.spec
 
 # Check that there are 3 debuginfo packages.
 ls ${RPMTEST}/build/RPMS/*/*debuginfo*rpm | wc --lines
@@ -1606,7 +1606,7 @@ rundebug rpmbuild --quiet \
   --define "_unique_debug_srcs 1" \
   --define "_debugsource_packages 1" \
   --define "_debuginfo_subpackages 1" \
-  -ba "${abs_srcdir}"/data/SPECS/test-subpackages.spec
+  -ba ${RPMDATA}/SPECS/test-subpackages.spec
 
 # Check that there are 3 debuginfo packages.
 ls ${RPMTEST}/build/RPMS/*/*debuginfo*rpm | wc --lines
@@ -1690,7 +1690,7 @@ rundebug rpmbuild --quiet \
   --define "_unique_debug_srcs 1" \
   --define "_debugsource_packages 1" \
   --define "_debuginfo_subpackages 1" \
-  -ba "${abs_srcdir}"/data/SPECS/test-subpackages-exclude.spec
+  -ba ${RPMDATA}/SPECS/test-subpackages-exclude.spec
 
 # Check that there are 2 debuginfo packages.
 ls ${RPMTEST}/build/RPMS/*/*debuginfo*rpm | wc --lines
@@ -1751,7 +1751,7 @@ rundebug rpmbuild --quiet \
   --define "_unique_debug_srcs 1" \
   --define "_debugsource_packages 1" \
   --define "_debuginfo_subpackages 1" \
-  -ba "${abs_srcdir}"/data/SPECS/test-subpackages-pathpostfixes.spec
+  -ba ${RPMDATA}/SPECS/test-subpackages-pathpostfixes.spec
 
 # Check that there are 2 debuginfo packages.
 ls ${RPMTEST}/build/RPMS/*/*debuginfo*rpm | wc --lines
@@ -1905,7 +1905,7 @@ RPMDB_INIT
 RPMTEST_CHECK([
 
 run rpmbuild \
-  --quiet -bd "${abs_srcdir}"/data/SPECS/hello.spec
+  --quiet -bd ${RPMDATA}/SPECS/hello.spec
 ls ls ${RPMTEST}/build/*/*.rpm | wc --lines
 ],
 [0],
