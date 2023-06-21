@@ -20,7 +20,7 @@ case $1 in
         mkdir -p @UTIL_DIR@/data
         cp -r @CMAKE_CURRENT_SOURCE_DIR@/data @UTIL_DIR@/
         mkdir -p @UTIL_DIR@/usr/bin
-        cp @TESTPROGS_NAMES@ @UTIL_DIR@/usr/bin/
+        cp @TESTPROGS_STR@ @UTIL_DIR@/usr/bin/
         mkdir -p @UTIL_DIR@/build
         ln -sf /data/SOURCES @UTIL_DIR@/build/
     ;;

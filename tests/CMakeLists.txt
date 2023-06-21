@@ -62,6 +62,7 @@ foreach(prg ${TESTPROGS})
 	add_executable(${prg} EXCLUDE_FROM_ALL ${prg}.c)
 	target_link_libraries(${prg} PRIVATE librpmio)
 endforeach()
+string(REPLACE ";" " " TESTPROGS_STR "${TESTPROGS}")
 
 execute_process(COMMAND sh -c "grep ^ID /etc/os-release | cut -d= -f2"
 		OUTPUT_VARIABLE OS_NAME
@@ -84,7 +85,6 @@ else()
 endif()
 
 string(REPLACE ";" " " UNSHARE_CMD "${UNSHARE}")
-string(REPLACE ";" " " TESTPROGS_NAMES "${TESTPROGS}")
 configure_file(sandbox.in sandbox @ONLY)
 configure_file(mktree.in mktree @ONLY)
 configure_file(mktree.${OS_NAME} mktree.${OS_NAME} @ONLY)
