@@ -22,7 +22,7 @@ ts = rpm.ts()
 ts.setFlags(rpm.RPMTRANS_FLAG_NOPLUGINS)
 $1
 EOF
-runroot_other ${PYTHON} /test.py
+runroot_other ${PYTHON} test.py
 ]])
 
 m4_define([RPMTEST_CHECK],[
