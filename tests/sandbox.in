@@ -28,8 +28,7 @@ function sandbox()
         ;;
         exec) shift
             @BWRAP@ --unshare-pid --dev-bind $RPMTEST / \
-                    --dev /dev --proc /proc --chdir / \
-                    --setenv PATH @CMAKE_INSTALL_PREFIX@/bin:/usr/bin "$@"
+                    --dev /dev --proc /proc --chdir / "$@"
         ;;
         shell) shift
             local cmd
