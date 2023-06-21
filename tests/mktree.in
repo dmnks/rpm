@@ -1,10 +1,6 @@
 #!/bin/sh
 
-top_builddir="$1"
-abs_builddir="$2"
-srcdir="$3"
-bindir="$4"
-MAKE="$5"
+bindir=@CMAKE_INSTALL_FULL_BINDIR@
 
 # The chmod is needed when copying from read-only sources (eg in distcheck)
 if [ -d testing ]; then
@@ -19,10 +15,11 @@ if [ ! -d testing/usr/bin ]; then
 	ln -s ../bin testing/usr/bin
 fi
 
-(cd ${top_builddir} && \
-	  ${MAKE} DESTDIR=${abs_builddir}/testing install)
+(cd @CMAKE_BINARY_DIR@ && \
+	  @CMAKE_MAKE_PROGRAM@ \
+	  DESTDIR=@CMAKE_CURRENT_BINARY_DIR@/testing install)
 
-cp -r ${srcdir}/data/ testing/
+cp -r @CMAKE_CURRENT_SOURCE_DIR@/data/ testing/
 for d in dev etc magic tmp var; do
 	if [ ! -d testing/${d} ]; then
 		mkdir testing/${d}
