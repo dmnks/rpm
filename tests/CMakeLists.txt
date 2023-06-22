@@ -3,7 +3,7 @@ set(BASE_DIR ${TREE_DIR}/base)
 set(INST_DIR ${TREE_DIR}/inst)
 set(UTIL_DIR ${TREE_DIR}/util)
 
-set(SANDBOX_DIR sandbox.default)
+set(SANDBOX_DIR mktree.sandbox)
 
 set(MACRO_DIR ${RPMCONFIGDIR}/macros.d)
 set(LD_CONF_DIR ${INST_DIR}/${CMAKE_INSTALL_SYSCONFDIR}/ld.so.conf.d)
@@ -98,33 +98,27 @@ if (nproc GREATER 1)
 endif()
 
 add_custom_target(check
-	COMMAND ./sandbox shell --read-only ./rpmtests ${JOBS} $(TESTOPTS)
+	COMMAND ./mktree shell --read-only ./rpmtests ${JOBS} $(TESTOPTS)
 	DEPENDS tests
 )
 
 add_custom_target(shell
-	COMMAND ./sandbox shell
+	COMMAND ./mktree shell
 	DEPENDS tree
+)
+
+add_custom_target(env
+	COMMAND ./mktree env
+	DEPENDS tests
 )
 
 add_custom_target(reset
 	COMMAND ${UNSHARE} rm -rf ${SANDBOX_DIR}
 )
 
-add_custom_target(env
-	COMMAND ./sandbox
-	DEPENDS tests
-)
-
 add_custom_target(tests
 	DEPENDS rpmtests
-	DEPENDS ${UTIL_DIR}
 	DEPENDS tree
-)
-
-add_custom_target(tree
-	DEPENDS ${BASE_DIR}
-	DEPENDS ${INST_DIR}
 )
 
 add_custom_command(OUTPUT rpmtests
@@ -132,6 +126,12 @@ add_custom_command(OUTPUT rpmtests
 		-o rpmtests rpmtests.at
 	DEPENDS ${TESTSUITE_AT}
 	DEPENDS local.at
+)
+
+add_custom_target(tree
+	DEPENDS ${BASE_DIR}
+	DEPENDS ${INST_DIR}
+	DEPENDS ${UTIL_DIR}
 )
 
 add_custom_command(OUTPUT ${BASE_DIR}

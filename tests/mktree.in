@@ -45,7 +45,20 @@ case $1 in
     remove) shift
         $OS_BASE remove "$@"
     ;;
-    env)
+    run) shift
+        set -a
+        source ./atlocal
         source $OS_BASE env
+        SANDBOX=$PWD/@SANDBOX_DIR@
+        RPMTEST=$SANDBOX/merged
+        sandbox mount
+        $@
+        sandbox umount
+    ;;
+    shell) shift
+        @UNSHARE_CMD@ ./mktree run sandbox shell "$@"
+    ;;
+    env)
+        @UNSHARE_CMD@ ./mktree run $SHELL
     ;;
 esac

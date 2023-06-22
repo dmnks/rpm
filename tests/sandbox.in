@@ -1,9 +1,6 @@
 #!/bin/bash
 
-PROGRAM=$(basename $0)
 LOWERDIR=$PWD/@UTIL_DIR@:$PWD/@INST_DIR@:$PWD/@BASE_DIR@
-SANDBOX=$PWD/@SANDBOX_DIR@
-RPMTEST=$SANDBOX/merged
 
 function sandbox()
 {
@@ -32,6 +29,10 @@ function sandbox()
         ;;
         shell) shift
             local cmd
+            if [ "$1" == "--read-only" ]; then
+                mount -o remount,ro $RPMTEST
+                shift
+            fi
             if [ $# == 0 ]; then
                 cmd=$(grep ^root: $RPMTEST/etc/passwd | cut -d: -f7)
             else
@@ -39,31 +40,8 @@ function sandbox()
                 shift
             fi
             sandbox exec --unshare-uts --hostname $(basename $SANDBOX) \
-                         --unsetenv PS1 --setenv HOME /root \
+                         --clearenv --setenv HOME /root \
                          --bind $PWD /srv --chdir /srv $cmd "$@"
         ;;
     esac
 }
-
-case $PROGRAM in
-    sandbox)
-        @UNSHARE_CMD@ bash -c "source $0" wrap "$@"
-        exit 0
-    ;;
-    wrap)
-        sandbox mount
-        case $1 in
-            "")
-                bash -c "set -a; source ./atlocal; $SHELL"
-            ;;
-            shell) shift
-                if [ "$1" == "--read-only" ]; then
-                    mount -o remount,ro $RPMTEST
-                    shift
-                fi
-                sandbox shell "$@"
-            ;;
-        esac
-        sandbox umount
-    ;;
-esac
