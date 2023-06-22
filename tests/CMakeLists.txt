@@ -135,19 +135,19 @@ add_custom_command(OUTPUT rpmtests
 )
 
 add_custom_command(OUTPUT ${BASE_DIR}
-	COMMAND ./mktree base
+	COMMAND ./mktree build base
 	DEPENDS mktree.${OS_NAME}
 	DEPENDS mktree.in
 )
 
 add_custom_command(OUTPUT ${INST_DIR}
-	COMMAND ./mktree inst
+	COMMAND ./mktree build inst
 	DEPENDS ${TOP_TARGETS}
 	DEPENDS mktree.in
 )
 
 add_custom_command(OUTPUT ${UTIL_DIR}
-	COMMAND ./mktree util
+	COMMAND ./mktree build util
 	DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/data
 	DEPENDS ${TESTPROGS}
 	DEPENDS mktree.in
