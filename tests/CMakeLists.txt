@@ -15,7 +15,6 @@ else()
 endif()
 
 configure_file(atlocal.in atlocal @ONLY)
-configure_file(atconfig.in atconfig @ONLY)
 configure_file(package.m4.in package.m4 @ONLY)
 configure_file(mktree.in mktree @ONLY)
 
