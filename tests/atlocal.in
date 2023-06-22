@@ -1,9 +1,10 @@
 # vi:filetype=sh
 
 RPMLIBDIR="@CMAKE_INSTALL_FULL_LIBDIR@"
+RPMCONDIR="@RPM_CONFIGDIR@"
 LD_LIBRARY_PATH="@CMAKE_CURRENT_BINARY_DIR@/testing/${RPMLIBDIR}${LD_LIBRARY_PATH+:${LD_LIBRARY_PATH}}"
 export LD_LIBRARY_PATH
-export RPMLIBDIR
+export RPMLIBDIR RPMCONDIR
 PATH="@CMAKE_CURRENT_BINARY_DIR@/testing@CMAKE_INSTALL_FULL_BINDIR@:$PATH"
 export PATH
 
@@ -32,7 +33,7 @@ fi
 RPMTEST="@CMAKE_CURRENT_BINARY_DIR@/testing"
 RPMDATA="@CMAKE_CURRENT_SOURCE_DIR@/data/"
 
-RPM_CONFIGDIR="${RPMTEST}/@RPM_CONFIGDIR@"
+RPM_CONFIGDIR="${RPMTEST}/${RPMCONDIR}"
 RPM_POPTEXEC_PATH="${RPMTEST}/@CMAKE_INSTALL_FULL_BINDIR@"
 export RPM_CONFIGDIR RPM_POPTEXEC_PATH
 
@@ -97,7 +98,7 @@ function sandbox()
 
 function run()
 {
-    export RPM_CONFIGDIR=${RPMTEST}/@RPM_CONFIGDIR@
+    export RPM_CONFIGDIR=${RPMTEST}/${RPMCONDIR}
     "$@" --define "_buildhost testhost" \
          --define "_tmppath ${RPMTEST}/tmp" \
          --define "_topdir ${RPMTEST}/build"
@@ -105,9 +106,9 @@ function run()
 
 function rundebug()
 {
-    cp ${RPMTEST}/data/macros.debug ${RPMTEST}/@RPM_CONFIGDIR@/macros.d/
+    cp ${RPMTEST}/data/macros.debug ${RPMTEST}/${RPMCONDIR}/macros.d/
     run "$@"
-    rm -f ${RPMTEST}/@RPM_CONFIGDIR@/macros.d/macros.debug
+    rm -f ${RPMTEST}/${RPMCONDIR}/macros.d/macros.debug
 }
 
 function runroot()
