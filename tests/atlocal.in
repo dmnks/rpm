@@ -76,7 +76,6 @@ function sandbox()
             for dir in "$@"; do
                 [ -d $dir ] && umount -ql $dir
             done
-            return 0
         ;;
         exec)
             @BWRAP@ --unshare-pid --dev-bind $RPMTEST / \
@@ -128,3 +127,4 @@ function runroot_other()
 }
 
 sandbox prune rpmtests.dir/*/merged
+return 0
