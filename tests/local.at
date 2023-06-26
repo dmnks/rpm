@@ -1,9 +1,8 @@
 AT_TESTED([rpm rpmbuild rpmquery])
 
 m4_define([RPMTEST_SETUP],[[
-export SANDBOX="${PWD}"
 export RPMTEST="${PWD}/merged"
-[ -d $RPMTEST ] || sandbox mount
+[ -d $RPMTEST ] || sandbox mount ${PWD}
 ]])
 
 m4_define([RPMDB_INIT],[

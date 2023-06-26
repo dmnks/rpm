@@ -49,9 +49,8 @@ case $1 in
         set -a
         source ./atlocal
         source $OS_BASE env
-        SANDBOX=$PWD/@SANDBOX_DIR@
-        RPMTEST=$SANDBOX/merged
-        sandbox mount
+        RPMTEST=$PWD/@SANDBOX_DIR@/merged
+        sandbox mount @SANDBOX_DIR@
         $@
         sandbox umount
     ;;
