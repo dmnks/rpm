@@ -89,7 +89,6 @@ string(REPLACE ";" " " TESTPROGS_STR "${TESTPROGS}")
 
 configure_file(mktree.in mktree @ONLY)
 configure_file(mktree.${OS_NAME} mktree.${OS_NAME} @ONLY)
-configure_file(sandbox.in sandbox @ONLY)
 
 include(ProcessorCount)
 ProcessorCount(nproc)

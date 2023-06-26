@@ -22,6 +22,7 @@ else
     exit
 fi
 
+RPMTREE=$PWD/@UTIL_DIR@:$PWD/@INST_DIR@:$PWD/@BASE_DIR@
 RPMDATA="/data"
 
 TZ=UTC
@@ -54,6 +55,53 @@ if ! LD_PRELOAD=${MALLOC_DEBUG} /bin/true 2>&1 | grep -q ERROR; then
     export LD_PRELOAD GLIBC_TUNABLES
 fi
 
+function sandbox()
+{
+    local cmd=$1
+    shift
+    case $cmd in
+        mount)
+            mkdir -p $1/{upper,work} $RPMTEST
+            mount -t overlay ${2:-sandbox} \
+                  -o userxattr \
+                  -o lowerdir=$RPMTREE \
+                  -o upperdir=$1/upper \
+                  -o workdir=$1/work \
+                  $RPMTEST
+        ;;
+        umount)
+            umount -l $RPMTEST
+        ;;
+        prune)
+            for dir in "$@"; do
+                [ -d $dir ] && umount -ql $dir
+            done
+            return 0
+        ;;
+        exec)
+            @BWRAP@ --unshare-pid --dev-bind $RPMTEST / \
+                    --dev /dev --proc /proc --chdir / "$@"
+        ;;
+        shell)
+            local cmd
+            if [ "$1" == "--read-only" ]; then
+                mount -o remount,ro $RPMTEST
+                shift
+            fi
+            if [ $# == 0 ]; then
+                cmd=$(grep ^root: $RPMTEST/etc/passwd | cut -d: -f7)
+            else
+                cmd=$1
+                shift
+            fi
+            local hostname=$(findmnt -no SOURCE --mountpoint $RPMTEST)
+            sandbox exec --unshare-uts --hostname $hostname \
+                         --clearenv --setenv HOME /root \
+                         --bind $PWD /srv --chdir /srv $cmd "$@"
+        ;;
+    esac
+}
+
 function run()
 {
     runroot "$@"
@@ -79,5 +127,4 @@ function runroot_other()
     sandbox exec "$@"
 }
 
-source ./sandbox
 sandbox prune rpmtests.dir/*/merged
