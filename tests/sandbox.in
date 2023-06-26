@@ -4,8 +4,10 @@ LOWERDIR=$PWD/@UTIL_DIR@:$PWD/@INST_DIR@:$PWD/@BASE_DIR@
 
 function sandbox()
 {
-    case $1 in
-        mount) shift
+    local cmd=$1
+    shift
+    case $cmd in
+        mount)
             mkdir -p $1/{upper,work} $RPMTEST
             mount -t overlay ${2:-sandbox} \
                   -o userxattr \
@@ -17,17 +19,17 @@ function sandbox()
         umount)
             umount -l $RPMTEST
         ;;
-        prune) shift
+        prune)
             for dir in "$@"; do
                 [ -d $dir ] && umount -ql $dir
             done
             return 0
         ;;
-        exec) shift
+        exec)
             @BWRAP@ --unshare-pid --dev-bind $RPMTEST / \
                     --dev /dev --proc /proc --chdir / "$@"
         ;;
-        shell) shift
+        shell)
             local cmd
             if [ "$1" == "--read-only" ]; then
                 mount -o remount,ro $RPMTEST
