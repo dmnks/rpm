@@ -1,6 +1,7 @@
 #!/bin/bash
 
-OS_BASE=./mktree.@OS_NAME@
+PROGRAM=$(basename $0)
+OS_BASE=./$PROGRAM.@OS_NAME@
 
 cmd=$1
 shift
@@ -10,8 +11,8 @@ case $cmd in
             base)
                 @UNSHARE_CMD@ rm -rf @BASE_DIR@
                 ( source $OS_BASE build &&
-                  [ -f ./mktree.extra ] &&
-                  source ./mktree.extra;
+                  [ -f ./$PROGRAM.extra ] &&
+                  source ./$PROGRAM.extra;
                   true )
             ;;
             inst)
@@ -57,9 +58,9 @@ case $cmd in
         sandbox umount
     ;;
     shell)
-        @UNSHARE_CMD@ ./mktree run sandbox shell "$@"
+        @UNSHARE_CMD@ ./$PROGRAM run sandbox shell "$@"
     ;;
     env)
-        @UNSHARE_CMD@ ./mktree run $SHELL
+        @UNSHARE_CMD@ ./$PROGRAM run $SHELL
     ;;
 esac
