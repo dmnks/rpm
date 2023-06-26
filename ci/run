@@ -1,0 +1,19 @@
+#!/bin/sh
+set -e
+
+PODMAN=${PODMAN:-podman}
+
+cd $(dirname $0)/..
+${PODMAN} build -t rpm -f ci/Dockerfile .
+${PODMAN} run --privileged -it --rm \
+    -v $PWD:/srv/rpm:ro -v /srv/build \
+    --workdir /srv/build rpm \
+    sh -c 'cmake \
+            -DENABLE_WERROR=ON \
+            -DENABLE_BDB_RO=ON \
+            -DWITH_FSVERITY=ON \
+            -DWITH_IMAEVM=ON \
+            ../rpm && \
+            make -j$(nproc) check; rc=$?; \
+            find . -name rpmtests.log|xargs cat; \
+            exit $rc'

@@ -9,6 +9,7 @@ RUN sed -i -e "s:^gpgcheck=.$:gpgcheck=1:g" /etc/yum.repos.d/*.repo
 RUN dnf -y update
 RUN dnf -y install \
   autoconf \
+  bubblewrap \
   cmake \
   gettext-devel \
   debugedit \
@@ -48,18 +49,3 @@ RUN dnf -y install \
   fsverity-utils fsverity-utils-devel \
   pandoc \
   && dnf clean all
-
-WORKDIR /srv/rpm
-COPY . .
-RUN chmod -R a-w .
-
-WORKDIR /srv/build
-RUN cmake \
-	-DCMAKE_INSTALL_PREFIX=$(mktemp -d) \
-	-DENABLE_WERROR=ON \
-	-DENABLE_BDB_RO=ON \
-	-DWITH_FSVERITY=ON \
-	-DWITH_IMAEVM=ON \
-	../rpm
-
-CMD make -j$(nproc) check; rc=$?; find . -name rpmtests.log|xargs cat; exit $rc
