@@ -2,9 +2,11 @@
 
 OS_BASE=./mktree.@OS_NAME@
 
-case $1 in
+cmd=$1
+shift
+case $cmd in
     build)
-        case $2 in
+        case $1 in
             base)
                 @UNSHARE_CMD@ rm -rf @BASE_DIR@
                 ( source $OS_BASE build &&
@@ -33,19 +35,19 @@ case $1 in
                 ln -sf /data/SOURCES @UTIL_DIR@/build/
             ;;
             "")
-                $0 $1 base
-                $0 $1 inst
-                $0 $1 util
+                $0 $cmd base
+                $0 $cmd inst
+                $0 $cmd util
             ;;
         esac
     ;;
-    install) shift
+    install)
         $OS_BASE install "$@"
     ;;
-    remove) shift
+    remove)
         $OS_BASE remove "$@"
     ;;
-    run) shift
+    run)
         set -a
         source ./atlocal
         source $OS_BASE env
@@ -54,7 +56,7 @@ case $1 in
         $@
         sandbox umount
     ;;
-    shell) shift
+    shell)
         @UNSHARE_CMD@ ./mktree run sandbox shell "$@"
     ;;
     env)
