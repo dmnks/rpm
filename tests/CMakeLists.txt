@@ -1,3 +1,5 @@
+set(MACRO_DIR ${RPMCONFIGDIR}/macros.d)
+
 # Use our top-level targets as an ordering clue to cmake: the project
 # needs to be built before we can populate anything...
 get_property(TOP_TARGETS DIRECTORY .. PROPERTY BUILDSYSTEM_TARGETS)
