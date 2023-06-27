@@ -64,7 +64,7 @@ function sandbox()
             mkdir -p $1/{upper,work} $RPMTEST
             mount -t overlay ${2:-sandbox} \
                   -o userxattr \
-                  -o lowerdir=$RPMTREE \
+                  -o lowerdir=/ \
                   -o upperdir=$1/upper \
                   -o workdir=$1/work \
                   $RPMTEST

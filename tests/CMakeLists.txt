@@ -136,6 +136,7 @@ add_custom_target(tree
 add_custom_command(OUTPUT ${BASE_DIR}
 	COMMAND ./mktree build base
 	DEPENDS mktree.${OS_NAME}
+	DEPENDS ${TOP_TARGETS}
 	DEPENDS mktree.in
 )
 

@@ -1,4 +1,4 @@
-FROM registry.fedoraproject.org/fedora:37
+FROM registry.fedoraproject.org/fedora:37 AS build
 MAINTAINER rpm-maint@lists.rpm.org
 
 RUN echo -e "deltarpm=0\ninstall_weak_deps=0\ntsflags=nodocs" >> /etc/dnf/dnf.conf
@@ -49,3 +49,55 @@ RUN dnf -y install \
   fsverity-utils fsverity-utils-devel \
   pandoc \
   && dnf clean all
+
+FROM build AS base
+
+RUN dnf install -y \
+            audit \
+            bash \
+            binutils \
+            bubblewrap \
+            bzip2 \
+            coreutils \
+            cpio \
+            curl \
+            debugedit \
+            diffutils \
+            elfutils-libelf \
+            elfutils-libs \
+            file \
+            file-libs \
+            findutils \
+            gawk \
+            gcc \
+            gdb-headless \
+            gdb-minimal \
+            glibc \
+            gpg \
+            grep \
+            gzip \
+            ima-evm-utils \
+            libacl \
+            libarchive \
+            libcap \
+            libfsverity \
+            libgomp \
+            libzstd \
+            lua-libs \
+            make \
+            openssl-libs \
+            patch \
+            pkgconf-pkg-config \
+            python3 \
+            rpm-sequoia \
+            sed \
+            sqlite-libs \
+            tar \
+            unzip \
+            util-linux-core \
+            xz \
+            xz-libs \
+            zlib \
+            zstd
+
+RUN rpm -e --nodeps rpm rpm-libs python3-rpm rpm-libs rpm-sign-libs rpm-build-libs
