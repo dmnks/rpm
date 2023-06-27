@@ -1,10 +1,3 @@
-set(TREE_DIR mktree.output)
-set(BASE_DIR ${TREE_DIR}/base)
-set(INST_DIR ${TREE_DIR}/inst)
-set(UTIL_DIR ${TREE_DIR}/util)
-
-set(SANDBOX_DIR mktree.sandbox)
-
 set(MACRO_DIR ${RPMCONFIGDIR}/macros.d)
 set(LD_CONF_DIR ${INST_DIR}/${CMAKE_INSTALL_SYSCONFDIR}/ld.so.conf.d)
 set(PROFILE_DIR ${INST_DIR}/${CMAKE_INSTALL_SYSCONFDIR}/profile.d)
@@ -128,27 +121,9 @@ add_custom_command(OUTPUT rpmtests
 )
 
 add_custom_target(tree
-	DEPENDS ${BASE_DIR}
-	DEPENDS ${INST_DIR}
-	DEPENDS ${UTIL_DIR}
-)
-
-add_custom_command(OUTPUT ${BASE_DIR}
-	COMMAND ./mktree build base
-	DEPENDS mktree.${OS_NAME}
+	COMMAND ./mktree build
 	DEPENDS ${TOP_TARGETS}
-	DEPENDS mktree.in
-)
-
-add_custom_command(OUTPUT ${INST_DIR}
-	COMMAND ./mktree build inst
-	DEPENDS ${TOP_TARGETS}
-	DEPENDS mktree.in
-)
-
-add_custom_command(OUTPUT ${UTIL_DIR}
-	COMMAND ./mktree build util
-	DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/data
 	DEPENDS ${TESTPROGS}
+	DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/data
 	DEPENDS mktree.in
 )

@@ -81,23 +81,6 @@ function sandbox()
             @BWRAP@ --unshare-pid --dev-bind $RPMTEST / \
                     --dev /dev --proc /proc --chdir / "$@"
         ;;
-        shell)
-            local cmd
-            if [ "$1" == "--read-only" ]; then
-                mount -o remount,ro $RPMTEST
-                shift
-            fi
-            if [ $# == 0 ]; then
-                cmd=$(grep ^root: $RPMTEST/etc/passwd | cut -d: -f7)
-            else
-                cmd=$1
-                shift
-            fi
-            local hostname=$(findmnt -no SOURCE --mountpoint $RPMTEST)
-            sandbox exec --unshare-uts --hostname $hostname \
-                         --clearenv --setenv HOME /root \
-                         --bind $PWD /srv --chdir /srv $cmd "$@"
-        ;;
     esac
 }
 

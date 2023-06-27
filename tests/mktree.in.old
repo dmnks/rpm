@@ -1,0 +1,57 @@
+#!/bin/bash
+
+PROGRAM=$(basename $0)
+OS_BASE=./$PROGRAM.@OS_NAME@
+
+cmd=$1
+shift
+case $cmd in
+    build)
+        case $1 in
+            base)
+                podman build -t rpm-base --target base -f @CMAKE_SOURCE_DIR@/ci/Dockerfile @CMAKE_SOURCE_DIR@
+                podman rmi rpm-base-new
+                podman create --name temp rpm-base
+                podman unshare sh -c '@CMAKE_MAKE_PROGRAM@ -C @CMAKE_BINARY_DIR@ install DESTDIR=$(podman mount temp)'
+                podman unshare sh -c 'ldconfig -r $(podman mount temp) /usr/local/lib64'
+                podman unshare sh -c 'cp -r @CMAKE_CURRENT_SOURCE_DIR@/data $(podman mount temp)/'
+                podman unshare sh -c 'cp -r @TESTPROGS_STR@ $(podman mount temp)/usr/bin/'
+                podman unshare sh -c 'mkdir $(podman mount temp)/build; ln -sf /data/SOURCES $(podman mount temp)/build/'
+                podman commit temp rpm-base-new
+                podman rm -f temp
+            ;;
+            inst)
+                echo inst
+            ;;
+            util)
+                echo util
+            ;;
+            "")
+                $0 $cmd base
+                $0 $cmd inst
+                $0 $cmd util
+            ;;
+        esac
+    ;;
+    install)
+        $OS_BASE install "$@"
+    ;;
+    remove)
+        $OS_BASE remove "$@"
+    ;;
+    run)
+        set -a
+        source ./atlocal
+        source $OS_BASE env
+        RPMTEST=$PWD/@SANDBOX_DIR@/merged
+        sandbox mount @SANDBOX_DIR@
+        $@
+        sandbox umount
+    ;;
+    shell)
+        @UNSHARE_CMD@ ./$PROGRAM run sandbox shell "$@"
+    ;;
+    env)
+        @UNSHARE_CMD@ ./$PROGRAM run $SHELL
+    ;;
+esac

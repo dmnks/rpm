@@ -50,7 +50,7 @@ RUN dnf -y install \
   pandoc \
   && dnf clean all
 
-FROM build AS base
+FROM build AS test
 
 RUN dnf install -y \
             audit \
