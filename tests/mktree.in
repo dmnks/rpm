@@ -8,11 +8,10 @@ case $CMD in
     build)
         case $1 in
             base)
-                $OS_BASE clean
-                ( source $OS_BASE build &&
-                  [ -f $0.extra ] &&
-                  source $0.extra;
-                  true )
+                @UNSHARE@ $OS_BASE clean
+                @UNSHARE@ sh -c "source $OS_BASE build && \
+                                 [ -f $0.extra ] && source $0.extra"
+                true
             ;;
             inst)
                 rm -rf @INST_DIR@

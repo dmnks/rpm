@@ -12,20 +12,18 @@
 #   env         sets up OS-specific shell environment for "make env"
 #
 # Useful CMake variables:
-#   BASE_DIR    destination directory for the tree (relative to PWD)
-#   UNSHARE     runs a program as root in a user namespace (if non-root user)
+#   BASE_DIR    destination directory for the tree (relative path)
 #   OS_VERSION  distribution version
 #
 # This script MUST work if executed as a regular user as well as root.
 
 function dnf()
 {
-    local cachedir=$(@PYTHON@ -c 'import dnf; print(dnf.conf.Conf().cachedir)')
     echo '%_netsharedpath %nil' > .rpmmacros
-    @UNSHARE@ env HOME=$PWD /usr/bin/dnf \
+    HOME=$PWD /usr/bin/dnf \
         --installroot=$PWD/@BASE_DIR@ \
         --releasever=@OS_VERSION@ \
-        --setopt=cachedir=$cachedir \
+        --setopt=cachedir=$PWD/dnf-cache \
         --setopt=keepcache=1 \
         --setopt=install_weak_deps=0 \
         --disablerepo=\* --enablerepo=fedora,updates \
@@ -82,16 +80,16 @@ case $1 in
             zlib \
             zstd
 
-        # Point in-tree RPM to newly installed database
-        @UNSHARE@ mkdir -p @BASE_DIR@/@MACRO_DIR@
-        echo "%_dbpath $(rpm --eval '%_dbpath')" |
-            @UNSHARE@ tee @BASE_DIR@/@MACRO_DIR@/macros.dbpath >/dev/null
+        # Point future RPM installation to newly created database
+        mkdir -p @BASE_DIR@/@MACRO_DIR@
+        echo "%_dbpath $(rpm --eval '%_dbpath')" > \
+            @BASE_DIR@/@MACRO_DIR@/macros.dbpath
 
         # Configure default shell for root user
-        @UNSHARE@ cp -r @BASE_DIR@/{etc/skel/.,/root}
+        cp -r @BASE_DIR@/{etc/skel/.,/root}
     ;;
     clean)
-        @UNSHARE@ rm -rf @BASE_DIR@
+        rm -rf @BASE_DIR@
     ;;
     env)
         function dnf() { /usr/bin/dnf --installroot=$RPMTEST "$@"; }
