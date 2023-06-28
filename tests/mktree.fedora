@@ -15,7 +15,7 @@
 #   BASE_DIR    destination directory for the tree (relative path)
 #   OS_VERSION  distribution version
 #
-# This script must work if executed as a regular user as well as root.
+# This script is to be executed as root.
 
 function dnf()
 {
