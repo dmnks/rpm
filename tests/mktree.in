@@ -1,7 +1,6 @@
 #!/bin/bash
 
 IMAGE=rpm
-TARGET=test
 SANDBOX=rpm-sandbox
 CMD=$1
 shift
@@ -16,18 +15,18 @@ function create()
 case $CMD in
     # EXTERNAL
     build)
-        podman rmi $IMAGE
-        podman build -t $IMAGE --target $TARGET \
+        podman build -t $IMAGE:base \
                      -f @CMAKE_CURRENT_SOURCE_DIR@/Dockerfile \
                      @CMAKE_SOURCE_DIR@
-        name=$(podman create $IMAGE)
+        name=$(podman create $IMAGE:base)
         podman unshare $0 _build $name
+        podman rmi $IMAGE
         podman commit $name $IMAGE
         podman stop $name
         podman rm $name
     ;;
     run)
-        podman run --privileged --read-only -it --rm \
+        podman run --privileged -it --rm \
                    -v $PWD:$PWD --workdir $PWD $IMAGE "$@"
     ;;
     env)
@@ -44,6 +43,8 @@ case $CMD in
         destdir=$(podman mount $1)
         @CMAKE_MAKE_PROGRAM@ -C @CMAKE_BINARY_DIR@ install DESTDIR=$destdir
         ldconfig -r $destdir @CMAKE_INSTALL_FULL_LIBDIR@
+        mkdir -p $destdir/@RPMCONFIGDIR@
+        ln -sf /var/lib/rpm $destdir/@RPMCONFIGDIR@/
         cp -r @CMAKE_CURRENT_SOURCE_DIR@/data $destdir/
         cp -r @TESTPROGS_STR@ $destdir/usr/bin/
         mkdir $destdir/build
