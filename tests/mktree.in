@@ -42,7 +42,7 @@ case $CMD in
         esac
     ;;
     reset)
-        @UNSHARE_CMD@ rm -rf @SANDBOX_DIR@
+        @UNSHARE@ rm -rf @SANDBOX_DIR@
     ;;
     run)
         set -a
@@ -54,9 +54,9 @@ case $CMD in
         sandbox umount
     ;;
     shell)
-        @UNSHARE_CMD@ $0 run sandbox shell "$@"
+        @UNSHARE@ $0 run sandbox shell "$@"
     ;;
     env)
-        @UNSHARE_CMD@ $0 run $SHELL
+        @UNSHARE@ $0 run $SHELL
     ;;
 esac

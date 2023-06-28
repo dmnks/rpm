@@ -13,7 +13,7 @@
 #
 # Useful CMake variables:
 #   BASE_DIR    destination directory for the tree (relative to PWD)
-#   UNSHARE_CMD runs a program as root in a user namespace (if non-root user)
+#   UNSHARE     runs a program as root in a user namespace (if non-root user)
 #   OS_VERSION  distribution version
 #
 # This script MUST work if executed as a regular user as well as root.
@@ -22,7 +22,7 @@ function dnf()
 {
     local cachedir=$(@PYTHON@ -c 'import dnf; print(dnf.conf.Conf().cachedir)')
     echo '%_netsharedpath %nil' > .rpmmacros
-    @UNSHARE_CMD@ env HOME=$PWD /usr/bin/dnf \
+    @UNSHARE@ env HOME=$PWD /usr/bin/dnf \
         --installroot=$PWD/@BASE_DIR@ \
         --releasever=@OS_VERSION@ \
         --setopt=cachedir=$cachedir \
@@ -83,15 +83,15 @@ case $1 in
             zstd
 
         # Point in-tree RPM to newly installed database
-        @UNSHARE_CMD@ mkdir -p @BASE_DIR@/@MACRO_DIR@
+        @UNSHARE@ mkdir -p @BASE_DIR@/@MACRO_DIR@
         echo "%_dbpath $(rpm --eval '%_dbpath')" |
-            @UNSHARE_CMD@ tee @BASE_DIR@/@MACRO_DIR@/macros.dbpath >/dev/null
+            @UNSHARE@ tee @BASE_DIR@/@MACRO_DIR@/macros.dbpath >/dev/null
 
         # Configure default shell for root user
-        @UNSHARE_CMD@ cp -r @BASE_DIR@/{etc/skel/.,/root}
+        @UNSHARE@ cp -r @BASE_DIR@/{etc/skel/.,/root}
     ;;
     clean)
-        @UNSHARE_CMD@ rm -rf @BASE_DIR@
+        @UNSHARE@ rm -rf @BASE_DIR@
     ;;
     env)
         function dnf() { /usr/bin/dnf --installroot=$RPMTEST "$@"; }
