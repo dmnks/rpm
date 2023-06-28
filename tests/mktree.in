@@ -43,7 +43,13 @@ case $CMD in
     reset)
         @UNSHARE@ rm -rf @SANDBOX_DIR@
     ;;
-    run)
+    shell)
+        @UNSHARE@ $0 _env sandbox shell "$@"
+    ;;
+    env)
+        @UNSHARE@ $0 _env $SHELL
+    ;;
+    _env)
         set -a
         source ./atlocal
         source $OS_BASE env
@@ -51,11 +57,5 @@ case $CMD in
         sandbox mount @SANDBOX_DIR@
         $@
         sandbox umount
-    ;;
-    shell)
-        @UNSHARE@ $0 run sandbox shell "$@"
-    ;;
-    env)
-        @UNSHARE@ $0 run $SHELL
     ;;
 esac
