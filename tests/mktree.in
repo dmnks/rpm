@@ -5,15 +5,7 @@ SANDBOX=rpm-sandbox
 CMD=$1
 shift
 
-function create()
-{
-    if ! podman container exists $SANDBOX; then
-        podman create --name $SANDBOX $IMAGE >/dev/null
-    fi
-}
-
 case $CMD in
-    # EXTERNAL
     build)
         podman build -t $IMAGE:base \
                      -f @CMAKE_CURRENT_SOURCE_DIR@/Dockerfile \
@@ -30,21 +22,18 @@ case $CMD in
                    -v $PWD:$PWD --workdir $PWD $IMAGE "$@"
     ;;
     env)
-        create
+        if ! podman container exists $SANDBOX; then
+            podman create --name $SANDBOX $IMAGE >/dev/null
+        fi
         podman unshare $0 _env
     ;;
-    rm)
-        podman stop $SANDBOX
-        podman rm $SANDBOX
-    ;;
-
-    # INTERNAL
     _build)
         destdir=$(podman mount $1)
         @CMAKE_MAKE_PROGRAM@ -C @CMAKE_BINARY_DIR@ install DESTDIR=$destdir
         ldconfig -r $destdir @CMAKE_INSTALL_FULL_LIBDIR@
-        mkdir -p $destdir/@RPMCONFIGDIR@
-        ln -sf /var/lib/rpm $destdir/@RPMCONFIGDIR@/
+        mkdir -p $destdir/usr/local/var/lib/
+        rm -rf $destdir/usr/local/var/lib/rpm
+        ln -sf /var/lib/rpm $destdir/usr/local/var/lib/rpm
         cp -r @CMAKE_CURRENT_SOURCE_DIR@/data $destdir/
         cp -r @TESTPROGS_STR@ $destdir/usr/bin/
         mkdir $destdir/build
