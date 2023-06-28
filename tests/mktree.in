@@ -1,18 +1,17 @@
 #!/bin/bash
 
-PROGRAM=$(basename $0)
-OS_BASE=./$PROGRAM.@OS_NAME@
-
-cmd=$1
+OS_BASE=$0.@OS_NAME@
+CMD=$1
 shift
-case $cmd in
+
+case $CMD in
     build)
         case $1 in
             base)
-                @UNSHARE_CMD@ rm -rf @BASE_DIR@
+                $OS_BASE clean
                 ( source $OS_BASE build &&
-                  [ -f ./$PROGRAM.extra ] &&
-                  source ./$PROGRAM.extra;
+                  [ -f $0.extra ] &&
+                  source $0.extra;
                   true )
             ;;
             inst)
@@ -28,7 +27,7 @@ case $cmd in
             ;;
             util)
                 rm -rf @UTIL_DIR@
-                mkdir -p @UTIL_DIR@/data
+                mkdir -p @UTIL_DIR@
                 cp -r @CMAKE_CURRENT_SOURCE_DIR@/data @UTIL_DIR@/
                 mkdir -p @UTIL_DIR@/usr/bin
                 cp @TESTPROGS_STR@ @UTIL_DIR@/usr/bin/
@@ -36,17 +35,14 @@ case $cmd in
                 ln -sf /data/SOURCES @UTIL_DIR@/build/
             ;;
             "")
-                $0 $cmd base
-                $0 $cmd inst
-                $0 $cmd util
+                $0 $CMD base
+                $0 $CMD inst
+                $0 $CMD util
             ;;
         esac
     ;;
-    install)
-        $OS_BASE install "$@"
-    ;;
-    remove)
-        $OS_BASE remove "$@"
+    reset)
+        @UNSHARE_CMD@ rm -rf @SANDBOX_DIR@
     ;;
     run)
         set -a
@@ -58,9 +54,9 @@ case $cmd in
         sandbox umount
     ;;
     shell)
-        @UNSHARE_CMD@ ./$PROGRAM run sandbox shell "$@"
+        @UNSHARE_CMD@ $0 run sandbox shell "$@"
     ;;
     env)
-        @UNSHARE_CMD@ ./$PROGRAM run $SHELL
+        @UNSHARE_CMD@ $0 run $SHELL
     ;;
 esac

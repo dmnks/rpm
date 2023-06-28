@@ -1,24 +1,20 @@
 #!/bin/bash
 
-# Bootstrap a minimal filesystem tree with RPM's runtime dependencies that are
-# ABI compatible with the build dependencies used.  Test-suite dependencies
-# (see below) MUST also be included.  An existing RPM installation SHOULD NOT
-# be included.
+# Bootstrap a minimal OS tree with RPM's runtime dependencies that are ABI
+# compatible with the build dependencies used, without any pre-existing RPM
+# installation and with the following test-suite dependencies:
+#
+#   bwrap cpio diff file gzip mount readelf sh tar /etc/passwd
 #
 # This script MUST implement the following subcommands:
-#   build       builds the tree
-#   install     installs given packages into the tree
-#   remove      removes given packages from the tree
-#   env         defines handy OS-specific variables or functions for use in
-#               "make env"
+#   build       creates the tree
+#   clean       removes the tree
+#   env         sets up OS-specific shell environment for "make env"
 #
 # Useful CMake variables:
 #   BASE_DIR    destination directory for the tree (relative to PWD)
 #   UNSHARE_CMD runs a program as root in a user namespace (if non-root user)
 #   OS_VERSION  distribution version
-#
-# Test-suite dependencies:
-#   bwrap cpio diff file gzip mount readelf sh tar /etc/passwd
 #
 # This script MUST work if executed as a regular user as well as root.
 
@@ -94,11 +90,8 @@ case $1 in
         # Configure default shell for root user
         @UNSHARE_CMD@ cp -r @BASE_DIR@/{etc/skel/.,/root}
     ;;
-    install) shift
-        dnf install "$@"
-    ;;
-    remove) shift
-        dnf remove "$@"
+    clean)
+        @UNSHARE_CMD@ rm -rf @BASE_DIR@
     ;;
     env)
         function dnf() { /usr/bin/dnf --installroot=$RPMTEST "$@"; }

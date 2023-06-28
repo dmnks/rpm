@@ -112,7 +112,7 @@ add_custom_target(env
 )
 
 add_custom_target(reset
-	COMMAND ${UNSHARE} rm -rf ${SANDBOX_DIR}
+	COMMAND ./mktree reset
 )
 
 add_custom_target(tests
