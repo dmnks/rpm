@@ -90,6 +90,7 @@ case $1 in
         rm -rf @BASE_DIR@
     ;;
     env)
+        # Handy for managing packages in a sandbox
         function dnf() { /usr/bin/dnf --installroot=$RPMTEST "$@"; }
     ;;
 esac
