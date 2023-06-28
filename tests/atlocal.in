@@ -84,12 +84,17 @@ function sandbox()
         shell)
             local cmd
             local source=$(findmnt -no SOURCE --mountpoint $RPMTEST)
+            local passwd=$RPMTEST/etc/passwd
             if [ "$1" == "--read-only" ]; then
                 mount -o remount,ro $RPMTEST
                 shift
             fi
             if [ $# == 0 ]; then
-                cmd=$(grep ^root: $RPMTEST/etc/passwd | cut -d: -f7)
+                if [ -f $passwd ]; then
+                    cmd=$(grep ^root: $passwd | cut -d: -f7)
+                else
+                    cmd=sh
+                fi
             else
                 cmd=$1
                 shift

@@ -4,7 +4,7 @@
 # compatible with the build dependencies used, without any pre-existing RPM
 # installation and with the following test-suite dependencies:
 #
-#   bwrap cpio diff file gzip mount readelf sh tar /etc/passwd
+#   bwrap cpio diff file gzip mount readelf sh tar
 #
 # This script MUST implement the following subcommands:
 #   build       creates the tree
