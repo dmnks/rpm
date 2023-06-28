@@ -1,12 +1,14 @@
 #!/bin/sh
 set -e
 
-BINDIR=$1
-PODMAN=${2:-podman}
+PODMAN=$1
+BINDIR=$2
 
+mkdir -p $BINDIR
 cd $(dirname $0)/..
-${PODMAN} build -t rpm -f ci/Dockerfile .
-${PODMAN} run --privileged -it --rm \
+
+$PODMAN build -t rpm -f ci/Dockerfile .
+$PODMAN run --privileged -it --rm \
     -v $PWD:/srv/src:ro \
     -v $BINDIR:/srv/bin \
     --workdir /srv/bin rpm \

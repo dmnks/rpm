@@ -1,8 +1,9 @@
+get_property(TOP_TARGETS DIRECTORY .. PROPERTY BUILDSYSTEM_TARGETS)
 
-add_custom_target(build_image COMMAND
-		${PODMAN} build -t rpm -f ${CMAKE_CURRENT_SOURCE_DIR}/Dockerfile ${CMAKE_SOURCE_DIR})
+if ("${CI_BINARY_DIR}" STREQUAL "")
+	set(CI_BINARY_DIR ${CMAKE_BINARY_DIR}/ci/binary)
+endif()
 
-add_custom_target(ci COMMAND
-		${PODMAN} run -t rpm
-		DEPENDS build_image)
-
+add_custom_target(ci
+	COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/run ${PODMAN} ${CI_BINARY_DIR}
+)
