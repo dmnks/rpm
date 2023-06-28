@@ -7,13 +7,9 @@
 #   bwrap cpio diff file gzip mount readelf sh tar
 #
 # This script must implement the following subcommands:
-#   build       creates the tree
-#   clean       removes the tree
+#   build       creates the tree for @OS_VERSION@ in @BASE_DIR@
+#   clean       removes the tree in @BASE_DIR@
 #   env         sets up OS-specific shell environment for "make env"
-#
-# Useful CMake variables:
-#   BASE_DIR    destination directory for the tree (relative path)
-#   OS_VERSION  distribution version
 #
 # This script is to be executed as root.
 
