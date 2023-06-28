@@ -9,6 +9,8 @@
 # This script must implement the following subcommands:
 #   build       creates the tree for @OS_VERSION@ in @BASE_DIR@
 #   clean       removes the tree in @BASE_DIR@
+#
+# It may also implement the following subcommand:
 #   env         sets up OS-specific shell environment for "make env"
 #
 # This script is to be executed as root.
