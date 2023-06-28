@@ -83,6 +83,7 @@ function sandbox()
         ;;
         shell)
             local cmd
+            local source=$(findmnt -no SOURCE --mountpoint $RPMTEST)
             if [ "$1" == "--read-only" ]; then
                 mount -o remount,ro $RPMTEST
                 shift
@@ -93,8 +94,7 @@ function sandbox()
                 cmd=$1
                 shift
             fi
-            local hostname=$(findmnt -no SOURCE --mountpoint $RPMTEST)
-            sandbox exec --unshare-uts --hostname $hostname \
+            sandbox exec --unshare-uts --hostname $source \
                          --clearenv --setenv HOME /root \
                          --bind $PWD /srv --chdir /srv $cmd "$@"
         ;;
