@@ -6,7 +6,7 @@
 #
 #   bwrap cpio diff file gzip mount readelf sh tar
 #
-# This script MUST implement the following subcommands:
+# This script must implement the following subcommands:
 #   build       creates the tree
 #   clean       removes the tree
 #   env         sets up OS-specific shell environment for "make env"
@@ -15,7 +15,7 @@
 #   BASE_DIR    destination directory for the tree (relative path)
 #   OS_VERSION  distribution version
 #
-# This script MUST work if executed as a regular user as well as root.
+# This script must work if executed as a regular user as well as root.
 
 function dnf()
 {
