@@ -43,11 +43,11 @@ case $CMD in
     reset)
         @UNSHARE@ rm -rf @SANDBOX_DIR@
     ;;
-    shell)
-        @UNSHARE@ $0 _env sandbox shell "$@"
-    ;;
     env)
         @UNSHARE@ $0 _env $SHELL
+    ;;
+    shell)
+        @UNSHARE@ $0 _env sandbox shell "$@"
     ;;
     _env)
         set -a
