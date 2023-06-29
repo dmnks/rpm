@@ -25,12 +25,6 @@ function bwo()
         mount)
             echo $PWD/$1/inst
         ;;
-        umount)
-            true
-        ;;
-        rm)
-            true
-        ;;
         rmi)
             rm -f $1
         ;;
@@ -71,15 +65,11 @@ function oci()
         ;;
         commit)
             buildah commit $1 $2
+            buildah umount $1
+            buildah rm $1
         ;;
         mount)
             buildah mount $1
-        ;;
-        umount)
-            buildah umount $1
-        ;;
-        rm)
-            buildah rm $1
         ;;
         rmi)
             buildah rmi $1
@@ -128,8 +118,6 @@ case $CMD in
 
         treeman rmi $IMAGE-new
         treeman commit $name $IMAGE-new
-        treeman umount $name
-        treeman rm $name
     ;;
     shell)
         treeman shell $IMAGE-new "$@"
