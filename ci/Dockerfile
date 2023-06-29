@@ -50,4 +50,4 @@ RUN dnf -y install \
   pandoc \
   && dnf clean all
 
-RUN rpm -e rpm rpm-libs rpm-sign-libs python3-rpm --nodeps
+#RUN rpm -e rpm rpm-libs rpm-sign-libs python3-rpm --nodeps

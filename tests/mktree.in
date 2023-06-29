@@ -64,16 +64,29 @@ function oci()
     shift
     case $cmd in
         build)
-            true
+            podman image exists $IMAGE ||
+            podman build -t $IMAGE \
+                -f @CMAKE_SOURCE_DIR@/ci/Dockerfile \
+                @CMAKE_SOURCE_DIR@
         ;;
         install)
             name=$(buildah from $IMAGE)
             dir=$(buildah mount $name)
-            inst $dir
+            case $1 in
+                "")
+                    inst $dir
+                ;;
+                --reuse)
+                    cp -pr $2/* $dir/
+                ;;
+            esac
             buildah images -q $IMAGE-new >/dev/null 2>&1 && buildah rmi $IMAGE-new
             buildah commit $name $IMAGE-new
             buildah umount $name
             buildah rm $name
+        ;;
+        toolbox)
+            podman exec --workdir $PWD fedora-toolbox-37 ./mktree bwo install
         ;;
         shell)
             podman run --privileged --read-only -it --rm -v $PWD:/srv --workdir /srv $IMAGE-new "$@"
