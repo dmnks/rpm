@@ -72,7 +72,7 @@ function oci()
             buildah mount $1
         ;;
         rmi)
-            buildah rmi $1
+            buildah images -q $1 >/dev/null 2>&1 && buildah rmi $1
         ;;
         shell)
             podman run --privileged --read-only -it --rm -v $PWD:/srv --workdir /srv "$@"
