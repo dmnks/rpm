@@ -1,10 +1,26 @@
 #!/bin/bash
 
 OS_BASE=$0.@OS_NAME@
-CMD=$1
-shift
-
 IMAGE=rpm
+
+function inst()
+{
+    local dir=$1
+    @CMAKE_MAKE_PROGRAM@ -C @CMAKE_BINARY_DIR@ install DESTDIR=$dir
+    mkdir -p $dir/@CMAKE_INSTALL_SYSCONFDIR@/profile.d \
+             $dir/@CMAKE_INSTALL_SYSCONFDIR@/ld.so.conf.d
+    echo "export PATH=@CMAKE_INSTALL_FULL_BINDIR@:/usr/bin" \
+        > $dir/@CMAKE_INSTALL_SYSCONFDIR@/profile.d/rpm.sh
+    echo @CMAKE_INSTALL_FULL_LIBDIR@ \
+        > $dir/@CMAKE_INSTALL_SYSCONFDIR@/ld.so.conf.d/rpm.conf
+    ldconfig -r $dir @CMAKE_INSTALL_FULL_LIBDIR@
+
+    cp -r @CMAKE_CURRENT_SOURCE_DIR@/data $dir/
+    mkdir -p $dir/usr/bin
+    cp @TESTPROGS_STR@ $dir/usr/bin/
+    mkdir -p $dir/build
+    ln -sf /data/SOURCES $dir/build/
+}
 
 function bwo()
 {
@@ -15,34 +31,24 @@ function bwo()
             [ -d mktree.output/base ] && return
             $OS_BASE build
         ;;
-        create)
+        install)
             rm -rf mktree.output/inst
-            echo mktree.output
-        ;;
-        commit)
-            ln -s $1 $2
-        ;;
-        mount)
-            echo $PWD/$1/inst
-        ;;
-        rmi)
-            rm -f $1
+            inst $PWD/mktree.output/inst
         ;;
         shell)
             set -a
             source ./atlocal
-            RPMTREE=$PWD/$1/inst:$PWD/$1/base
+            RPMTREE=$PWD/mktree.output/inst:$PWD/mktree.output/base
             RPMTEST=$PWD/mktree.sandbox/merged
             rm -rf mktree.sandbox
             sandbox mount mktree.sandbox
-            shift
             sandbox shell "$@"
             sandbox umount $RPMTEST
         ;;
         env)
             set -a
             source ./atlocal
-            RPMTREE=$PWD/$1/inst:$PWD/$1/base
+            RPMTREE=$PWD/mktree.output/inst:$PWD/mktree.output/base
             RPMTEST=$PWD/mktree.sandbox/merged
             rm -rf mktree.sandbox
             sandbox mount mktree.sandbox
@@ -60,27 +66,22 @@ function oci()
         build)
             true
         ;;
-        create)
-            buildah from $1
-        ;;
-        commit)
-            buildah commit $1 $2
-            buildah umount $1
-            buildah rm $1
-        ;;
-        mount)
-            buildah mount $1
-        ;;
-        rmi)
-            buildah images -q $1 >/dev/null 2>&1 && buildah rmi $1
+        install)
+            name=$(buildah from $IMAGE)
+            dir=$(buildah mount $name)
+            inst $dir
+            buildah images -q $IMAGE-new >/dev/null 2>&1 && buildah rmi $IMAGE-new
+            buildah commit $name $IMAGE-new
+            buildah umount $name
+            buildah rm $name
         ;;
         shell)
-            podman run --privileged --read-only -it --rm -v $PWD:/srv --workdir /srv "$@"
+            podman run --privileged --read-only -it --rm -v $PWD:/srv --workdir /srv $IMAGE-new "$@"
         ;;
         env)
             set -a
             source ./atlocal
-            name=$(buildah from $1)
+            name=$(buildah from $IMAGE-new)
             dir=$(buildah mount $name)
             RPMTREE=/
             RPMTEST=$dir
@@ -91,38 +92,4 @@ function oci()
     esac
 }
 
-function treeman() { oci "$@"; }
-
-case $CMD in
-    build)
-        treeman build $IMAGE
-    ;;
-    install)
-        name=$(treeman create $IMAGE)
-        dir=$(treeman mount $name)
-
-        @CMAKE_MAKE_PROGRAM@ -C @CMAKE_BINARY_DIR@ install DESTDIR=$dir
-        mkdir -p $dir/@CMAKE_INSTALL_SYSCONFDIR@/profile.d \
-                 $dir/@CMAKE_INSTALL_SYSCONFDIR@/ld.so.conf.d
-        echo "export PATH=@CMAKE_INSTALL_FULL_BINDIR@:/usr/bin" \
-            > $dir/@CMAKE_INSTALL_SYSCONFDIR@/profile.d/rpm.sh
-        echo @CMAKE_INSTALL_FULL_LIBDIR@ \
-            > $dir/@CMAKE_INSTALL_SYSCONFDIR@/ld.so.conf.d/rpm.conf
-        ldconfig -r $dir @CMAKE_INSTALL_FULL_LIBDIR@
-
-        cp -r @CMAKE_CURRENT_SOURCE_DIR@/data $dir/
-        mkdir -p $dir/usr/bin
-        cp @TESTPROGS_STR@ $dir/usr/bin/
-        mkdir -p $dir/build
-        ln -sf /data/SOURCES $dir/build/
-
-        treeman rmi $IMAGE-new
-        treeman commit $name $IMAGE-new
-    ;;
-    shell)
-        treeman shell $IMAGE-new "$@"
-    ;;
-    env)
-        treeman env $IMAGE-new
-    ;;
-esac
+$1 "${@:2}"
