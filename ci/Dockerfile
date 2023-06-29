@@ -49,3 +49,5 @@ RUN dnf -y install \
   fsverity-utils fsverity-utils-devel \
   pandoc \
   && dnf clean all
+
+RUN rpm -e rpm rpm-libs rpm-sign-libs python3-rpm --nodeps

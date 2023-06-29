@@ -22,7 +22,7 @@ else
     exit
 fi
 
-RPMTREE=$PWD/@UTIL_DIR@:$PWD/@INST_DIR@:$PWD/@BASE_DIR@
+RPMTREE=/
 RPMDATA="/data"
 
 TZ=UTC

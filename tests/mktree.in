@@ -4,58 +4,137 @@ OS_BASE=$0.@OS_NAME@
 CMD=$1
 shift
 
+IMAGE=rpm
+
+function bwo()
+{
+    local cmd=$1
+    shift
+    case $cmd in
+        build)
+            [ -d mktree.output/base ] && return
+            $OS_BASE build
+        ;;
+        create)
+            rm -rf mktree.output/inst
+            echo mktree.output
+        ;;
+        commit)
+            ln -s $1 $2
+        ;;
+        mount)
+            echo $PWD/$1/inst
+        ;;
+        umount)
+            true
+        ;;
+        rm)
+            true
+        ;;
+        rmi)
+            rm -f $1
+        ;;
+        shell)
+            set -a
+            source ./atlocal
+            RPMTREE=$PWD/$1/inst:$PWD/$1/base
+            RPMTEST=$PWD/mktree.sandbox/merged
+            rm -rf mktree.sandbox
+            sandbox mount mktree.sandbox
+            shift
+            sandbox shell "$@"
+            sandbox umount $RPMTEST
+        ;;
+        env)
+            set -a
+            source ./atlocal
+            RPMTREE=$PWD/$1/inst:$PWD/$1/base
+            RPMTEST=$PWD/mktree.sandbox/merged
+            rm -rf mktree.sandbox
+            sandbox mount mktree.sandbox
+            $SHELL
+            sandbox umount $RPMTEST
+        ;;
+    esac
+}
+
+function oci()
+{
+    local cmd=$1
+    shift
+    case $cmd in
+        build)
+            true
+        ;;
+        create)
+            buildah from $1
+        ;;
+        commit)
+            buildah commit $1 $2
+        ;;
+        mount)
+            buildah mount $1
+        ;;
+        umount)
+            buildah umount $1
+        ;;
+        rm)
+            buildah rm $1
+        ;;
+        rmi)
+            buildah rmi $1
+        ;;
+        shell)
+            podman run --privileged --read-only -it --rm -v $PWD:/srv --workdir /srv "$@"
+        ;;
+        env)
+            set -a
+            source ./atlocal
+            name=$(buildah from $1)
+            dir=$(buildah mount $name)
+            RPMTREE=/
+            RPMTEST=$dir
+            $SHELL
+            buildah umount $name
+            buildah rm $name
+        ;;
+    esac
+}
+
+function treeman() { oci "$@"; }
+
 case $CMD in
     build)
-        case $1 in
-            base)
-                @UNSHARE@ $OS_BASE clean
-                @UNSHARE@ sh -c "source $OS_BASE build && \
-                                 [ -f $0.extra ] && source $0.extra"
-                true
-            ;;
-            inst)
-                rm -rf @INST_DIR@
-                @CMAKE_MAKE_PROGRAM@ -C @CMAKE_BINARY_DIR@ \
-                    DESTDIR=@CMAKE_CURRENT_BINARY_DIR@/@INST_DIR@ install
-                mkdir -p @PROFILE_DIR@ @LD_CONF_DIR@
-                echo "export PATH=@CMAKE_INSTALL_FULL_BINDIR@:/usr/bin" \
-                    > @PROFILE_DIR@/rpm.sh
-                echo @CMAKE_INSTALL_FULL_LIBDIR@ \
-                    > @LD_CONF_DIR@/rpm.conf
-                ldconfig -r @INST_DIR@ @CMAKE_INSTALL_FULL_LIBDIR@
-            ;;
-            util)
-                rm -rf @UTIL_DIR@
-                mkdir -p @UTIL_DIR@
-                cp -r @CMAKE_CURRENT_SOURCE_DIR@/data @UTIL_DIR@/
-                mkdir -p @UTIL_DIR@/usr/bin
-                cp @TESTPROGS_STR@ @UTIL_DIR@/usr/bin/
-                mkdir -p @UTIL_DIR@/build
-                ln -sf /data/SOURCES @UTIL_DIR@/build/
-            ;;
-            "")
-                $0 $CMD base
-                $0 $CMD inst
-                $0 $CMD util
-            ;;
-        esac
+        treeman build $IMAGE
     ;;
-    reset)
-        @UNSHARE@ rm -rf @SANDBOX_DIR@
-    ;;
-    env)
-        @UNSHARE@ $0 _env $SHELL
+    install)
+        name=$(treeman create $IMAGE)
+        dir=$(treeman mount $name)
+
+        @CMAKE_MAKE_PROGRAM@ -C @CMAKE_BINARY_DIR@ install DESTDIR=$dir
+        mkdir -p $dir/@CMAKE_INSTALL_SYSCONFDIR@/profile.d \
+                 $dir/@CMAKE_INSTALL_SYSCONFDIR@/ld.so.conf.d
+        echo "export PATH=@CMAKE_INSTALL_FULL_BINDIR@:/usr/bin" \
+            > $dir/@CMAKE_INSTALL_SYSCONFDIR@/profile.d/rpm.sh
+        echo @CMAKE_INSTALL_FULL_LIBDIR@ \
+            > $dir/@CMAKE_INSTALL_SYSCONFDIR@/ld.so.conf.d/rpm.conf
+        ldconfig -r $dir @CMAKE_INSTALL_FULL_LIBDIR@
+
+        cp -r @CMAKE_CURRENT_SOURCE_DIR@/data $dir/
+        mkdir -p $dir/usr/bin
+        cp @TESTPROGS_STR@ $dir/usr/bin/
+        mkdir -p $dir/build
+        ln -sf /data/SOURCES $dir/build/
+
+        treeman rmi $IMAGE-new
+        treeman commit $name $IMAGE-new
+        treeman umount $name
+        treeman rm $name
     ;;
     shell)
-        @UNSHARE@ $0 _env sandbox shell "$@"
+        treeman shell $IMAGE-new "$@"
     ;;
-    _env)
-        set -a
-        source ./atlocal
-        source $OS_BASE env
-        RPMTEST=$PWD/@SANDBOX_DIR@/merged
-        sandbox mount @SANDBOX_DIR@
-        $@
-        sandbox umount
+    env)
+        treeman env $IMAGE-new
     ;;
 esac

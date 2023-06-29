@@ -102,22 +102,19 @@ if (nproc GREATER 1)
 endif()
 
 add_custom_target(check
-	COMMAND ./mktree shell --read-only ./rpmtests ${JOBS} $(TESTOPTS)
+	COMMAND buildah unshare ./mktree shell ./rpmtests ${JOBS} $(TESTOPTS)
+	# COMMAND ./mktree shell --read-only ./rpmtests ${JOBS} $(TESTOPTS)
 	DEPENDS tests
 )
 
 add_custom_target(shell
-	COMMAND ./mktree shell
+	COMMAND buildah unshare ./mktree shell
 	DEPENDS tree
 )
 
 add_custom_target(env
-	COMMAND ./mktree env
+	COMMAND buildah unshare ./mktree env
 	DEPENDS tests
-)
-
-add_custom_target(reset
-	COMMAND ./mktree reset
 )
 
 add_custom_target(tests
@@ -133,26 +130,8 @@ add_custom_command(OUTPUT rpmtests
 )
 
 add_custom_target(tree
-	DEPENDS ${BASE_DIR}
-	DEPENDS ${INST_DIR}
-	DEPENDS ${UTIL_DIR}
-)
-
-add_custom_command(OUTPUT ${BASE_DIR}
-	COMMAND ./mktree build base
-	DEPENDS mktree.${OS_NAME}
-	DEPENDS mktree.in
-)
-
-add_custom_command(OUTPUT ${INST_DIR}
-	COMMAND ./mktree build inst
+	COMMAND buildah unshare ./mktree build
+	COMMAND buildah unshare ./mktree install
 	DEPENDS ${TOP_TARGETS}
-	DEPENDS mktree.in
-)
-
-add_custom_command(OUTPUT ${UTIL_DIR}
-	COMMAND ./mktree build util
-	DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/data
 	DEPENDS ${TESTPROGS}
-	DEPENDS mktree.in
 )
