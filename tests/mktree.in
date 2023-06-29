@@ -84,10 +84,6 @@ function oci()
             buildah umount $name
             buildah rm $name
         ;;
-        install-isolated)
-            podman exec --workdir $PWD $1 ./mktree bwo install
-            buildah unshare ./mktree oci install --reuse mktree.output/inst
-        ;;
         shell)
             podman run --privileged --read-only -it --rm -v $PWD:/srv --workdir /srv $IMAGE-new "$@"
         ;;
