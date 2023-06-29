@@ -72,21 +72,21 @@ function oci()
         install)
             name=$(buildah from $IMAGE)
             dir=$(buildah mount $name)
-            case $1 in
-                "")
-                    inst $dir
-                ;;
-                --reuse)
-                    cp -pr $2/* $dir/
-                ;;
-            esac
+
+            if [ "$1" == "--reuse" ]; then
+                cp -pr $2/* $dir/
+            else
+                inst $dir
+            fi
+
             buildah images -q $IMAGE-new >/dev/null 2>&1 && buildah rmi $IMAGE-new
             buildah commit $name $IMAGE-new
             buildah umount $name
             buildah rm $name
         ;;
-        toolbox)
-            podman exec --workdir $PWD fedora-toolbox-37 ./mktree bwo install
+        install-isolated)
+            podman exec --workdir $PWD $1 ./mktree bwo install
+            buildah unshare ./mktree oci install --reuse mktree.output/inst
         ;;
         shell)
             podman run --privileged --read-only -it --rm -v $PWD:/srv --workdir /srv $IMAGE-new "$@"
