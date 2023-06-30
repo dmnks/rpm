@@ -86,7 +86,7 @@ foreach(prg ${TESTPROGS})
 endforeach()
 string(REPLACE ";" " " TESTPROGS_STR "${TESTPROGS}")
 
-configure_file(mktree.in mktree @ONLY)
+configure_file(mktree mktree @ONLY)
 if (NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/mktree.${OS_NAME})
 	message(FATAL_ERROR
 	"Native test suite support (mktree.${OS_NAME} file) not available "
