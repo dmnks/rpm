@@ -1,8 +1,7 @@
 #!/bin/bash
 # Podman-based mktree backend
 
-PROGRAM=mktree
-source ./$PROGRAM.common
+source ./mktree.common
 
 DOCKERFILE=./Dockerfile.@OS_NAME@
 IMAGE=rpm

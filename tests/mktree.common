@@ -1,3 +1,5 @@
+PROGRAM=mktree
+
 function install()
 {
     export DESTDIR=$1
