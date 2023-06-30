@@ -1,5 +1,5 @@
 #!/bin/bash
-# Native mktree backend using lightweight sandboxing built into the test suite
+# Native mktree backend using lightweight sandboxing from test suite
 
 PROGRAM=mktree
 source ./$PROGRAM.common

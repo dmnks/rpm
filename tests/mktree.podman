@@ -1,0 +1,86 @@
+#!/bin/bash
+# Podman-based mktree backend
+
+PROGRAM=mktree
+source ./$PROGRAM.common
+
+DOCKERFILE=./Dockerfile.@OS_NAME@
+IMAGE=rpm
+IMAGE_BASE=${IMAGE}-base
+SANDBOX=${IMAGE}-sandbox
+CMD=$1; shift
+
+# Run CMD in user namespace (if not root already)
+function unshare()
+{
+    local cmd
+    if [ $(id -u) == 0 ]; then
+        return
+    else
+        cmd="podman unshare"
+    fi
+    $cmd $0 $CMD "$@"
+    exit
+}
+
+function ensure_image()
+{
+    if ! podman image exists $1; then
+        echo >&2 "No image exists yet, run:"
+        echo >&2 "  ./$PROGRAM build"
+        exit 1
+    fi
+}
+
+case $CMD in
+    build)
+        podman image exists $IMAGE_BASE ||
+        podman build -t $IMAGE_BASE -f $DOCKERFILE .
+    ;;
+    install) unshare "$@"
+        ensure_image $IMAGE_BASE
+        name=$(buildah from $IMAGE_BASE)
+        dir=$(buildah mount $name)
+
+        if [ "$1" == "--reuse" ]; then
+            cp -pr $2/* $dir/
+        else
+            install $dir
+        fi
+
+        podman image exists $IMAGE &&
+        buildah rmi $IMAGE 2>/dev/null
+        buildah commit $name $IMAGE
+        buildah umount $name
+        buildah rm $name
+    ;;
+    shell)
+        ensure_image $IMAGE
+        if ! podman container exists $SANDBOX; then
+            podman create --privileged -it --name $SANDBOX --hostname sandbox \
+                          -v $PWD:/srv --workdir /srv $IMAGE "$@" >/dev/null
+        fi
+        podman start --attach $SANDBOX
+    ;;
+    env) unshare
+        ensure_image $IMAGE
+        set -a
+        source ./atlocal
+        name=$(buildah from $IMAGE)
+        dir=$(buildah mount $name)
+        RPMTREE=/
+        RPMTEST=$dir
+        $SHELL
+        buildah umount $name
+        buildah rm $name
+    ;;
+    reset)
+        podman container exists $SANDBOX || exit
+        podman stop $SANDBOX >/dev/null
+        podman rm $SANDBOX >/dev/null
+    ;;
+    clean)
+        podman image exists $IMAGE_BASE &&
+        podman rmi $IMAGE_BASE
+    ;;
+esac

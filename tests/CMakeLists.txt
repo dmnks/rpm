@@ -77,6 +77,7 @@ if ("${MKTREE_BACKEND}" STREQUAL "")
 	endif()
 endif()
 configure_file(mktree.${OS_NAME} mktree.${OS_NAME} @ONLY)
+configure_file(Dockerfile.${OS_NAME} Dockerfile.${OS_NAME} COPYONLY)
 
 configure_file(mktree.common mktree.common @ONLY)
 configure_file(mktree.${MKTREE_BACKEND} mktree @ONLY)
