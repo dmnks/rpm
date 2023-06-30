@@ -2,35 +2,54 @@
 
 source ./mktree.common
 
+PROGRAM=$(basename $0)
 CMD=$1
 shift
+
+UNSHARE="/usr/bin/unshare -rm --map-auto"
+
+TREE_DIR=$PWD/mktree.output
+BASE_DIR=$TREE_DIR/base
+INST_DIR=$TREE_DIR/inst
+SBOX_DIR=$PWD/mktree.sandbox
+
+function unshare()
+{
+    [ -n "$UNSHARED" ] && return
+    UNSHARED=1 $UNSHARE ./$PROGRAM $CMD
+    exit
+}
+
+function run()
+{
+    set -a
+    source ./atlocal
+    RPMTREE=$INST_DIR:$BASE_DIR
+    RPMTEST=$SBOX_DIR/merged
+    sandbox mount $SBOX_DIR
+    "$@"
+    sandbox umount $RPMTEST
+}
+
 case $CMD in
-    build)
-        [ -d mktree.output/base ] && exit
-        $OS_BASE build
+    build) unshare
+        [ -d $BASE_DIR ] && exit
+        ./mktree.@OS_NAME@ build
     ;;
     install)
-        rm -rf mktree.output/inst
-        install $PWD/mktree.output/inst
+        rm -rf $INST_DIR
+        install $INST_DIR
     ;;
-    shell)
-        set -a
-        source ./atlocal
-        RPMTREE=$PWD/mktree.output/inst:$PWD/mktree.output/base
-        RPMTEST=$PWD/mktree.sandbox/merged
-        rm -rf mktree.sandbox
-        sandbox mount mktree.sandbox
-        sandbox shell "$@"
-        sandbox umount $RPMTEST
+    shell) unshare
+        run sandbox shell "$@"
     ;;
-    env)
-        set -a
-        source ./atlocal
-        RPMTREE=$PWD/mktree.output/inst:$PWD/mktree.output/base
-        RPMTEST=$PWD/mktree.sandbox/merged
-        rm -rf mktree.sandbox
-        sandbox mount mktree.sandbox
-        $SHELL
-        sandbox umount $RPMTEST
+    env) unshare
+        run $SHELL
+    ;;
+    reset) unshare
+        rm -rf $SBOX_DIR
+    ;;
+    clean) unshare
+        rm -rf $BASE_DIR
     ;;
 esac

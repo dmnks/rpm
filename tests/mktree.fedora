@@ -15,6 +15,8 @@
 #
 # This script is to be executed as root.
 
+source ./mktree.common
+
 function dnf()
 {
     echo '%_netsharedpath %nil' > .rpmmacros
@@ -28,7 +30,9 @@ function dnf()
         --exclude=rpm "$@"
 }
 
-case $1 in
+CMD=$1
+shift
+case $CMD in
     build)
         dnf install -y \
             audit \
@@ -86,6 +90,7 @@ case $1 in
         # Configure default shell for root user
         cp -r @BASE_DIR@/{etc/skel/.,/root}
     ;;
+    install)
     clean)
         rm -rf @BASE_DIR@
     ;;
