@@ -1,0 +1,36 @@
+#!/bin/bash
+
+source ./mktree.common
+
+CMD=$1
+shift
+case $CMD in
+    build)
+        [ -d mktree.output/base ] && exit
+        $OS_BASE build
+    ;;
+    install)
+        rm -rf mktree.output/inst
+        install $PWD/mktree.output/inst
+    ;;
+    shell)
+        set -a
+        source ./atlocal
+        RPMTREE=$PWD/mktree.output/inst:$PWD/mktree.output/base
+        RPMTEST=$PWD/mktree.sandbox/merged
+        rm -rf mktree.sandbox
+        sandbox mount mktree.sandbox
+        sandbox shell "$@"
+        sandbox umount $RPMTEST
+    ;;
+    env)
+        set -a
+        source ./atlocal
+        RPMTREE=$PWD/mktree.output/inst:$PWD/mktree.output/base
+        RPMTEST=$PWD/mktree.sandbox/merged
+        rm -rf mktree.sandbox
+        sandbox mount mktree.sandbox
+        $SHELL
+        sandbox umount $RPMTEST
+    ;;
+esac

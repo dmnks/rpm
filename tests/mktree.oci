@@ -1,0 +1,49 @@
+#!/bin/bash
+
+OS_BASE=$0.@OS_NAME@
+IMAGE=rpm
+
+function oci()
+{
+    local cmd=$1
+    shift
+    case $cmd in
+        build)
+            podman image exists $IMAGE ||
+            podman build -t $IMAGE \
+                -f @CMAKE_SOURCE_DIR@/ci/Dockerfile \
+                @CMAKE_SOURCE_DIR@
+        ;;
+        install)
+            name=$(buildah from $IMAGE)
+            dir=$(buildah mount $name)
+
+            if [ "$1" == "--reuse" ]; then
+                cp -pr $2/* $dir/
+            else
+                install $dir
+            fi
+
+            buildah images -q $IMAGE-new >/dev/null 2>&1 && buildah rmi $IMAGE-new
+            buildah commit $name $IMAGE-new
+            buildah umount $name
+            buildah rm $name
+        ;;
+        shell)
+            podman run --privileged --read-only -it --rm -v $PWD:/srv --workdir /srv $IMAGE-new "$@"
+        ;;
+        env)
+            set -a
+            source ./atlocal
+            name=$(buildah from $IMAGE-new)
+            dir=$(buildah mount $name)
+            RPMTREE=/
+            RPMTEST=$dir
+            $SHELL
+            buildah umount $name
+            buildah rm $name
+        ;;
+    esac
+}
+
+$1 "${@:2}"

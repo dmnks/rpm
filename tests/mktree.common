@@ -1,0 +1,25 @@
+#!/bin/bash
+
+function install()
+{
+    export DESTDIR=$1
+
+    local profile_dir=$DESTDIR/@CMAKE_INSTALL_SYSCONFDIR@/profile.d
+    local ld_conf_dir=$DESTDIR/@CMAKE_INSTALL_SYSCONFDIR@/ld.so.conf.d
+
+    @CMAKE_MAKE_PROGRAM@ -C @CMAKE_BINARY_DIR@ install
+    mkdir -p $profile_dir $ld_conf_dir
+    echo "export PATH=@CMAKE_INSTALL_FULL_BINDIR@:/usr/bin" > \
+        $profile_dir/rpm.sh
+    echo @CMAKE_INSTALL_FULL_LIBDIR@ > \
+        $ld_conf_dir/rpm.conf
+    ldconfig -r $DESTDIR @CMAKE_INSTALL_FULL_LIBDIR@
+
+    cp -r @CMAKE_CURRENT_SOURCE_DIR@/data $DESTDIR/
+
+    mkdir -p $DESTDIR/usr/bin
+    cp @TESTPROGS_STR@ $DESTDIR/usr/bin/
+
+    mkdir -p $DESTDIR/build
+    ln -sf /data/SOURCES $DESTDIR/build/
+}
