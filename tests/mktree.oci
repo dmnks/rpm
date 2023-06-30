@@ -22,6 +22,20 @@ function unshare()
     exit
 }
 
+# Run given command with sandbox mounted at RPMTEST
+function run()
+{
+    set -a
+    source ./atlocal
+    ensure_image $IMAGE
+    exists_sandbox || buildah from --name $SANDBOX $IMAGE >/dev/null
+    dir=$(buildah mount $SANDBOX)
+    RPMTREE=/
+    RPMTEST=$dir
+    "$@"
+    buildah umount $SANDBOX >/dev/null
+}
+
 function ensure_image()
 {
     if ! podman image exists $1; then
@@ -34,19 +48,6 @@ function ensure_image()
 function exists_sandbox()
 {
     buildah containers --format '{{ .ContainerName }}' | grep -q $SANDBOX
-}
-
-function run()
-{
-    set -a
-    source ./atlocal
-    ensure_image $IMAGE
-    exists_sandbox || buildah from --name $SANDBOX $IMAGE >/dev/null
-    dir=$(buildah mount $SANDBOX)
-    RPMTREE=/
-    RPMTEST=$dir
-    "$@"
-    buildah umount $SANDBOX >/dev/null
 }
 
 case $CMD in
