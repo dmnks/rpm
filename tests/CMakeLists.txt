@@ -66,8 +66,15 @@ foreach(prg ${TESTPROGS})
 endforeach()
 string(REPLACE ";" " " TESTPROGS_LIST "${TESTPROGS}")
 
-# TODO add detection
-set(MKTREE_BACKEND native)
+if ("${MKTREE_BACKEND}" STREQUAL "")
+	if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/mktree.${OS_NAME})
+		message(STATUS "Using mktree backend: native")
+		set(MKTREE_BACKEND native)
+	else()
+		message(FATAL_ERROR
+			"No mktree backend available for this platform.")
+	endif()
+endif()
 configure_file(mktree.${OS_NAME} mktree.${OS_NAME} @ONLY)
 
 configure_file(mktree.common mktree.common @ONLY)
