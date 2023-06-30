@@ -69,6 +69,7 @@ string(REPLACE ";" " " TESTPROGS_LIST "${TESTPROGS}")
 if ("${MKTREE_BACKEND}" STREQUAL "")
 	if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/mktree.${OS_NAME})
 		message(STATUS "Using mktree backend: native")
+		find_program(BWRAP bwrap REQUIRED)
 		set(MKTREE_BACKEND native)
 	else()
 		message(FATAL_ERROR

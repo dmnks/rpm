@@ -349,7 +349,6 @@ endforeach()
 
 if (ENABLE_TESTSUITE)
 	find_program(AUTOM4TE autom4te REQUIRED)
-	find_program(BWRAP bwrap REQUIRED)
 	find_program(ID id REQUIRED)
 	add_subdirectory(tests)
 endif()
