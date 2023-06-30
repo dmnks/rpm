@@ -12,13 +12,14 @@ BASE_DIR=$TREE_DIR/base
 INST_DIR=$TREE_DIR/inst
 SBOX_DIR=$PWD/$PROGRAM.sandbox
 
-# Run CMD in user namespace
+# Run CMD in user namespace (if not root already)
 function unshare()
 {
     local cmd
     if [ $(id -u) == 0 ]; then
         return
     elif [ -f /run/.toolboxenv ]; then
+        # toolbox(1) support
         cmd="sudo -E"
     else
         cmd="/usr/bin/unshare -rm --map-auto"
