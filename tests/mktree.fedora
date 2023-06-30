@@ -2,7 +2,7 @@
 
 # Bootstrap a minimal OS tree with RPM's runtime dependencies that are ABI
 # compatible with the libraries built against, without any pre-existing RPM
-# installation and with the following test-suite dependencies:
+# installation and with the following test suite dependencies:
 #
 #   bwrap cpio diff file gzip mount readelf sh tar
 #
