@@ -53,7 +53,7 @@ function exists_sandbox()
 case $CMD in
     build)
         podman image exists $IMAGE_BASE ||
-        podman build -t $IMAGE_BASE -f $DOCKERFILE .
+        podman build -t $IMAGE_BASE -f $DOCKERFILE @CMAKE_SOURCE_DIR@
     ;;
     install) unshare "$@"
         ensure_image $IMAGE_BASE
