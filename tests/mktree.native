@@ -1,5 +1,5 @@
 #!/bin/bash
-# Native backend using built-in bwrap sandboxing in test suite
+# Native backend using built-in test sandboxing
 
 PROGRAM=mktree
 source ./$PROGRAM.common
