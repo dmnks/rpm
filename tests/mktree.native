@@ -7,8 +7,6 @@ source ./$PROGRAM.common
 OS_BUILD=./$PROGRAM.@OS_NAME@
 CMD=$1; shift
 
-UNSHARE="/usr/bin/unshare -rm --map-auto"
-
 TREE_DIR=$PWD/$PROGRAM.output
 BASE_DIR=$TREE_DIR/base
 INST_DIR=$TREE_DIR/inst
@@ -16,8 +14,15 @@ SBOX_DIR=$PWD/$PROGRAM.sandbox
 
 function unshare()
 {
-    [ -n "$UNSHARED" ] && return
-    UNSHARED=1 $UNSHARE $0 $CMD
+    local cmd
+    if [ $(id -u) == 0 ]; then
+        return
+    elif [ -f /run/.toolboxenv ]; then
+        cmd="sudo -E"
+    else
+        cmd="/usr/bin/unshare -rm --map-auto"
+    fi
+    $cmd $0 $CMD
     exit
 }
 
