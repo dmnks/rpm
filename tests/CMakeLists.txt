@@ -1,13 +1,4 @@
-set(TREE_DIR mktree.output)
-set(BASE_DIR ${TREE_DIR}/base)
-set(INST_DIR ${TREE_DIR}/inst)
-set(UTIL_DIR ${TREE_DIR}/util)
-
-set(SANDBOX_DIR mktree.sandbox)
-
 set(MACRO_DIR ${RPMCONFIGDIR}/macros.d)
-set(LD_CONF_DIR ${INST_DIR}/${CMAKE_INSTALL_SYSCONFDIR}/ld.so.conf.d)
-set(PROFILE_DIR ${INST_DIR}/${CMAKE_INSTALL_SYSCONFDIR}/profile.d)
 
 function(os_release var key)
 	execute_process(
@@ -21,16 +12,6 @@ endfunction()
 
 os_release(OS_NAME ID)
 os_release(OS_VERSION VERSION_ID)
-
-execute_process(COMMAND ${ID} -u OUTPUT_VARIABLE UID)
-if (${UID} EQUAL 0)
-	set(UNSHARE "")
-elseif(EXISTS /run/.toolboxenv)
-	set(UNSHARE "sudo -E")
-else()
-	find_program(UNSHARE unshare REQUIRED)
-	set(UNSHARE "${UNSHARE} -rm --map-auto")
-endif()
 
 get_property(TOP_TARGETS DIRECTORY .. PROPERTY BUILDSYSTEM_TARGETS)
 
@@ -78,24 +59,19 @@ set(TESTSUITE_AT
 )
 
 set(AUTOTEST ${AUTOM4TE} --language=autotest)
-
 set(TESTPROGS rpmpgpcheck rpmpgppubkeyfingerprint)
 foreach(prg ${TESTPROGS})
 	add_executable(${prg} EXCLUDE_FROM_ALL ${prg}.c)
 	target_link_libraries(${prg} PRIVATE librpmio)
 endforeach()
-string(REPLACE ";" " " TESTPROGS_STR "${TESTPROGS}")
+string(REPLACE ";" " " TESTPROGS_LIST "${TESTPROGS}")
+
+# TODO add detection
+set(MKTREE_BACKEND native)
+configure_file(mktree.${OS_NAME} mktree.${OS_NAME} @ONLY)
 
 configure_file(mktree.common mktree.common @ONLY)
-configure_file(mktree.native mktree.native @ONLY)
-configure_file(mktree.fedora mktree.fedora @ONLY)
-if (NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/mktree.${OS_NAME})
-	message(FATAL_ERROR
-	"Native test suite support (mktree.${OS_NAME} file) not available "
-	"for your OS. Please re-run CMake with ENABLE_TESTSUITE=OFF "
-	"and consider ENABLE_CI=ON.")
-endif()
-configure_file(mktree.${OS_NAME} mktree.${OS_NAME} @ONLY)
+configure_file(mktree.${MKTREE_BACKEND} mktree @ONLY)
 
 include(ProcessorCount)
 ProcessorCount(nproc)
@@ -104,18 +80,7 @@ if (nproc GREATER 1)
 endif()
 
 add_custom_target(check
-	COMMAND buildah unshare ./mktree shell ./rpmtests ${JOBS} $(TESTOPTS)
-	# COMMAND ./mktree shell --read-only ./rpmtests ${JOBS} $(TESTOPTS)
-	DEPENDS tests
-)
-
-add_custom_target(shell
-	COMMAND buildah unshare ./mktree shell
-	DEPENDS tree
-)
-
-add_custom_target(env
-	COMMAND buildah unshare ./mktree env
+	COMMAND ./mktree shell --read-only ./rpmtests ${JOBS} $(TESTOPTS)
 	DEPENDS tests
 )
 
@@ -131,9 +96,19 @@ add_custom_command(OUTPUT rpmtests
 	DEPENDS local.at
 )
 
+add_custom_target(shell
+	COMMAND ./mktree shell
+	DEPENDS tree
+)
+
+add_custom_target(env
+	COMMAND ./mktree env
+	DEPENDS tree
+)
+
 add_custom_target(tree
-	COMMAND buildah unshare ./mktree build
-	COMMAND buildah unshare ./mktree install
+	COMMAND ./mktree build
+	COMMAND ./mktree install
 	DEPENDS ${TOP_TARGETS}
 	DEPENDS ${TESTPROGS}
 )

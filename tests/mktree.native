@@ -1,5 +1,5 @@
 #!/bin/bash
-# Native backend using built-in test sandboxing
+# Native mktree backend using lightweight sandboxing built into the test suite
 
 PROGRAM=mktree
 source ./$PROGRAM.common
@@ -12,6 +12,7 @@ BASE_DIR=$TREE_DIR/base
 INST_DIR=$TREE_DIR/inst
 SBOX_DIR=$PWD/$PROGRAM.sandbox
 
+# Run CMD in user namespace
 function unshare()
 {
     local cmd
@@ -26,6 +27,7 @@ function unshare()
     exit
 }
 
+# Run given command with sandbox mounted at RPMTEST
 function run()
 {
     set -a
