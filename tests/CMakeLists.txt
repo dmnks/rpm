@@ -124,6 +124,10 @@ add_custom_target(env
 	DEPENDS tree
 )
 
+add_custom_target(reset
+	COMMAND ./mktree reset
+)
+
 add_custom_target(tree
 	COMMAND ./mktree build
 	COMMAND ./mktree install
