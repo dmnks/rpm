@@ -69,8 +69,10 @@ if ("${MKTREE_BACKEND}" STREQUAL "")
 	elseif (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/Dockerfile.${OS_NAME})
 		set(MKTREE_BACKEND oci)
 	else()
-		message(FATAL_ERROR
-			"No mktree backend available for this platform.")
+		message(WARNING
+			"No mktree backend available for this platform, "
+			"disabling test suite.")
+		return()
 	endif()
 endif()
 message(STATUS "Using mktree backend: ${MKTREE_BACKEND}")
