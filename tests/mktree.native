@@ -22,7 +22,7 @@ function unshare()
     else
         cmd="/usr/bin/unshare -rm --map-auto"
     fi
-    $cmd $0 $CMD
+    $cmd $0 $CMD "$@"
     exit
 }
 
@@ -47,7 +47,7 @@ case $CMD in
         rm -rf $INST_DIR
         install $INST_DIR
     ;;
-    shell) unshare
+    shell) unshare "$@"
         run sandbox shell "$@"
     ;;
     env) unshare
