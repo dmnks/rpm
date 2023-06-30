@@ -1,16 +1,18 @@
 #!/bin/bash
+# Bubblewrap backend
 
-source ./mktree.common
+PROGRAM=mktree
+source ./$PROGRAM.common
 
-OS_BUILD=./mktree.@OS_NAME@
+OS_BUILD=./$PROGRAM.@OS_NAME@
 CMD=$1; shift
 
 UNSHARE="/usr/bin/unshare -rm --map-auto"
 
-TREE_DIR=$PWD/mktree.output
+TREE_DIR=$PWD/$PROGRAM.output
 BASE_DIR=$TREE_DIR/base
 INST_DIR=$TREE_DIR/inst
-SBOX_DIR=$PWD/mktree.sandbox
+SBOX_DIR=$PWD/$PROGRAM.sandbox
 
 function unshare()
 {
