@@ -3,8 +3,7 @@
 source ./mktree.common
 
 PROGRAM=$(basename $0)
-CMD=$1
-shift
+CMD=$1; shift
 
 UNSHARE="/usr/bin/unshare -rm --map-auto"
 
@@ -24,6 +23,7 @@ function run()
 {
     set -a
     source ./atlocal
+    source ./mktree.@OS_NAME@ --env
     RPMTREE=$INST_DIR:$BASE_DIR
     RPMTEST=$SBOX_DIR/merged
     sandbox mount $SBOX_DIR
@@ -34,7 +34,7 @@ function run()
 case $CMD in
     build) unshare
         [ -d $BASE_DIR ] && exit
-        ./mktree.@OS_NAME@ build
+        ./mktree.@OS_NAME@ $BASE_DIR
     ;;
     install)
         rm -rf $INST_DIR

@@ -88,6 +88,7 @@ string(REPLACE ";" " " TESTPROGS_STR "${TESTPROGS}")
 
 configure_file(mktree.common mktree.common @ONLY)
 configure_file(mktree.bwrap mktree.bwrap @ONLY)
+configure_file(mktree.fedora mktree.fedora @ONLY)
 if (NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/mktree.${OS_NAME})
 	message(FATAL_ERROR
 	"Native test suite support (mktree.${OS_NAME} file) not available "

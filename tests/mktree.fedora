@@ -6,22 +6,29 @@
 #
 #   bwrap cpio diff file gzip mount readelf sh tar
 #
-# This script must implement the following subcommands:
-#   build       creates the tree for @OS_VERSION@ in @BASE_DIR@
-#   clean       removes the tree in @BASE_DIR@
+# The script receives a destination directory (absolute path) for the tree as
+# the first argument.  If --env is received instead, the script may define
+# handy OS-specific variables or functions for use in "make env" and then must
+# return.
 #
-# It may also implement the following subcommand:
-#   env         sets up OS-specific shell environment for "make env"
+# The host OS version can be obtained via the CMake variable @OS_VERSION@.
 #
 # This script is to be executed as root.
 
-source ./mktree.common
+DNF=/usr/bin/dnf
+
+if [ "$1" == "--env" ]; then
+    function dnf() {
+        $DNF --installroot=$RPMTEST "$@";
+    }
+    return
+fi
 
 function dnf()
 {
     echo '%_netsharedpath %nil' > .rpmmacros
-    HOME=$PWD /usr/bin/dnf \
-        --installroot=$PWD/@BASE_DIR@ \
+    HOME=$PWD $DNF \
+        --installroot=$DESTDIR \
         --releasever=@OS_VERSION@ \
         --setopt=cachedir=$PWD/dnf-cache \
         --setopt=keepcache=1 \
@@ -30,72 +37,59 @@ function dnf()
         --exclude=rpm "$@"
 }
 
-CMD=$1
-shift
-case $CMD in
-    build)
-        dnf install -y \
-            audit \
-            bash \
-            binutils \
-            bubblewrap \
-            bzip2 \
-            coreutils \
-            cpio \
-            curl \
-            debugedit \
-            diffutils \
-            elfutils-libelf \
-            elfutils-libs \
-            file \
-            file-libs \
-            findutils \
-            gawk \
-            gcc \
-            gdb-headless \
-            gdb-minimal \
-            glibc \
-            gpg \
-            grep \
-            gzip \
-            ima-evm-utils \
-            libacl \
-            libarchive \
-            libcap \
-            libfsverity \
-            libgomp \
-            libzstd \
-            lua-libs \
-            make \
-            openssl-libs \
-            patch \
-            pkgconf-pkg-config \
-            python3 \
-            rpm-sequoia \
-            sed \
-            sqlite-libs \
-            tar \
-            unzip \
-            util-linux-core \
-            xz \
-            xz-libs \
-            zlib \
-            zstd
+DESTDIR=$1; shift
 
-        # Point future RPM installation to newly created database
-        mkdir -p @BASE_DIR@/@MACRO_DIR@
-        echo "%_dbpath $(rpm --eval '%_dbpath')" > \
-            @BASE_DIR@/@MACRO_DIR@/macros.dbpath
+dnf install -y \
+    audit \
+    bash \
+    binutils \
+    bubblewrap \
+    bzip2 \
+    coreutils \
+    cpio \
+    curl \
+    debugedit \
+    diffutils \
+    elfutils-libelf \
+    elfutils-libs \
+    file \
+    file-libs \
+    findutils \
+    gawk \
+    gcc \
+    gdb-headless \
+    gdb-minimal \
+    glibc \
+    gpg \
+    grep \
+    gzip \
+    ima-evm-utils \
+    libacl \
+    libarchive \
+    libcap \
+    libfsverity \
+    libgomp \
+    libzstd \
+    lua-libs \
+    make \
+    openssl-libs \
+    patch \
+    pkgconf-pkg-config \
+    python3 \
+    rpm-sequoia \
+    sed \
+    sqlite-libs \
+    tar \
+    unzip \
+    util-linux-core \
+    xz \
+    xz-libs \
+    zlib \
+    zstd
 
-        # Configure default shell for root user
-        cp -r @BASE_DIR@/{etc/skel/.,/root}
-    ;;
-    install)
-    clean)
-        rm -rf @BASE_DIR@
-    ;;
-    env)
-        # Handy for managing packages in a sandbox
-        function dnf() { /usr/bin/dnf --installroot=$RPMTEST "$@"; }
-    ;;
-esac
+# Point in-tree RPM installation to newly created database
+mkdir -p $DESTDIR/@MACRO_DIR@
+echo "%_dbpath $(rpm --eval '%_dbpath')" > $DESTDIR/@MACRO_DIR@/macros.dbpath
+
+# Configure default shell for root user
+cp -r $DESTDIR/{etc/skel/.,/root}
