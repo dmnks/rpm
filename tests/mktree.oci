@@ -1,5 +1,5 @@
 #!/bin/bash
-# Podman-based mktree backend
+# OCI-native mktree backend
 
 source ./mktree.common
 
@@ -31,6 +31,24 @@ function ensure_image()
     fi
 }
 
+function exists_sandbox()
+{
+    buildah containers --format '{{ .ContainerName }}' | grep -q $SANDBOX
+}
+
+function run()
+{
+    set -a
+    source ./atlocal
+    ensure_image $IMAGE
+    exists_sandbox || buildah from --name $SANDBOX $IMAGE >/dev/null
+    dir=$(buildah mount $SANDBOX)
+    RPMTREE=/
+    RPMTEST=$dir
+    "$@"
+    buildah umount $SANDBOX >/dev/null
+}
+
 case $CMD in
     build)
         podman image exists $IMAGE_BASE ||
@@ -53,30 +71,15 @@ case $CMD in
         buildah umount $name
         buildah rm $name
     ;;
-    shell)
-        ensure_image $IMAGE
-        if ! podman container exists $SANDBOX; then
-            podman create --privileged -it --name $SANDBOX --hostname sandbox \
-                          -v $PWD:/srv --workdir /srv $IMAGE "$@" >/dev/null
-        fi
-        podman start --attach $SANDBOX
+    shell) unshare "$@"
+        run sandbox shell "$@"
     ;;
     env) unshare
-        ensure_image $IMAGE
-        set -a
-        source ./atlocal
-        name=$(buildah from $IMAGE)
-        dir=$(buildah mount $name)
-        RPMTREE=/
-        RPMTEST=$dir
-        $SHELL
-        buildah umount $name
-        buildah rm $name
+        run $SHELL
     ;;
-    reset)
-        podman container exists $SANDBOX || exit
-        podman stop $SANDBOX >/dev/null
-        podman rm $SANDBOX >/dev/null
+    reset) unshare
+        exists_sandbox || exit
+        buildah rm $SANDBOX >/dev/null
     ;;
     clean)
         podman image exists $IMAGE_BASE &&

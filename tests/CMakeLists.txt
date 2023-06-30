@@ -26,9 +26,6 @@ else()
 	set(CRYPTO sequoia)
 endif()
 
-configure_file(atlocal.in atlocal @ONLY)
-configure_file(package.m4.in package.m4 @ONLY)
-
 set(TESTSUITE_AT
 	rpmtests.at
 	rpmgeneral.at
@@ -68,19 +65,31 @@ string(REPLACE ";" " " TESTPROGS_LIST "${TESTPROGS}")
 
 if ("${MKTREE_BACKEND}" STREQUAL "")
 	if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/mktree.${OS_NAME})
-		message(STATUS "Using mktree backend: native")
-		find_program(BWRAP bwrap REQUIRED)
 		set(MKTREE_BACKEND native)
+	elseif (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/Dockerfile.${OS_NAME})
+		set(MKTREE_BACKEND oci)
 	else()
 		message(FATAL_ERROR
 			"No mktree backend available for this platform.")
 	endif()
 endif()
-configure_file(mktree.${OS_NAME} mktree.${OS_NAME} @ONLY)
-configure_file(Dockerfile.${OS_NAME} Dockerfile.${OS_NAME} COPYONLY)
+message(STATUS "Using mktree backend: ${MKTREE_BACKEND}")
+
+if ("${MKTREE_BACKEND}" STREQUAL "native")
+	find_program(BWRAP bwrap REQUIRED)
+	configure_file(mktree.${OS_NAME} mktree.${OS_NAME} @ONLY)
+elseif ("${MKTREE_BACKEND}" STREQUAL "oci")
+	find_program(BWRAP bwrap REQUIRED)
+	find_program(PODMAN podman REQUIRED)
+	find_program(BUILDAH buildah REQUIRED)
+	configure_file(Dockerfile.${OS_NAME} Dockerfile.${OS_NAME} COPYONLY)
+endif()
 
 configure_file(mktree.common mktree.common @ONLY)
 configure_file(mktree.${MKTREE_BACKEND} mktree @ONLY)
+
+configure_file(atlocal.in atlocal @ONLY)
+configure_file(package.m4.in package.m4 @ONLY)
 
 include(ProcessorCount)
 ProcessorCount(nproc)
