@@ -5,7 +5,7 @@ source ./mktree.common
 
 DOCKERFILE=./Dockerfile.@OS_NAME@
 IMAGE=rpm
-IMAGE_BASE=${IMAGE}-base
+#IMAGE_BASE=${IMAGE}-base
 SANDBOX=${IMAGE}-sandbox
 CMD=$1; shift
 
@@ -22,18 +22,12 @@ function unshare()
     exit
 }
 
-# Run given command with sandbox mounted at RPMTEST
-function run()
+# Create sandbox container
+function create()
 {
-    set -a
-    source ./atlocal
-    ensure_image $IMAGE
-    exists_sandbox || buildah from --name $SANDBOX $IMAGE >/dev/null
-    dir=$(buildah mount $SANDBOX)
-    RPMTREE=/
-    RPMTEST=$dir
-    "$@"
-    buildah umount $SANDBOX >/dev/null
+    podman container exists $SANDBOX && return
+    podman create --privileged -it --name $SANDBOX --hostname sandbox \
+                  -v $PWD:/srv --workdir /srv "$@" $IMAGE >/dev/null
 }
 
 function ensure_image()
@@ -45,18 +39,11 @@ function ensure_image()
     fi
 }
 
-# function exists_sandbox()
-# {
-#     buildah containers --format '{{ .ContainerName }}' | grep -q $SANDBOX
-# }
-
 case $CMD in
     build)
-        podman image exists $IMAGE_BASE ||
-        podman build -t $IMAGE_BASE -f $DOCKERFILE @CMAKE_SOURCE_DIR@
-    ;;
-    install) unshare
-        podman tag $IMAGE_BASE $IMAGE
+        podman image exists $IMAGE ||
+        podman build -t $IMAGE -f $DOCKERFILE @CMAKE_SOURCE_DIR@
+
         # ensure_image $IMAGE_BASE
         # name=$(buildah from $IMAGE_BASE)
         # dir=$(buildah mount $name)
@@ -82,23 +69,27 @@ case $CMD in
             shift
         fi
 
-        if ! podman container exists $SANDBOX; then
-            podman create --privileged -it --name $SANDBOX --hostname sandbox \
-                          -v $PWD:/srv --workdir /srv $ro $IMAGE >/dev/null
-        fi
-
+        create $ro
         podman start $SANDBOX >/dev/null
         podman exec -it $SANDBOX $arg "$@"
     ;;
-    # env) unshare
-    #     run $SHELL
-    # ;;
-    # reset) unshare
-    #     exists_sandbox || exit
-    #     buildah rm $SANDBOX >/dev/null
-    # ;;
-    # clean)
-    #     podman image exists $IMAGE_BASE &&
-    #     podman rmi $IMAGE_BASE
-    # ;;
+    env) unshare
+        ensure_image $IMAGE
+        create
+        set -a
+        source ./atlocal
+        RPMTREE=/
+        RPMTEST=$(podman mount $SANDBOX)
+        $SHELL
+        podman umount $SANDBOX >/dev/null
+    ;;
+    reset)
+        podman container exists $SANDBOX || exit
+        podman kill $SANDBOX >/dev/null
+        podman rm $SANDBOX >/dev/null
+    ;;
+    clean)
+        podman image exists $IMAGE &&
+        podman rmi $IMAGE >/dev/null
+    ;;
 esac

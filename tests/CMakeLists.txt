@@ -133,7 +133,6 @@ add_custom_target(reset
 
 add_custom_target(tree
 	COMMAND ./mktree build
-	COMMAND ./mktree install
 	DEPENDS ${TOP_TARGETS}
 	DEPENDS ${TESTPROGS}
 )
