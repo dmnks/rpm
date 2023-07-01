@@ -48,4 +48,13 @@ RUN dnf -y install \
   fsverity-utils fsverity-utils-devel \
   pandoc
 
-#RUN rpm -e rpm rpm-libs rpm-sign-libs python3-rpm --nodeps
+WORKDIR /source
+COPY . .
+WORKDIR /build
+RUN cmake /source
+RUN rpm -e rpm rpm-libs rpm-sign-libs python3-rpm --nodeps
+WORKDIR /build/tests
+RUN make tests
+RUN sh -c 'source ./mktree.common; install /'
+
+CMD /bin/bash

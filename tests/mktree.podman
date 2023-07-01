@@ -1,0 +1,104 @@
+#!/bin/bash
+# Podman-based mktree backend
+
+source ./mktree.common
+
+DOCKERFILE=./Dockerfile.@OS_NAME@
+IMAGE=rpm
+IMAGE_BASE=${IMAGE}-base
+SANDBOX=${IMAGE}-sandbox
+CMD=$1; shift
+
+# Run CMD in user namespace (if not root already)
+function unshare()
+{
+    local cmd
+    if [ $(id -u) == 0 ]; then
+        return
+    else
+        cmd="podman unshare"
+    fi
+    $cmd $0 $CMD "$@"
+    exit
+}
+
+# Run given command with sandbox mounted at RPMTEST
+function run()
+{
+    set -a
+    source ./atlocal
+    ensure_image $IMAGE
+    exists_sandbox || buildah from --name $SANDBOX $IMAGE >/dev/null
+    dir=$(buildah mount $SANDBOX)
+    RPMTREE=/
+    RPMTEST=$dir
+    "$@"
+    buildah umount $SANDBOX >/dev/null
+}
+
+function ensure_image()
+{
+    if ! podman image exists $1; then
+        echo "No image exists yet, run:"
+        echo "  ./$PROGRAM build"
+        exit 1
+    fi
+}
+
+# function exists_sandbox()
+# {
+#     buildah containers --format '{{ .ContainerName }}' | grep -q $SANDBOX
+# }
+
+case $CMD in
+    build)
+        podman image exists $IMAGE_BASE ||
+        podman build -t $IMAGE_BASE -f $DOCKERFILE @CMAKE_SOURCE_DIR@
+    ;;
+    install) unshare
+        podman tag $IMAGE_BASE $IMAGE
+        # ensure_image $IMAGE_BASE
+        # name=$(buildah from $IMAGE_BASE)
+        # dir=$(buildah mount $name)
+        # install $dir
+        # podman image exists $IMAGE &&
+        # buildah rmi $IMAGE 2>/dev/null
+        # buildah commit $name $IMAGE
+        # buildah umount $name
+        # buildah rm $name
+    ;;
+    shell) unshare "$@"
+        if [ "$1" == "--read-only" ]; then
+            ro=$1
+            shift
+        else
+            ro=""
+        fi
+
+        if [ $# == 0 ]; then
+            arg=$(podman inspect -f '{{ join .Config.Cmd " " }}' rpm)
+        else
+            arg=$1
+            shift
+        fi
+
+        if ! podman container exists $SANDBOX; then
+            podman create --privileged -it --name $SANDBOX --hostname sandbox \
+                          -v $PWD:/srv --workdir /srv $ro $IMAGE >/dev/null
+        fi
+
+        podman start $SANDBOX >/dev/null
+        podman exec -it $SANDBOX $arg "$@"
+    ;;
+    # env) unshare
+    #     run $SHELL
+    # ;;
+    # reset) unshare
+    #     exists_sandbox || exit
+    #     buildah rm $SANDBOX >/dev/null
+    # ;;
+    # clean)
+    #     podman image exists $IMAGE_BASE &&
+    #     podman rmi $IMAGE_BASE
+    # ;;
+esac

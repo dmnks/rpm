@@ -67,7 +67,7 @@ if ("${MKTREE_BACKEND}" STREQUAL "")
 	if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/mktree.${OS_NAME})
 		set(MKTREE_BACKEND native)
 	elseif (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/Dockerfile.${OS_NAME})
-		set(MKTREE_BACKEND oci)
+		set(MKTREE_BACKEND podman)
 	else()
 		message(WARNING
 			"No mktree backend available for this platform, "
@@ -80,8 +80,8 @@ message(STATUS "Using mktree backend: ${MKTREE_BACKEND}")
 if ("${MKTREE_BACKEND}" STREQUAL "native")
 	find_program(BWRAP bwrap REQUIRED)
 	configure_file(mktree.${OS_NAME} mktree.${OS_NAME} @ONLY)
-elseif ("${MKTREE_BACKEND}" STREQUAL "oci")
-	find_program(BWRAP bwrap REQUIRED)
+elseif ("${MKTREE_BACKEND}" STREQUAL "podman")
+	find_program(BWRAP bwrap REQUIRED)  # TODO for atlocal
 	find_program(PODMAN podman REQUIRED)
 	find_program(BUILDAH buildah REQUIRED)
 	configure_file(Dockerfile.${OS_NAME} Dockerfile.${OS_NAME} COPYONLY)
@@ -101,12 +101,13 @@ endif()
 
 add_custom_target(check
 	COMMAND ./mktree shell --read-only ./rpmtests ${JOBS} $(TESTOPTS)
+	DEPENDS tree
 	DEPENDS tests
 )
 
 add_custom_target(tests
 	DEPENDS rpmtests
-	DEPENDS tree
+	DEPENDS ${TESTPROGS}
 )
 
 add_custom_command(OUTPUT rpmtests
