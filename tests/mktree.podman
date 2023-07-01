@@ -24,7 +24,7 @@ function create()
 {
     podman container exists $SANDBOX && return
     podman create --privileged -it --name $SANDBOX --hostname sandbox \
-                  -v $PWD:/srv --workdir /srv "$@" $IMAGE >/dev/null
+                  -v $PWD:/srv:z --workdir /srv "$@" $IMAGE >/dev/null
 }
 
 case $CMD in
