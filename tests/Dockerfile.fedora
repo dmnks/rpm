@@ -50,14 +50,13 @@ RUN dnf -y install \
 
 CMD /bin/bash
 
-WORKDIR /source
+WORKDIR /srv/source
 COPY . .
-WORKDIR /build
-RUN cmake /source
+WORKDIR /srv/build
+RUN cmake /srv/source
 RUN rpm -e rpm rpm-libs rpm-sign-libs python3-rpm --nodeps
 
-FROM base AS install
+FROM base AS full
 
-WORKDIR /build/tests
 RUN make tests
 RUN sh -c 'source ./mktree.common; install /'

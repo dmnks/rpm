@@ -1,9 +1,6 @@
 #!/bin/bash
 # Podman-native mktree backend
 
-source ./mktree.common
-
-DOCKERFILE=./Dockerfile.@OS_NAME@
 IMAGE=rpm
 IMAGE_BASE=${IMAGE}-base
 SANDBOX=${IMAGE}-sandbox
@@ -30,26 +27,28 @@ function create()
                   -v $PWD:/srv --workdir /srv "$@" $IMAGE >/dev/null
 }
 
-function ensure_image()
-{
-    if ! podman image exists $1; then
-        echo "No image exists yet, run:"
-        echo "  ./$PROGRAM build"
-        exit 1
-    fi
-}
-
 case $CMD in
-    build) unshare
+    build) unshare "$@"
+        # Build (base) image
+        if [ $# == 0 ]; then
+            target=base
+            set -- $target -f ./Dockerfile.@OS_NAME@ @CMAKE_SOURCE_DIR@
+        else
+            target=$1
+        fi
         podman image exists $IMAGE_BASE ||
-        podman build --target base -t $IMAGE_BASE \
-                     -f $DOCKERFILE @CMAKE_SOURCE_DIR@
+        podman build -t $IMAGE_BASE --target "$@"
+        if [ "$target" != "base" ]; then
+            podman tag $IMAGE_BASE $IMAGE
+            exit
+        fi
 
+        # Build RPM natively, layer it on top
+        source ./mktree.common
         name=$(buildah from $IMAGE_BASE)
         install $(buildah mount $name)
         buildah rmi $IMAGE >/dev/null 2>&1
         buildah commit $name $IMAGE
-
         buildah umount $name >/dev/null
         buildah rm $name >/dev/null
     ;;
@@ -73,7 +72,7 @@ case $CMD in
         podman exec -it $SANDBOX $cmd "$@"
     ;;
     env) unshare
-        ensure_image $IMAGE
+        podman image exists $IMAGE || exit
         create
         set -a
         source ./atlocal
@@ -90,7 +89,6 @@ case $CMD in
     clean)
         podman image exists $IMAGE_BASE &&
         podman rmi $IMAGE_BASE >/dev/null
-
         podman image exists $IMAGE &&
         podman rmi $IMAGE >/dev/null
     ;;
