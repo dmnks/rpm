@@ -29,13 +29,14 @@ function create()
 
 case $CMD in
     build) unshare "$@"
-        # Build (base) image
         if [ $# == 0 ]; then
             target=base
             set -- $target -f ./Dockerfile.@OS_NAME@ @CMAKE_SOURCE_DIR@
         else
             target=$1
         fi
+
+        # Build (base) image
         podman image exists $IMAGE_BASE ||
         podman build -t $IMAGE_BASE --target "$@"
         if [ "$target" != "base" ]; then
