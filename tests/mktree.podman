@@ -52,7 +52,7 @@ case $CMD in
         buildah umount $name >/dev/null
         buildah rm $name >/dev/null
     ;;
-    shell) unshare "$@"
+    shell)
         if [ "$1" == "--read-only" ]; then
             ro=$1
             shift
