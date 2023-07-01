@@ -1,11 +1,11 @@
 #!/bin/bash
-# Podman-based mktree backend
+# Podman-native mktree backend
 
 source ./mktree.common
 
 DOCKERFILE=./Dockerfile.@OS_NAME@
 IMAGE=rpm
-#IMAGE_BASE=${IMAGE}-base
+IMAGE_BASE=${IMAGE}-base
 SANDBOX=${IMAGE}-sandbox
 CMD=$1; shift
 
@@ -40,19 +40,18 @@ function ensure_image()
 }
 
 case $CMD in
-    build)
-        podman image exists $IMAGE ||
-        podman build -t $IMAGE -f $DOCKERFILE @CMAKE_SOURCE_DIR@
+    build) unshare
+        podman image exists $IMAGE_BASE ||
+        podman build --target base -t $IMAGE_BASE \
+                     -f $DOCKERFILE @CMAKE_SOURCE_DIR@
 
-        # ensure_image $IMAGE_BASE
-        # name=$(buildah from $IMAGE_BASE)
-        # dir=$(buildah mount $name)
-        # install $dir
-        # podman image exists $IMAGE &&
-        # buildah rmi $IMAGE 2>/dev/null
-        # buildah commit $name $IMAGE
-        # buildah umount $name
-        # buildah rm $name
+        name=$(buildah from $IMAGE_BASE)
+        install $(buildah mount $name)
+        buildah rmi $IMAGE >/dev/null 2>&1
+        buildah commit $name $IMAGE
+
+        buildah umount $name >/dev/null
+        buildah rm $name >/dev/null
     ;;
     shell) unshare "$@"
         if [ "$1" == "--read-only" ]; then
@@ -63,15 +62,15 @@ case $CMD in
         fi
 
         if [ $# == 0 ]; then
-            arg=$(podman inspect -f '{{ join .Config.Cmd " " }}' rpm)
+            cmd=$(podman inspect -f '{{ join .Config.Cmd " " }}' rpm)
         else
-            arg=$1
+            cmd=$1
             shift
         fi
 
         create $ro
         podman start $SANDBOX >/dev/null
-        podman exec -it $SANDBOX $arg "$@"
+        podman exec -it $SANDBOX $cmd "$@"
     ;;
     env) unshare
         ensure_image $IMAGE
@@ -89,6 +88,9 @@ case $CMD in
         podman rm $SANDBOX >/dev/null
     ;;
     clean)
+        podman image exists $IMAGE_BASE &&
+        podman rmi $IMAGE_BASE >/dev/null
+
         podman image exists $IMAGE &&
         podman rmi $IMAGE >/dev/null
     ;;

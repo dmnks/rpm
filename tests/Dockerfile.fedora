@@ -1,4 +1,4 @@
-FROM registry.fedoraproject.org/fedora:37
+FROM registry.fedoraproject.org/fedora:37 AS base
 MAINTAINER rpm-maint@lists.rpm.org
 
 RUN echo -e "deltarpm=0\ninstall_weak_deps=0\ntsflags=nodocs" >> /etc/dnf/dnf.conf
@@ -48,13 +48,16 @@ RUN dnf -y install \
   fsverity-utils fsverity-utils-devel \
   pandoc
 
+CMD /bin/bash
+
 WORKDIR /source
 COPY . .
 WORKDIR /build
 RUN cmake /source
 RUN rpm -e rpm rpm-libs rpm-sign-libs python3-rpm --nodeps
+
+FROM base AS install
+
 WORKDIR /build/tests
 RUN make tests
 RUN sh -c 'source ./mktree.common; install /'
-
-CMD /bin/bash
