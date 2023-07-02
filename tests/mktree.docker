@@ -1,0 +1,42 @@
+#!/bin/bash
+# Docker-native mktree backend
+
+PODMAN=${PODMAN:-@PODMAN@}
+IMAGE=rpm
+SANDBOX=${IMAGE}-sandbox
+CMD=$1; shift
+
+case $CMD in
+    build)
+        [ $# == 0 ] && set -- -f Dockerfile.@OS_NAME@ ..
+        $PODMAN build -t $IMAGE "$@"
+    ;;
+    shell)
+        if [ -n "$($PODMAN ps -a -q -f name=$SANDBOX)" ]; then
+            echo "Attaching to existing sandbox."
+            $PODMAN start $SANDBOX >/dev/null
+            $PODMAN attach $SANDBOX
+            exit
+        fi
+        $PODMAN run --privileged -it --name $SANDBOX --hostname sandbox \
+                    -v $PWD:/srv:z --workdir /srv $IMAGE "$@"
+    ;;
+    check)
+        $PODMAN run --privileged -it --rm --read-only \
+                    -v /blah/check --workdir /blah/check $IMAGE \
+                    sh -c 'ln -s /blah/build/tests/{atlocal,rpmtests} .; \
+                           ./rpmtests "$@"; rc=$?; \
+                           cat rpmtests.log; exit $rc' sh "$@"
+    ;;
+    env)
+        echo "Not supported by this backend." >&2
+        exit 1
+    ;;
+    reset)
+        $PODMAN stop $SANDBOX >/dev/null &&
+        $PODMAN rm $SANDBOX >/dev/null
+    ;;
+    clean)
+        $PODMAN rmi $IMAGE >/dev/null
+    ;;
+esac

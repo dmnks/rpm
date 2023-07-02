@@ -131,5 +131,5 @@ function runroot_other()
     sandbox exec "$@"
 }
 
-sandbox prune rpmtests.dir/*/merged
+#sandbox prune rpmtests.dir/*/merged
 return 0
