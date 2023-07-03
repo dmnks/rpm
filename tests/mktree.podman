@@ -1,11 +1,11 @@
 #!/bin/bash
 # Podman-native mktree backend
 
+PODMAN=$(basename $0 | cut -d'.' -f2)
 DOCKERFILE=Dockerfile.fedora
 IMAGE=rpm
 SANDBOX=${IMAGE}-sandbox
 ROOTLESS=$([ "$(id -u)" == 0 ] && echo 0 || echo 1)
-PODMAN=$(basename $0 | cut -d'.' -f2)
 CMD=$1; shift
 
 case $CMD in
