@@ -1,47 +1,41 @@
 AT_TESTED([rpm rpmbuild rpmquery])
 
 m4_define([RPMTEST_SETUP],[[
-if ! [ -d testing/ ]; then
-    cp -aP "${RPMTEST}" .
-    chmod -R u+w testing/
-    mkdir -p testing/build
-    ln -s ../data/SOURCES testing/build/
-fi
-export RPMTEST="${PWD}/testing"
-export HOME="${RPMTEST}"
+export RPMTEST="${PWD}/merged"
+[ -d $RPMTEST ] || sandbox mount ${PWD}
 ]])
 
 m4_define([RPMDB_INIT],[
 RPMTEST_SETUP
-rm -rf "${RPMTEST}"`rpm --eval '%_dbpath'`/*
+rm -rf "${RPMTEST}"`rpm --eval '%_dbpath'`
 runroot rpm --initdb
 ])
 
 m4_define([RPMPY_RUN],[[
-cat << EOF > test.py
+cat << EOF > ${RPMTEST}/test.py
 # coding=utf-8
-import rpm, sys, os
-dbpath=rpm.expandMacro('%_dbpath')
-rpm.addMacro('_dbpath', '${RPMTEST}%s' % dbpath)
-rpm.addMacro('_db_backend', os.getenv('DBFORMAT'))
+import rpm, sys
 def myprint(msg = ''):
     sys.stdout.write('%s\n' % msg)
 ts = rpm.ts()
 ts.setFlags(rpm.RPMTRANS_FLAG_NOPLUGINS)
 $1
 EOF
-${PYTHON} test.py
+runroot_other ${PYTHON} test.py
 ]])
 
 m4_define([RPMTEST_CHECK],[
+RPMTEST_SETUP
 AT_CHECK($@)
 ])
 
 m4_define([RPMTEST_CHECK_UNQUOTED],[
+RPMTEST_SETUP
 AT_CHECK_UNQUOTED($@)
 ])
 
 m4_define([RPMTEST_CLEANUP],[
+sandbox umount
 AT_CLEANUP
 ])
 

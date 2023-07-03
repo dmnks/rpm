@@ -228,7 +228,7 @@ AT_SETUP([uncompress 1])
 AT_KEYWORDS([macros])
 RPMTEST_CHECK([
 RPMDB_INIT
-runroot_other ${RPMTEST}/${RPMCONDIR}/rpmuncompress /data/SOURCES/hello-2.0.tar.gz | tar t
+runroot_other ${RPMCONDIR}/rpmuncompress /data/SOURCES/hello-2.0.tar.gz | tar t
 ],
 [0],
 [hello-2.0/
@@ -246,7 +246,7 @@ AT_KEYWORDS([macros])
 RPMTEST_CHECK([
 RPMDB_INIT
 echo xxxxxxxxxxxxxxxxxxxxxxxxx > ${RPMTEST}/tmp/"some%%ath"
-runroot_other ${RPMTEST}/${RPMCONDIR}/rpmuncompress "/tmp/some%%ath"
+runroot_other ${RPMCONDIR}/rpmuncompress "/tmp/some%%ath"
 ],
 [0],
 [xxxxxxxxxxxxxxxxxxxxxxxxx
@@ -776,7 +776,7 @@ AT_SETUP([lua library path])
 AT_KEYWORDS([macros lua])
 RPMTEST_CHECK([
 RPMDB_INIT
-f=$(run rpm --eval "%{_rpmconfigdir}/lua/foo.lua")
+f=$(run rpm --eval "${RPMTEST}/%{_rpmconfigdir}/lua/foo.lua")
 echo "bar = 'graak'" > ${f}
 runroot rpm \
   --eval '%{lua:require "foo"; print(bar)}'
@@ -1023,7 +1023,7 @@ RPMTEST_CLEANUP
 AT_SETUP([macro file errors])
 AT_KEYWORDS([macros])
 RPMTEST_CHECK([
-cat << EOF > macros.bad
+cat << EOF > ${RPMTEST}/macros.bad
 %1 foo
 
 %multi \\
