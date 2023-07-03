@@ -10,6 +10,7 @@ TREE_DIR=$PWD/$PROGRAM.output
 BASE_DIR=$TREE_DIR/base
 INST_DIR=$TREE_DIR/inst
 
+CACHE_DIR=$PWD/$PROGRAM.cache
 SHELL_DIR=$PWD/$PROGRAM.shell
 CHECK_DIR=$PWD/$PROGRAM.check
 
@@ -45,7 +46,7 @@ function run()
 case $CMD in
     build) unshare
         [ -d "$BASE_DIR" ] && exit
-        $OS_BUILD $BASE_DIR
+        $OS_BUILD $BASE_DIR $CACHE_DIR
     ;;
     install)
         rm -rf $INST_DIR

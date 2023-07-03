@@ -15,6 +15,10 @@
 #
 # This script is to be executed as root.
 
+DEST_DIR=$1
+CACHE_DIR=$2
+shift 2
+
 DNF=/usr/bin/dnf
 
 if [ "$1" == "--env" ]; then
@@ -28,16 +32,14 @@ function dnf()
 {
     echo '%_netsharedpath %nil' > .rpmmacros
     HOME=$PWD $DNF \
-        --installroot=$DESTDIR \
+        --installroot=$DEST_DIR \
         --releasever=@OS_VERSION@ \
-        --setopt=cachedir=$PWD/dnf-cache \
+        --setopt=cachedir=$CACHE_DIR \
         --setopt=keepcache=1 \
         --setopt=install_weak_deps=0 \
         --disablerepo=\* --enablerepo=fedora,updates \
         --exclude=rpm "$@"
 }
-
-DESTDIR=$1; shift
 
 dnf install -y \
     audit \
@@ -88,8 +90,8 @@ dnf install -y \
     zstd
 
 # Point in-tree RPM installation to newly created database
-mkdir -p $DESTDIR/@MACRO_DIR@
-echo "%_dbpath $(rpm --eval '%_dbpath')" > $DESTDIR/@MACRO_DIR@/macros.dbpath
+mkdir -p $DEST_DIR/@MACRO_DIR@
+echo "%_dbpath $(rpm --eval '%_dbpath')" > $DEST_DIR/@MACRO_DIR@/macros.dbpath
 
 # Configure default shell for root user
-cp -r $DESTDIR/{etc/skel/.,/root}
+cp -r $DEST_DIR/{etc/skel/.,/root}
