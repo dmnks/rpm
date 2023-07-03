@@ -104,20 +104,7 @@ endif()
 
 add_custom_target(check
 	COMMAND ./mktree check ${JOBS} $(TESTOPTS)
-	DEPENDS tests
-)
-
-add_custom_target(tests
-	DEPENDS rpmtests
-	DEPENDS ${TESTPROGS}
 	DEPENDS tree
-)
-
-add_custom_command(OUTPUT rpmtests
-	COMMAND ${AUTOTEST} -I ${CMAKE_CURRENT_SOURCE_DIR}
-		-o rpmtests rpmtests.at
-	DEPENDS ${TESTSUITE_AT}
-	DEPENDS local.at
 )
 
 add_custom_target(shell
@@ -138,4 +125,12 @@ add_custom_target(tree
 	COMMAND ./mktree build
 	DEPENDS ${TOP_TARGETS}
 	DEPENDS ${TESTPROGS}
+	DEPENDS rpmtests
+)
+
+add_custom_command(OUTPUT rpmtests
+	COMMAND ${AUTOTEST} -I ${CMAKE_CURRENT_SOURCE_DIR}
+		-o rpmtests rpmtests.at
+	DEPENDS ${TESTSUITE_AT}
+	DEPENDS local.at
 )
