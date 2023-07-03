@@ -30,7 +30,7 @@ function unshare()
     exit
 }
 
-# Run given command with sandbox mounted at RPMTEST
+# Run given command with given sandbox mounted at RPMTEST
 function run()
 {
     set -a
