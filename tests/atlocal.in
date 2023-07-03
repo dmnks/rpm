@@ -79,8 +79,9 @@ function sandbox()
             umount -l $RPMTEST
         ;;
         prune)
+            local dir
             for dir in "$@"; do
-                [ -d $dir ] && umount -ql $dir
+                [ -d "$dir" ] && umount -ql $dir
             done
         ;;
         exec)
@@ -95,7 +96,7 @@ function sandbox()
                 shift
             fi
             if [ $# == 0 ]; then
-                if [ -f $passwd ]; then
+                if [ -f "$passwd" ]; then
                     set -- $(grep ^root: $passwd | cut -d: -f7)
                 else
                     set -- sh

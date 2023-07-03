@@ -9,7 +9,9 @@ CMD=$1; shift
 TREE_DIR=$PWD/$PROGRAM.output
 BASE_DIR=$TREE_DIR/base
 INST_DIR=$TREE_DIR/inst
-SBOX_DIR=$PWD/$PROGRAM.sandbox
+
+SHELL_DIR=$PWD/$PROGRAM.shell
+CHECK_DIR=$PWD/$PROGRAM.check
 
 # Run CMD in user namespace (if not root already)
 function unshare()
@@ -34,15 +36,15 @@ function run()
     source ./atlocal
     source $OS_BUILD --env
     RPMTREE=$INST_DIR:$BASE_DIR
-    RPMTEST=$SBOX_DIR/merged
-    sandbox mount $SBOX_DIR
+    RPMTEST=$1/merged
+    sandbox mount $1
     "$@"
     sandbox umount $RPMTEST
 }
 
 case $CMD in
     build) unshare
-        [ -d $BASE_DIR ] && exit
+        [ -d "$BASE_DIR" ] && exit
         $OS_BUILD $BASE_DIR
     ;;
     install)
@@ -50,13 +52,17 @@ case $CMD in
         install $INST_DIR
     ;;
     shell) unshare "$@"
-        run sandbox shell "$@"
+        run $SHELL_DIR sandbox shell "$@"
+    ;;
+    check) unshare "$@"
+        run $CHECK_DIR sandbox shell --read-only ./rpmtests "$@"
+        rm -rf $CHECK_DIR
     ;;
     env) unshare
-        run $SHELL
+        run $SHELL_DIR $SHELL
     ;;
     reset) unshare
-        rm -rf $SBOX_DIR
+        rm -rf $SHELL_DIR
     ;;
     clean) unshare
         rm -rf $BASE_DIR
