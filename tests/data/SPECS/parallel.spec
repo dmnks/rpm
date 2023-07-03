@@ -1,6 +1,6 @@
 Name:		parallel
 Version:	%{ver}
-Release:	1
+Release:	1%{?dist}
 Summary:	Testing parallel install behavior
 BuildArch:	noarch
 License:	GPL
