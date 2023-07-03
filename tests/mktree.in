@@ -1,5 +1,7 @@
 #!/bin/sh
 
+[ "$1" != "build" ] && exit
+
 bindir=@CMAKE_INSTALL_FULL_BINDIR@
 
 # The chmod is needed when copying from read-only sources (eg in distcheck)
