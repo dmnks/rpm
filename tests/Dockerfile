@@ -49,7 +49,7 @@ RUN dnf -y install \
   pandoc \
   && dnf clean all
 
-WORKDIR /srv/source
+WORKDIR /srv/rpm
 COPY . .
 
 WORKDIR /srv/build
@@ -59,7 +59,7 @@ RUN cmake \
     -DWITH_FSVERITY=ON \
     -DWITH_IMAEVM=ON \
     -DMKTREE_BACKEND=rootfs:/srv/check \
-    /srv/source
+    /srv/rpm
 RUN rpm -e --nodeps \
     rpm \
     rpm-libs \
