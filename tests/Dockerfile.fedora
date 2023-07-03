@@ -58,8 +58,7 @@ RUN cmake \
     -DENABLE_BDB_RO=ON \
     -DWITH_FSVERITY=ON \
     -DWITH_IMAEVM=ON \
-    -DMKTREE_BACKEND=rootfs \
-    -DMKTREE_VOLUME=/rpm/check \
+    -DMKTREE_BACKEND=rootfs:/rpm/check \
     /rpm/source
 RUN rpm -e --nodeps \
     rpm \
@@ -70,5 +69,4 @@ RUN rpm -e --nodeps \
 RUN make tests
 
 WORKDIR /rpm/build/tests
-
 CMD /bin/bash
