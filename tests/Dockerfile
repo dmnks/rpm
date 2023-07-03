@@ -54,18 +54,18 @@ COPY . .
 
 WORKDIR /srv/build
 RUN cmake \
-    -DENABLE_WERROR=ON \
-    -DENABLE_BDB_RO=ON \
-    -DWITH_FSVERITY=ON \
-    -DWITH_IMAEVM=ON \
-    -DMKTREE_BACKEND=rootfs:/srv/check \
-    /srv/rpm
+	-DENABLE_WERROR=ON \
+	-DENABLE_BDB_RO=ON \
+	-DWITH_FSVERITY=ON \
+	-DWITH_IMAEVM=ON \
+	-DMKTREE_BACKEND=rootfs:/srv/check \
+	../rpm
 RUN rpm -e --nodeps \
-    rpm \
-    rpm-libs \
-    rpm-build-libs \
-    rpm-sign-libs \
-    python3-rpm
+	rpm \
+	rpm-libs \
+	rpm-build-libs \
+	rpm-sign-libs \
+	python3-rpm
 RUN make tree
 
 WORKDIR /srv/build/tests
