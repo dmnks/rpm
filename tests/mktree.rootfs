@@ -1,5 +1,5 @@
 #!/bin/bash
-# Rootfs mktree backend, for use within throw-away build containers
+# Rootfs mktree backend, for use within throwaway build containers
 
 CMD=$1; shift
 case $CMD in

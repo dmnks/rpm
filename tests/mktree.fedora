@@ -6,27 +6,18 @@
 #
 #   bwrap cpio diff file gzip mount readelf sh tar
 #
-# The script receives a destination directory (absolute path) for the tree as
-# the first argument.  If --env is received instead, the script may define
-# handy OS-specific variables or functions for use in "make env" and then must
-# return.
-#
+# The destination directory is received as the first argument (absolute path).
 # The host OS version can be obtained via the CMake variable @OS_VERSION@.
+#
+# The script may create a file named .mktree.env in the root of the tree to be
+# automatically sourced in "make env".  This is useful for defining OS-specific
+# functions such as for the host package manager to operate on the tree mounted
+# at $RPMTEST.
 #
 # This script is to be executed as root.
 
-DEST_DIR=$1
-CACHE_DIR=$2
-shift 2
-
+DEST_DIR=$1; shift
 DNF=/usr/bin/dnf
-
-if [ "$1" == "--env" ]; then
-    function dnf() {
-        $DNF --installroot=$RPMTEST "$@";
-    }
-    return
-fi
 
 function dnf()
 {
@@ -34,7 +25,7 @@ function dnf()
     HOME=$PWD $DNF \
         --installroot=$DEST_DIR \
         --releasever=@OS_VERSION@ \
-        --setopt=cachedir=$CACHE_DIR \
+        --setopt=cachedir=$PWD/mktree.cache \
         --setopt=keepcache=1 \
         --setopt=install_weak_deps=0 \
         --disablerepo=\* --enablerepo=fedora,updates \
@@ -95,3 +86,9 @@ echo "%_dbpath $(rpm --eval '%_dbpath')" > $DEST_DIR/@MACRO_DIR@/macros.dbpath
 
 # Configure default shell for root user
 cp -r $DEST_DIR/{etc/skel/.,/root}
+
+cat > $DEST_DIR/.mktree.env <<EOF
+function dnf() {
+    $DNF --installroot=\$RPMTEST "\$@";
+}
+EOF
