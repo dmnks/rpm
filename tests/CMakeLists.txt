@@ -78,7 +78,7 @@ add_custom_command(OUTPUT rpmtests
 )
 
 add_custom_target(tree
-	COMMAND ./mktree
+	COMMAND ./mktree build
 	DEPENDS ${TOP_TARGETS}
 	DEPENDS ${TESTPROGS}
 	DEPENDS rpmtests
