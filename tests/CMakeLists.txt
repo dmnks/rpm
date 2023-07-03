@@ -57,6 +57,7 @@ set(TESTSUITE_AT
 
 find_program(AUTOM4TE autom4te REQUIRED)
 set(AUTOTEST ${AUTOM4TE} --language=autotest)
+
 set(TESTPROGS rpmpgpcheck rpmpgppubkeyfingerprint)
 foreach(prg ${TESTPROGS})
 	add_executable(${prg} EXCLUDE_FROM_ALL ${prg}.c)
