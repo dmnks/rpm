@@ -1,5 +1,9 @@
 set(MACRO_DIR ${RPMCONFIGDIR}/macros.d)
 
+# Use our top-level targets as an ordering clue to cmake: the project
+# needs to be built before we can populate anything...
+get_property(TOP_TARGETS DIRECTORY .. PROPERTY BUILDSYSTEM_TARGETS)
+
 function(os_release var key)
 	execute_process(
 		COMMAND sh -c "grep ^${key} /etc/os-release | cut -d= -f2"
@@ -12,8 +16,6 @@ endfunction()
 
 os_release(OS_NAME ID)
 os_release(OS_VERSION VERSION_ID)
-
-get_property(TOP_TARGETS DIRECTORY .. PROPERTY BUILDSYSTEM_TARGETS)
 
 set(PYTHON ${Python3_EXECUTABLE})
 if (${WITH_INTERNAL_OPENPGP})
