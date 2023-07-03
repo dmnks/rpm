@@ -1,96 +1,44 @@
 #!/bin/bash
 # Podman-native mktree backend
 
+DOCKERFILE=Dockerfile.fedora
 IMAGE=rpm
-IMAGE_BASE=${IMAGE}-base
 SANDBOX=${IMAGE}-sandbox
+ROOTLESS=$([ "$(id -u)" == 0 ] && echo 0 || echo 1)
+PODMAN=$(basename $0 | cut -d'.' -f2)
 CMD=$1; shift
 
-# Run CMD in user namespace (if not root already)
-function unshare()
-{
-    local cmd
-    if [ $(id -u) == 0 ]; then
-        return
-    else
-        cmd="podman unshare"
-    fi
-    $cmd $0 $CMD "$@"
-    exit
-}
-
-# Create sandbox container
-function create()
-{
-    podman container exists $SANDBOX && return
-    podman create --privileged -it --name $SANDBOX --hostname sandbox \
-                  -v $PWD:/srv:z --workdir /srv "$@" $IMAGE >/dev/null
-}
-
 case $CMD in
-    build) unshare "$@"
-        if [ $# == 0 ]; then
-            target=base
-            set -- $target -f ./Dockerfile.@OS_NAME@ @CMAKE_SOURCE_DIR@
-        else
-            target=$1
-        fi
-
-        # Build (base) image
-        podman image exists $IMAGE_BASE ||
-        podman build -t $IMAGE_BASE --target "$@"
-        if [ "$target" != "base" ]; then
-            podman tag $IMAGE_BASE $IMAGE
-            exit
-        fi
-
-        # Build RPM natively, layer it on top
-        source ./mktree.common
-        name=$(buildah from $IMAGE_BASE)
-        install $(buildah mount $name)
-        buildah rmi $IMAGE >/dev/null 2>&1
-        buildah commit $name $IMAGE
-        buildah umount $name >/dev/null
-        buildah rm $name >/dev/null
+    build)
+        cd $(dirname $0)
+        $PODMAN build -t $IMAGE -f $DOCKERFILE ..
     ;;
     shell)
-        if [ "$1" == "--read-only" ]; then
-            ro=$1
-            shift
-        else
-            ro=""
+        if [ -n "$($PODMAN ps -a -q -f name=$SANDBOX)" ]; then
+            echo "Attaching to existing sandbox."
+            $PODMAN start $SANDBOX >/dev/null
+            $PODMAN attach $SANDBOX
+            exit
         fi
-
-        if [ $# == 0 ]; then
-            cmd=$(podman inspect -f '{{ join .Config.Cmd " " }}' rpm)
-        else
-            cmd=$1
-            shift
-        fi
-
-        create $ro
-        podman start $SANDBOX >/dev/null
-        podman exec -it $SANDBOX $cmd "$@"
+        $PODMAN run --privileged -it --name $SANDBOX --hostname sandbox \
+                    -v $PWD:/srv:z --workdir /srv $IMAGE "$@"
     ;;
-    env) unshare
-        podman image exists $IMAGE || exit
-        create
-        set -a
-        source ./atlocal
-        RPMTREE=/
-        RPMTEST=$(podman mount $SANDBOX)
-        $SHELL
-        podman umount $SANDBOX >/dev/null
+    check)
+        $PODMAN run --privileged -it --rm --read-only -e ROOTLESS=$ROOTLESS \
+                    -v /blah/check --workdir /blah/check $IMAGE \
+                    sh -c 'ln -s /blah/build/tests/{atlocal,rpmtests} .; \
+                           ./rpmtests "$@"; rc=$?; \
+                           cat rpmtests.log; exit $rc' sh "$@"
+    ;;
+    env)
+        echo "Not supported by this backend." >&2
+        exit 1
     ;;
     reset)
-        podman container exists $SANDBOX || exit
-        podman kill $SANDBOX >/dev/null
-        podman rm $SANDBOX >/dev/null
+        $PODMAN stop $SANDBOX >/dev/null &&
+        $PODMAN rm $SANDBOX >/dev/null
     ;;
     clean)
-        podman image exists $IMAGE_BASE &&
-        podman rmi $IMAGE_BASE >/dev/null
-        podman image exists $IMAGE &&
-        podman rmi $IMAGE >/dev/null
+        $PODMAN rmi $IMAGE >/dev/null
     ;;
 esac

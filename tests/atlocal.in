@@ -55,6 +55,13 @@ if ! LD_PRELOAD=${MALLOC_DEBUG} /bin/true 2>&1 | grep -q ERROR; then
     export LD_PRELOAD GLIBC_TUNABLES
 fi
 
+ROOTLESS=${ROOTLESS-1}
+if [ $ROOTLESS == 1 ]; then
+    MOUNT_ARGS="-o userxattr"
+else
+    MOUNT_ARGS=""
+fi
+
 function sandbox()
 {
     local cmd=$1
@@ -63,11 +70,10 @@ function sandbox()
         mount)
             mkdir -p $1/{upper,work} $RPMTEST
             mount -t overlay ${2:-sandbox} \
-                  -o userxattr \
                   -o lowerdir=$RPMTREE \
                   -o upperdir=$1/upper \
                   -o workdir=$1/work \
-                  $RPMTEST
+                  $MOUNT_ARGS $RPMTEST
         ;;
         umount)
             umount -l $RPMTEST
@@ -131,5 +137,5 @@ function runroot_other()
     sandbox exec "$@"
 }
 
-#sandbox prune rpmtests.dir/*/merged
+sandbox prune rpmtests.dir/*/merged
 return 0
