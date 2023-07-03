@@ -46,20 +46,20 @@ RUN dnf -y install \
   /usr/bin/gdb-add-index \
   dwz \
   fsverity-utils fsverity-utils-devel \
-  strace \
-  pandoc
+  pandoc \
+  && dnf clean all
 
-WORKDIR /rpm/source
+WORKDIR /srv/source
 COPY . .
 
-WORKDIR /rpm/build
+WORKDIR /srv/build
 RUN cmake \
     -DENABLE_WERROR=ON \
     -DENABLE_BDB_RO=ON \
     -DWITH_FSVERITY=ON \
     -DWITH_IMAEVM=ON \
-    -DMKTREE_BACKEND=rootfs:/rpm/check \
-    /rpm/source
+    -DMKTREE_BACKEND=rootfs:/srv/check \
+    /srv/source
 RUN rpm -e --nodeps \
     rpm \
     rpm-libs \
@@ -68,5 +68,5 @@ RUN rpm -e --nodeps \
     python3-rpm
 RUN make tree
 
-WORKDIR /rpm/build/tests
+WORKDIR /srv/build/tests
 CMD /bin/bash

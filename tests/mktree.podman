@@ -34,7 +34,7 @@ case $CMD in
     ;;
     check)
         $PODMAN run --privileged -it --rm --read-only -e ROOTLESS=$ROOTLESS \
-                    -v /rpm/check $IMAGE ./mktree check "$@"
+                    -v /srv/check $IMAGE ./mktree check "$@"
     ;;
     reset)
         $PODMAN stop $SANDBOX >/dev/null &&
