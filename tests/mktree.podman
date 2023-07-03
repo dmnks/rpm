@@ -1,17 +1,26 @@
 #!/bin/bash
 # Podman-native mktree backend
 
-PODMAN=$(basename $0 | cut -d'.' -f2)
-DOCKERFILE=Dockerfile.fedora
+PROGRAM=$(basename $0)
+if [ "$PROGRAM" == "mktree" ]; then
+    # Running from build directory
+    PODMAN=podman
+    CONTEXT=@CMAKE_SOURCE_DIR@
+else
+    # Running from source directory
+    PODMAN=$(echo $PROGRAM | cut -d'.' -f2)
+    CONTEXT=..
+fi
+
 IMAGE=rpm
 SANDBOX=${IMAGE}-sandbox
-ROOTLESS=$([ "$(id -u)" == 0 ] && echo 0 || echo 1)
+ROOTLESS=$([ $(id -u) == 0 ] && echo 0 || echo 1)
 CMD=$1; shift
 
 case $CMD in
     build)
         cd $(dirname $0)
-        $PODMAN build -t $IMAGE -f $DOCKERFILE ..
+        $PODMAN build -t $IMAGE -f Dockerfile $CONTEXT
     ;;
     shell)
         if [ -n "$($PODMAN ps -a -q -f name=$SANDBOX)" ]; then

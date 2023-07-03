@@ -66,7 +66,7 @@ RUN rpm -e --nodeps \
     rpm-build-libs \
     rpm-sign-libs \
     python3-rpm
-RUN make tests
+RUN make tree
 
 WORKDIR /rpm/build/tests
 CMD /bin/bash

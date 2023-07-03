@@ -18,7 +18,7 @@ function install()
     cp -r @CMAKE_CURRENT_SOURCE_DIR@/data $DESTDIR/
 
     mkdir -p $DESTDIR/usr/bin
-    cp @TESTPROGS_LIST@ $DESTDIR/usr/bin/
+    cp @TESTPROG_NAMES@ $DESTDIR/usr/bin/
 
     mkdir -p $DESTDIR/build
     ln -sf /data/SOURCES $DESTDIR/build/

@@ -61,27 +61,26 @@ foreach(prg ${TESTPROGS})
 	add_executable(${prg} EXCLUDE_FROM_ALL ${prg}.c)
 	target_link_libraries(${prg} PRIVATE librpmio)
 endforeach()
-string(REPLACE ";" " " TESTPROGS_LIST "${TESTPROGS}")
+string(REPLACE ";" " " TESTPROG_NAMES "${TESTPROGS}")
 
-# Set up mktree
+# Detect suitable mktree backend
 if ("${MKTREE_BACKEND}" STREQUAL "")
 	if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/mktree.${OS_NAME})
 		set(MKTREE_BACKEND native)
-	elseif (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/Dockerfile.${OS_NAME})
-		set(MKTREE_BACKEND podman)
 	else()
-		message(WARNING
-			"No mktree backend available for this platform, "
-			"disabling test suite.")
-		return()
+		set(MKTREE_BACKEND podman)
 	endif()
+endif()
+
+# Set up mktree
+if ("${MKTREE_BACKEND}" STREQUAL "native")
+	configure_file(mktree.${OS_NAME} mktree.${OS_NAME} @ONLY)
 endif()
 if ("${MKTREE_BACKEND}" STREQUAL "podman")
 	find_program(PODMAN podman REQUIRED)
-	configure_file(Dockerfile.${OS_NAME} Dockerfile.${OS_NAME} COPYONLY)
+	configure_file(Dockerfile Dockerfile COPYONLY)
 else()
 	find_program(BWRAP bwrap REQUIRED)
-	configure_file(mktree.${OS_NAME} mktree.${OS_NAME} @ONLY)
 endif()
 if ("${MKTREE_BACKEND}" MATCHES "rootfs:")
 	string(REPLACE ":" ";" LIST ${MKTREE_BACKEND})
