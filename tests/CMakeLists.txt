@@ -77,14 +77,11 @@ if ("${MKTREE_BACKEND}" STREQUAL "")
 endif()
 message(STATUS "Using mktree backend: ${MKTREE_BACKEND}")
 
-if ("${MKTREE_BACKEND}" STREQUAL "native")
-	find_program(BWRAP bwrap REQUIRED)
-	configure_file(mktree.${OS_NAME} mktree.${OS_NAME} @ONLY)
-elseif ("${MKTREE_BACKEND}" STREQUAL "podman")
-	find_program(BWRAP bwrap REQUIRED)  # TODO for atlocal
+if ("${MKTREE_BACKEND}" STREQUAL "podman")
 	find_program(PODMAN podman REQUIRED)
-	find_program(BUILDAH buildah REQUIRED)
 	configure_file(Dockerfile.${OS_NAME} Dockerfile.${OS_NAME} COPYONLY)
+else()
+	find_program(BWRAP bwrap REQUIRED)
 endif()
 
 configure_file(mktree.common mktree.common @ONLY)
@@ -100,14 +97,14 @@ if (nproc GREATER 1)
 endif()
 
 add_custom_target(check
-	COMMAND ./mktree shell --read-only ./rpmtests ${JOBS} $(TESTOPTS)
-	DEPENDS tree
+	COMMAND ./mktree check ${JOBS} $(TESTOPTS)
 	DEPENDS tests
 )
 
 add_custom_target(tests
 	DEPENDS rpmtests
 	DEPENDS ${TESTPROGS}
+	DEPENDS tree
 )
 
 add_custom_command(OUTPUT rpmtests

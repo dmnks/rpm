@@ -49,15 +49,26 @@ RUN dnf -y install \
   strace \
   pandoc
 
-CMD /bin/bash
-
-WORKDIR /blah/source
+WORKDIR /rpm/source
 COPY . .
 
-WORKDIR /blah/build
-RUN cmake /blah/source
-
-WORKDIR /blah/build/tests
+WORKDIR /rpm/build
+RUN cmake \
+    -DENABLE_WERROR=ON \
+    -DENABLE_BDB_RO=ON \
+    -DWITH_FSVERITY=ON \
+    -DWITH_IMAEVM=ON \
+    -DMKTREE_BACKEND=rootfs \
+    -DMKTREE_VOLUME=/rpm/check \
+    /rpm/source
+RUN rpm -e --nodeps \
+    rpm \
+    rpm-libs \
+    rpm-build-libs \
+    rpm-sign-libs \
+    python3-rpm
 RUN make tests
-RUN rpm -e rpm rpm-libs rpm-sign-libs python3-rpm --nodeps
-RUN sh -c 'source ./mktree.common; install /'
+
+WORKDIR /rpm/build/tests
+
+CMD /bin/bash

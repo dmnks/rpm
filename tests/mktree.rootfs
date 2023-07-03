@@ -1,0 +1,21 @@
+#!/bin/bash
+# Rootfs mktree backend, for use within throw-away build containers
+
+CMD=$1; shift
+case $CMD in
+    build)
+        source ./mktree.common
+        install /
+    ;;
+    check)
+        ln -s $PWD/{atlocal,rpmtests} @MKTREE_VOLUME@/
+        cd @MKTREE_VOLUME@
+        ./rpmtests "$@"
+        rc=$?
+        cat rpmtests.log
+        exit $rc
+    ;;
+    *)
+        echo "Command \"$CMD\" is not supported by this backend." >&2
+    ;;
+esac
