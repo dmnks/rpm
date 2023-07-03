@@ -124,6 +124,10 @@ add_custom_target(tree
 	DEPENDS rpmtests
 )
 
+add_custom_target(tree-clean
+	COMMAND ./mktree clean
+)
+
 add_custom_target(shell
 	COMMAND ./mktree shell
 	DEPENDS tree
