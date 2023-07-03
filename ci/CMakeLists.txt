@@ -1,9 +1,0 @@
-get_property(TOP_TARGETS DIRECTORY .. PROPERTY BUILDSYSTEM_TARGETS)
-
-if ("${CI_BINARY_DIR}" STREQUAL "")
-	set(CI_BINARY_DIR ${CMAKE_BINARY_DIR}/ci/binary)
-endif()
-
-add_custom_target(ci
-	COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/run ${PODMAN} ${CI_BINARY_DIR}
-)
