@@ -55,6 +55,7 @@ set(TESTSUITE_AT
 	rpmpgp.at
 )
 
+find_program(AUTOM4TE autom4te REQUIRED)
 set(AUTOTEST ${AUTOM4TE} --language=autotest)
 set(TESTPROGS rpmpgpcheck rpmpgppubkeyfingerprint)
 foreach(prg ${TESTPROGS})
