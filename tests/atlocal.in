@@ -119,10 +119,7 @@ function sandbox()
 
 function run()
 {
-    export RPM_CONFIGDIR=${RPMTEST}/${RPMCONDIR}
-    "$@" --define "_buildhost testhost" \
-         --define "_tmppath ${RPMTEST}/tmp" \
-         --define "_topdir ${RPMTEST}/build"
+    runroot "$@"
 }
 
 function rundebug()
@@ -134,7 +131,6 @@ function rundebug()
 
 function runroot()
 {
-    unset RPM_CONFIGDIR
     sandbox exec "$@" \
             --define "_buildhost testhost" \
             --define "_topdir /build" \
@@ -143,7 +139,6 @@ function runroot()
 
 function runroot_other()
 {
-    unset RPM_CONFIGDIR
     sandbox exec "$@"
 }
 
