@@ -81,6 +81,13 @@ if ! LD_PRELOAD=${MALLOC_DEBUG} /bin/true 2>&1 | grep -q ERROR; then
     export LD_PRELOAD GLIBC_TUNABLES
 fi
 
+function sandbox()
+{
+    (unset RPM_CONFIGDIR RPM_POPTEXEC_PATH; cd ${RPMTEST} && \
+     FAKECHROOT_BASE="${RPMTEST}" fakechroot "$@"
+    )
+}
+
 function run()
 {
     export RPM_CONFIGDIR=${RPMTEST}/@RPM_CONFIGDIR@
@@ -97,14 +104,10 @@ function rundebug()
 
 function runroot()
 {
-    (unset RPM_CONFIGDIR RPM_POPTEXEC_PATH; cd ${RPMTEST} && \
-     MAGIC="/magic/magic" FAKECHROOT_BASE="${RPMTEST}" fakechroot "$@" --define "_buildhost testhost" --define "_topdir /build" --noplugins --nouserns
-    )
+    sandbox env MAGIC="/magic/magic" "$@" --define "_buildhost testhost" --define "_topdir /build" --noplugins --nouserns
 }
 
 function runroot_other()
 {
-    (unset RPM_CONFIGDIR RPM_POPTEXEC_PATH; cd ${RPMTEST} && \
-     FAKECHROOT_BASE="${RPMTEST}" fakechroot "$@"
-    )
+    sandbox "$@"
 }
