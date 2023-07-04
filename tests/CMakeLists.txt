@@ -51,7 +51,7 @@ add_custom_command(OUTPUT rpmtests COMMAND
 
 # Use our top-level targets as an ordering clue to cmake: the project
 # needs to be built before we can populate anything...
-get_property(top_targets DIRECTORY .. PROPERTY BUILDSYSTEM_TARGETS)
+get_property(TOP_TARGETS DIRECTORY .. PROPERTY BUILDSYSTEM_TARGETS)
 
 add_custom_target(populate_testing COMMAND
 	${CMAKE_CURRENT_SOURCE_DIR}/populate
@@ -61,7 +61,7 @@ add_custom_target(populate_testing COMMAND
 		${CMAKE_INSTALL_FULL_BINDIR}
 		${CMAKE_MAKE_PROGRAM}
 	SOURCES populate
-	DEPENDS ${top_targets}
+	DEPENDS ${TOP_TARGETS}
 )
 
 set(TESTPROGS rpmpgpcheck rpmpgppubkeyfingerprint)
