@@ -20,9 +20,6 @@ else
     exit
 fi
 
-DBFORMAT=$(awk '/^%_db_backend/{print $2}' "${RPMCONDIR}/macros" 2>/dev/null)
-export DBFORMAT
-
 RPMTREE=/
 RPMDATA="/data"
 
