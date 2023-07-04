@@ -39,6 +39,7 @@ function dnf()
 }
 
 dnf install -y \
+    /usr/bin/systemd-sysusers \
     audit \
     bash \
     binutils \
