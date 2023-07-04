@@ -1452,7 +1452,8 @@ RPMDB_INIT
 
 runroot rpmbuild -bb --quiet --define "pkg user" --define "provs %{add_sysuser u myuser 876 - /home/myuser /bin/sh}"\
   /data/SPECS/deptest.spec
-runroot rpm -U --root /alt /build/RPMS/noarch/deptest-user-1.0-1.noarch.rpm 2> /dev/null
+runroot rpm --define "__systemd_sysusers /usr/bin/systemd-sysusers" \
+  -U --root /alt /build/RPMS/noarch/deptest-user-1.0-1.noarch.rpm 2> /dev/null
 runroot_other tail -1 /alt/etc/passwd
 runroot rpm -V --root /alt ${VERIFYOPTS} deptest-user
 ],
@@ -1469,7 +1470,8 @@ RPMDB_INIT
 
 runroot rpmbuild -bb --quiet --define "pkg user" --define "provs %{add_sysuser g mygroup 678}"\
   /data/SPECS/deptest.spec
-runroot rpm -i /build/RPMS/noarch/deptest-user-1.0-1.noarch.rpm 2> /dev/null
+runroot rpm --define "__systemd_sysusers /usr/bin/systemd-sysusers" \
+  -i /build/RPMS/noarch/deptest-user-1.0-1.noarch.rpm 2> /dev/null
 runroot_other tail -1 /etc/group
 runroot rpm -V ${VERIFYOPTS} deptest-user
 ],
@@ -1486,7 +1488,8 @@ RPMDB_INIT
 runroot rpmbuild -bb --quiet /data/SPECS/klang.spec
 
 RPMTEST_CHECK([
-runroot rpm -U /build/RPMS/noarch/klang-client-1.0-1.noarch.rpm
+runroot rpm --define "__systemd_sysusers /usr/bin/systemd-sysusers" \
+  -U /build/RPMS/noarch/klang-client-1.0-1.noarch.rpm
 ],
 [1],
 [],
@@ -1495,9 +1498,9 @@ runroot rpm -U /build/RPMS/noarch/klang-client-1.0-1.noarch.rpm
 ])
 
 RPMTEST_CHECK([
-runroot rpm -U \
-	/build/RPMS/noarch/klang-client-1.0-1.noarch.rpm \
-	/build/RPMS/noarch/klang-common-1.0-1.noarch.rpm
+runroot rpm --define "__systemd_sysusers /usr/bin/systemd-sysusers" \
+  -U /build/RPMS/noarch/klang-client-1.0-1.noarch.rpm \
+     /build/RPMS/noarch/klang-common-1.0-1.noarch.rpm
 runroot_other grep ^klang /etc/group | cut -f1 -d:
 runroot rpm -V ${VERIFYOPTS} klang-client klang-common
 ],
@@ -1507,7 +1510,8 @@ runroot rpm -V ${VERIFYOPTS} klang-client klang-common
 [ignore])
 
 RPMTEST_CHECK([
-runroot rpm -U /build/RPMS/noarch/klang-server-1.0-1.noarch.rpm
+runroot rpm --define "__systemd_sysusers /usr/bin/systemd-sysusers" \
+  -U /build/RPMS/noarch/klang-server-1.0-1.noarch.rpm
 runroot_other grep ^klangd /etc/passwd | cut -f1 -d:
 runroot_other grep ^klangd /etc/group | cut -f1 -d:
 runroot_other grep ^plong /etc/passwd | cut -f1 -d:
