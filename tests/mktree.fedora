@@ -1,0 +1,101 @@
+#!/bin/bash
+
+# Bootstrap a minimal OS tree with RPM's runtime dependencies that are ABI
+# compatible with the libraries built against, without any pre-existing RPM
+# installation and with the following test suite dependencies:
+#
+#   bwrap cpio diff file gzip mount readelf sh tar
+#
+# The destination directory is received as the first argument (absolute path).
+# The host OS version can be obtained via the CMake variable @OS_VERSION@.
+#
+# Any support files this script creates should be kept in the ./mktree.cache
+# directory.
+#
+# The script may create a file named .mktree.env in the root of the tree to be
+# automatically sourced in "make env".  This is useful for defining OS-specific
+# functions such as for the host package manager to operate on the tree mounted
+# at $RPMTEST.
+#
+# This script is to be executed as root.
+
+DEST_DIR=$1; shift
+CACHE_DIR=$PWD/mktree.cache
+DNF=/usr/bin/dnf
+
+mkdir -p $CACHE_DIR
+
+function dnf()
+{
+    echo '%_netsharedpath %nil' > $CACHE_DIR/.rpmmacros
+    HOME=$CACHE_DIR $DNF \
+        --installroot=$DEST_DIR \
+        --releasever=@OS_VERSION@ \
+        --setopt=cachedir=$CACHE_DIR/dnf \
+        --setopt=keepcache=1 \
+        --setopt=install_weak_deps=0 \
+        --disablerepo=\* --enablerepo=fedora,updates \
+        --exclude=rpm "$@"
+}
+
+dnf install -y \
+    audit \
+    bash \
+    binutils \
+    bubblewrap \
+    bzip2 \
+    coreutils \
+    cpio \
+    curl \
+    debugedit \
+    diffutils \
+    elfutils-libelf \
+    elfutils-libs \
+    file \
+    file-libs \
+    findutils \
+    gawk \
+    gcc \
+    gdb-headless \
+    gdb-minimal \
+    glibc \
+    gpg \
+    grep \
+    gzip \
+    ima-evm-utils \
+    libacl \
+    libarchive \
+    libcap \
+    libfsverity \
+    libgomp \
+    libzstd \
+    lua-libs \
+    make \
+    openssl-libs \
+    patch \
+    pkgconf-pkg-config \
+    python3 \
+    rpm-sequoia \
+    sed \
+    sqlite-libs \
+    tar \
+    unzip \
+    util-linux-core \
+    xz \
+    xz-libs \
+    zlib \
+    zstd
+
+# Point in-tree RPM installation to newly created database
+mkdir -p $DEST_DIR/@RPM_CONFIGDIR@/macros.d
+echo "%_dbpath $(rpm --eval '%_dbpath')" > \
+    $DEST_DIR/@RPM_CONFIGDIR@/macros.d/macros.dbpath
+
+# Configure default shell for root user
+cp -r $DEST_DIR/{etc/skel/.,/root}
+
+cat > $DEST_DIR/.mktree.env <<EOF
+function dnf() {
+    $DNF --installroot=\$RPMTEST "\$@";
+}
+EOF
