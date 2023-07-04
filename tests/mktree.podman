@@ -33,7 +33,7 @@ case $CMD in
                     -v $PWD:/srv:z --workdir /srv $IMAGE "$@"
     ;;
     check)
-        $PODMAN run --privileged -it --rm -e ROOTLESS=$ROOTLESS \
+        $PODMAN run --privileged -it --rm --read-only -e ROOTLESS=$ROOTLESS \
                     -v /srv/check $IMAGE ./mktree check "$@"
     ;;
     reset)

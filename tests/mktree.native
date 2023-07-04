@@ -56,7 +56,7 @@ case $CMD in
     ;;
     check) unshare "$@"
         rm -rf $CHECK_DIR
-        run $CHECK_DIR sandbox shell ./rpmtests "$@"
+        run $CHECK_DIR sandbox shell --read-only ./rpmtests "$@"
     ;;
     env) unshare
         run $SHELL_DIR $SHELL
