@@ -82,6 +82,7 @@ dnf install -y \
     tar \
     unzip \
     util-linux-core \
+    which \
     xz \
     xz-libs \
     zlib \
