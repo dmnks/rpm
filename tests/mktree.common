@@ -32,3 +32,9 @@ function make_install()
     mkdir -p $DESTDIR/build
     ln -sf ../data/SOURCES $DESTDIR/build/
 }
+
+function not_implemented()
+{
+    echo "Command \"$CMD\" is not supported by this backend." >&2
+    exit 1
+}

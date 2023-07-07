@@ -1,0 +1,53 @@
+#!/bin/bash
+
+# Podman-based mktree backend using an OCI image and Linux-native sandboxing.
+# Works standalone (outside of a build directory) too.
+
+source ./mktree.common
+
+PROGRAM=$(basename $0)
+if [ "$PROGRAM" == "mktree" ]; then
+    # Running from build directory
+    PODMAN=podman
+    CONTEXT=@CMAKE_SOURCE_DIR@
+else
+    # Running from source directory
+    PODMAN=$(echo $PROGRAM | cut -d'.' -f2)
+    CONTEXT=..
+fi
+
+IMAGE=rpm
+SANDBOX=${IMAGE}-sandbox
+ROOTLESS=$([ $(id -u) == 0 ] && echo 0 || echo 1)
+
+CMD=$1; shift
+case $CMD in
+    build)
+        cd $(dirname $0)
+        $PODMAN build -t $IMAGE -f Dockerfile $CONTEXT
+    ;;
+    shell)
+        if [ -n "$($PODMAN ps -a -q -f name=$SANDBOX)" ]; then
+            $PODMAN start $SANDBOX >/dev/null
+            $PODMAN attach $SANDBOX
+            exit
+        fi
+        $PODMAN run --privileged -it --name $SANDBOX --hostname sandbox \
+                    -v $PWD:/srv:z $IMAGE "$@"
+        exit 0
+    ;;
+    check)
+        $PODMAN run --privileged -it --rm --workdir /srv/build/tests \
+                    -v /srv/check $IMAGE ./mktree check "$@"
+    ;;
+    setup)
+        source ./mktree.linux setup
+    ;;
+    reset)
+        $PODMAN stop $SANDBOX >/dev/null &&
+        $PODMAN rm $SANDBOX >/dev/null
+    ;;
+    *)
+        not_implemented
+    ;;
+esac
