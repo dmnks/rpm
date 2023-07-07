@@ -2,8 +2,7 @@ AT_TESTED([rpm rpmbuild rpmquery])
 
 m4_define([RPMTEST_SETUP],[[
 export RPMTEST="${PWD}/tree"
-export HOME="${RPMTEST}"
-[ -d tree/ ] || sandbox mount
+[ -d "$RPMTEST" ] || sandbox mount "${PWD}"
 ]])
 
 m4_define([RPMDB_INIT],[
@@ -37,6 +36,7 @@ AT_CHECK_UNQUOTED($@)
 ])
 
 m4_define([RPMTEST_CLEANUP],[
+mountpoint -q "$PWD/tree" && RPMTEST="$PWD/tree" sandbox umount
 AT_CLEANUP
 ])
 

@@ -1,0 +1,67 @@
+#!/bin/bash
+# Native mktree backend using an OS-specific bootstrap script and lightweight
+# sandboxing from the test-suite for isolation.
+
+source ./mktree.common
+
+OS_BUILD=./mktree.@OS_NAME@
+
+TREE_DIR=$PWD/mktree.output
+BASE_DIR=$TREE_DIR/base
+INST_DIR=$TREE_DIR/inst
+
+SHELL_DIR=$PWD/mktree.shell
+CHECK_DIR=$PWD/mktree.check
+
+CMD=$1; shift
+
+# Run CMD in user namespace (if not root already)
+function unshare()
+{
+    local cmd
+    if [ $(id -u) == 0 ]; then
+        return
+    elif [ -f /run/.toolboxenv ]; then
+        # toolbox(1) support
+        cmd="sudo --preserve-env"
+    else
+        cmd="@UNSHARE@ -r --mount --map-auto"
+    fi
+    $cmd $0 $CMD "$@"
+    exit
+}
+
+# Run given command with given sandbox mounted at RPMTEST
+function run()
+{
+    set -a
+    source ./atlocal
+    RPMTREE=$INST_DIR:$BASE_DIR
+    RPMTEST=$1/tree
+    sandbox mount $1
+    shift
+    "$@"
+    sandbox umount $RPMTEST
+}
+
+case $CMD in
+    build) unshare
+        [ -d "$BASE_DIR" ] ||
+        $OS_BUILD $BASE_DIR
+        rm -rf $INST_DIR
+        install $INST_DIR
+    ;;
+    shell) unshare "$@"
+        run $SHELL_DIR sandbox shell "$@"
+    ;;
+    check) unshare "$@"
+        rm -rf $CHECK_DIR
+        run $CHECK_DIR sandbox shell --chdir /srv ./rpmtests "$@"
+    ;;
+    reset) unshare
+        rm -rf $SHELL_DIR
+    ;;
+    clean) unshare
+        rm -rf $BASE_DIR
+    ;;
+esac
