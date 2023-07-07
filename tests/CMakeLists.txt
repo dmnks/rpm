@@ -55,8 +55,6 @@ set(TESTSUITE_AT
 	rpmpgp.at
 )
 
-find_program(BWRAP bwrap REQUIRED)
-find_program(UNSHARE unshare REQUIRED)
 find_program(AUTOM4TE autom4te REQUIRED)
 set(AUTOTEST ${AUTOM4TE} --language=autotest)
 
@@ -72,17 +70,34 @@ if ("${MKTREE_BACKEND}" STREQUAL "")
 	if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/mktree.${OS_NAME})
 		set(MKTREE_BACKEND native)
 	else()
-		message(WARNING
-			"No suitable mktree backend found for this platform. "
-			"Disabling test suite.")
-		return()
+		set(MKTREE_BACKEND podman)
 	endif()
 endif()
 
 # Set up mktree
+if ("${MKTREE_BACKEND}" STREQUAL "native")
+	configure_file(mktree.${OS_NAME} mktree.${OS_NAME} @ONLY)
+endif()
+if ("${MKTREE_BACKEND}" STREQUAL "podman")
+	find_program(PODMAN podman REQUIRED)
+	configure_file(Dockerfile Dockerfile COPYONLY)
+else()
+	find_program(BWRAP bwrap REQUIRED)
+	find_program(UNSHARE unshare REQUIRED)
+	add_custom_target(ci
+		COMMAND ./mktree.podman build
+		COMMAND ./mktree.podman check ${JOBS} $(TESTOPTS)
+		WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+	)
+endif()
+if ("${MKTREE_BACKEND}" MATCHES "rootfs:")
+	string(REPLACE ":" ";" LIST ${MKTREE_BACKEND})
+	list(GET LIST 0 MKTREE_BACKEND)
+	list(GET LIST 1 MKTREE_VOLUME)
+	unset(LIST)
+endif()
 message(STATUS "Using mktree backend: ${MKTREE_BACKEND}")
 configure_file(mktree.common mktree.common @ONLY)
-configure_file(mktree.${OS_NAME} mktree.${OS_NAME} @ONLY)
 configure_file(mktree.${MKTREE_BACKEND} mktree @ONLY)
 
 configure_file(atlocal.in atlocal @ONLY)
