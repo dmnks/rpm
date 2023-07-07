@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# Rootfs mktree backend, for use within throwaway build containers.
+# Installs into / and runs the test-suite in the same container.
+#
+# Needs a host-mounted working directory or a non-empty path in @MKTREE_VOLUME@
+# in order for overlay mounts to work.
+
+CMD=$1; shift
+
+case $CMD in
+    build)
+        source ./mktree.common
+        install /
+    ;;
+    check)
+        volume=@MKTREE_VOLUME@
+        if [ -n "$volume" ]; then
+            ln -s $PWD/{atlocal,rpmtests} $volume/
+            cd $volume
+        fi
+        ./rpmtests "$@"
+        rc=$?
+        cat rpmtests.log
+        exit $rc
+    ;;
+    *)
+        echo "Command \"$CMD\" is not supported by this backend." >&2
+        exit 1
+    ;;
+esac
