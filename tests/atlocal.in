@@ -1,17 +1,9 @@
-RPMTREE="@CMAKE_CURRENT_BINARY_DIR@/mktree.output/tree"
+RPMTREE=/
 
 RPMLIBDIR="@CMAKE_INSTALL_FULL_LIBDIR@"
-LD_LIBRARY_PATH="${RPMTREE}/${RPMLIBDIR}${LD_LIBRARY_PATH+:${LD_LIBRARY_PATH}}"
-export LD_LIBRARY_PATH
 export RPMLIBDIR
-PATH="${RPMTREE}@CMAKE_INSTALL_FULL_BINDIR@:$PATH"
-export PATH
 
 PYTHON=@PYTHON@
-if test "${PYTHON}"; then
-    PYTHONPATH="${RPMTREE}@Python3_SITEARCH@"
-    export PYTHONPATH
-fi
 
 CRYPTO=@CRYPTO@
 export CRYPTO
@@ -30,19 +22,14 @@ else
 fi
 
 RPMTEST="$RPMTREE"
-RPMDATA="@CMAKE_CURRENT_SOURCE_DIR@/data/"
+RPMDATA="/data"
 
 RPM_CONFIGDIR="${RPMTEST}/@RPM_CONFIGDIR@"
-RPM_POPTEXEC_PATH="${RPMTEST}/@CMAKE_INSTALL_FULL_BINDIR@"
-export RPM_CONFIGDIR RPM_POPTEXEC_PATH
+export RPM_CONFIGDIR
 
 DBFORMAT=$(awk '/^%_db_backend/{print $2}' \
            "${RPM_CONFIGDIR}/macros" 2>/dev/null)
 export DBFORMAT
-
-# Popt looks into $HOME
-HOME="${PWD}"
-export HOME
 
 TZ=UTC
 export TZ
@@ -86,11 +73,16 @@ function setup_env()
 {
     if [ -d tree ]; then
         RPMTEST=${PWD}/tree
-        HOME=${RPMTEST}
-        RPM_CONFIGDIR=${RPMTEST}/@RPM_CONFIGDIR@
-        export RPMTEST HOME RPM_CONFIGDIR
+        export RPMTEST
     fi
 }
+
+ROOTLESS=${ROOTLESS-1}
+if [ $ROOTLESS == 1 ]; then
+    MOUNT_ARGS="-o userxattr"
+else
+    MOUNT_ARGS=""
+fi
 
 function sandbox()
 {
@@ -98,14 +90,39 @@ function sandbox()
     shift
     case $cmd in
         mount)
-            cp -aP "${RPMTREE}" "${RPMTEST}"
-            chmod -R u+w "${RPMTEST}"
+            mkdir -p $1/{upper,work} ${RPMTEST}
+            mount -t overlay ${2:-sandbox} \
+                  -o lowerdir="${RPMTREE}" \
+                  -o upperdir=$1/upper \
+                  -o workdir=$1/work \
+                  ${MOUNT_ARGS} ${RPMTEST}
+        ;;
+        umount)
+            umount -ql $RPMTEST
+        ;;
+        prune)
+            local dir
+            for dir in "$@"; do
+                [ -d "$dir" ] && umount -ql $dir
+            done
         ;;
         exec)
-            (unset RPM_CONFIGDIR RPM_POPTEXEC_PATH
-             cd ${RPMTEST} && \
-             FAKECHROOT_BASE="${RPMTEST}" fakechroot "$@"
-            )
+            @BWRAP@ --unshare-pid --dev-bind $RPMTEST / \
+                    --dev /dev --proc /proc --chdir / "$@"
+        ;;
+        shell)
+            local source=$(findmnt -no SOURCE --mountpoint $RPMTEST)
+            local passwd=$RPMTEST/etc/passwd
+            if [ $# == 0 ]; then
+                if [ -f "$passwd" ]; then
+                    set -- $(grep ^root: $passwd | cut -d: -f7)
+                else
+                    set -- sh
+                fi
+            fi
+            sandbox exec --unshare-uts --hostname $source \
+                         --clearenv --setenv HOME /root \
+                         --bind $PWD /srv "$@"
         ;;
     esac
 }
@@ -115,7 +132,7 @@ function run()
     setup_env
     "$@" --define "_buildhost testhost" \
          --define "_tmppath ${RPMTEST}/tmp" \
-         --define "_topdir ${HOME}/build" \
+         --define "_topdir ${RPMTEST}/build" \
          --define "_db_backend ${DBFORMAT}" \
          --dbpath="${RPMTEST}/var/lib/rpm/"
 }
@@ -123,15 +140,17 @@ function run()
 function rundebug()
 {
     setup_env
+    export RPM_CONFIGDIR=${RPMTEST}/@RPM_CONFIGDIR@
     cp ${RPMDATA}/macros.debug ${RPM_CONFIGDIR}/macros.d/
     run "$@"
     rm -f ${RPM_CONFIGDIR}/macros.d/macros.debug
+    unset RPM_CONFIGDIR
 }
 
 function runroot()
 {
     setup_env
-    sandbox exec env MAGIC="/magic/magic" "$@" \
+    sandbox exec "$@" \
             --define "_buildhost testhost" \
             --define "_topdir /build" \
             --noplugins --nouserns
@@ -142,3 +161,6 @@ function runroot_other()
     setup_env
     sandbox exec "$@"
 }
+
+sandbox prune rpmtests.dir/*/tree
+return 0

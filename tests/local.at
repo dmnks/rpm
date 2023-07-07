@@ -2,8 +2,7 @@ AT_TESTED([rpm rpmbuild rpmquery])
 
 m4_define([RPMTEST_SETUP],[[
 export RPMTEST="${PWD}/tree"
-export HOME="${RPMTEST}"
-[ -d tree/ ] || sandbox mount
+[ -d "$RPMTEST" ] || sandbox mount "${PWD}"
 ]])
 
 m4_define([RPMDB_INIT],[
@@ -37,6 +36,9 @@ AT_CHECK_UNQUOTED($@)
 ])
 
 m4_define([RPMTEST_CLEANUP],[
+# Make sure we unmount RPMTEST even if it was mounted (and thus the variable
+# exported) in an RPMTEST_CHECK subshell, by setting RPMTEST explicitly here.
+RPMTEST="${PWD}/tree" sandbox umount
 AT_CLEANUP
 ])
 
