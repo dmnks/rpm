@@ -82,8 +82,8 @@ add_custom_target(tree
 )
 
 add_custom_command(TARGET tree POST_BUILD
-	COMMAND chmod -R u-w mktree.output/tree
+	COMMAND chmod -R u-w mktree.sandbox/tree
 )
 add_custom_command(TARGET check POST_BUILD
-	COMMAND chmod -R u+w mktree.output/tree
+	COMMAND chmod -R u+w mktree.sandbox/tree
 )
