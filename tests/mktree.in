@@ -7,7 +7,7 @@ if [ "$CMD" == "check" ]; then
 fi
 
 bindir=@CMAKE_INSTALL_FULL_BINDIR@
-tree=mktree.output/tree
+tree=mktree.check/tree
 
 # The chmod is needed when copying from read-only sources (eg in distcheck)
 if [ -d ${tree} ]; then
