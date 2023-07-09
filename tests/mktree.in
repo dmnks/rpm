@@ -55,8 +55,9 @@ function sandbox()
         ;;
         exec)
             (unset RPM_CONFIGDIR RPM_POPTEXEC_PATH
-             cd ${RPMTEST} && \
-             FAKECHROOT_BASE="${RPMTEST}" fakechroot "$@"
+             @BWRAP@ --unshare-pid --dev-bind $RPMTEST / \
+                     --setenv PATH "@CMAKE_INSTALL_FULL_BINDIR@:/usr/bin" \
+                     --setenv HOME / --dev /dev --proc /proc --chdir / "$@"
             )
         ;;
         init)
