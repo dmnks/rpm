@@ -54,11 +54,9 @@ function sandbox()
             return 0
         ;;
         exec)
-            (unset RPM_CONFIGDIR RPM_POPTEXEC_PATH
-             @BWRAP@ --unshare-pid --dev-bind $RPMTEST / \
-                     --setenv PATH "@CMAKE_INSTALL_FULL_BINDIR@:/usr/bin" \
-                     --setenv HOME / --dev /dev --proc /proc --chdir / "$@"
-            )
+            @BWRAP@ --unshare-pid --dev-bind $RPMTEST / --clearenv \
+                    --setenv PATH "@CMAKE_INSTALL_FULL_BINDIR@:/usr/bin" \
+                    --setenv HOME / --dev /dev --proc /proc --chdir / "$@"
         ;;
         init)
             RPMTREE=$INST_DIR:$BASE_DIR
