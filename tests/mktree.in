@@ -24,7 +24,7 @@ You can use the usual test commands, e.g.
 
 CMD=$1; shift
 
-# Manage fakechroot environments on top of a directory tree
+# Manage bwrap containers on top of a directory tree
 function snapshot()
 {
     local cmd=$1
@@ -60,8 +60,9 @@ function snapshot()
         ;;
         exec)
             (unset RPM_CONFIGDIR RPM_POPTEXEC_PATH
-             cd ${RPMTEST} && \
-             FAKECHROOT_BASE="${RPMTEST}" fakechroot "$@"
+             @BWRAP@ --unshare-pid --dev-bind $RPMTEST / \
+                     --setenv PATH "@CMAKE_INSTALL_FULL_BINDIR@:/usr/bin" \
+                     --setenv HOME / --chdir / --dev /dev --proc /proc "$@"
             )
         ;;
     esac
