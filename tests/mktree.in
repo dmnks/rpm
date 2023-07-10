@@ -7,6 +7,18 @@ BASE_DIR=$TREE_DIR/base
 INST_DIR=$TREE_DIR/inst
 SAND_DIR=$PWD/mktree.sandbox
 
+ENV_MOTD="
+Welcome to RPM test environment!
+
+This is like an interactive test but with
+full host integration.
+
+Your test tree is mounted at \$RPMTEST.
+You can use the usual test commands, e.g.
+
+  runroot rpm ...
+"
+
 CMD=$1; shift
 
 # Build and install RPM and the test-suite data into a directory
@@ -54,6 +66,12 @@ case $CMD in
         $OS_BUILD $BASE_DIR
         rm -rf $INST_DIR
         make_install $INST_DIR
+    ;;
+    env)
+        create_sandbox $SAND_DIR
+        echo "$ENV_MOTD"
+        $SHELL
+        exit 0
     ;;
     check)
         create_sandbox $SAND_DIR
