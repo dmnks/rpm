@@ -64,7 +64,7 @@ case $CMD in
     ;;
     check)
         rm -rf $CHECK_DIR
-        wrap $CHECK_DIR ./rpmtests "$@"
+        wrap $CHECK_DIR sandbox shell --chdir /srv ./rpmtests "$@"
     ;;
     env)
         wrap $CHECK_DIR $SHELL

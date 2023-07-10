@@ -4,8 +4,8 @@
 # compatible with the libraries built against, without any pre-existing RPM
 # installation and with the following binaries (test-suite dependencies):
 #
-#   bash cat chmod coreutils cp cut diff false file find grep gzip install
-#   ionice ln locale mkdir mknod mktemp nice patch rm sed sh sort
+#   bash bwrap cat chmod coreutils cp cut diff false file find grep gzip
+#   install ionice ln locale mkdir mknod mktemp nice patch rm sed sh sort
 #   systemd-sysusers tar touch true uname wc xargs
 #
 # The destination directory is received as the first argument (absolute path).
@@ -39,6 +39,7 @@ dnf install -y \
     audit \
     bash \
     binutils \
+    bubblewrap \
     bzip2 \
     coreutils \
     cpio \
