@@ -128,6 +128,19 @@ function sandbox()
                     --setenv PATH "@CMAKE_INSTALL_FULL_BINDIR@:/usr/bin" \
                     --setenv HOME / --chdir / --dev /dev --proc /proc "$@"
         ;;
+        shell)
+            local source=$(findmnt -no SOURCE --mountpoint $RPMTEST)
+            local passwd=$RPMTEST/etc/passwd
+            if [ $# == 0 ]; then
+                if [ -f "$passwd" ]; then
+                    set -- $(grep ^root: $passwd | cut -d: -f7)
+                else
+                    set -- sh
+                fi
+            fi
+            sandbox exec --unshare-uts --hostname $source --clearenv \
+                         --setenv HOME /root --bind $PWD /srv "$@"
+        ;;
     esac
 }
 

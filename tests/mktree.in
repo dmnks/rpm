@@ -75,6 +75,11 @@ case $CMD in
         $SHELL
         exit 0
     ;;
+    shell)
+        create_sandbox $SAND_DIR
+        sandbox shell "$@"
+        exit 0
+    ;;
     check)
         create_sandbox $SAND_DIR
         ./rpmtests "$@"
