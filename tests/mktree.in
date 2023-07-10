@@ -76,6 +76,11 @@ case $CMD in
         $SHELL
         exit 0
     ;;
+    shell)
+        mount_tree $TREE_DIR $SNAP_DIR
+        snapshot shell "$@"
+        exit 0
+    ;;
     check)
         mount_tree $TREE_DIR
         ./rpmtests "$@"
