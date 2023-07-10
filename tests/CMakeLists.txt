@@ -97,6 +97,11 @@ add_custom_command(OUTPUT rpmtests
 	DEPENDS local.at
 )
 
+add_custom_target(shell
+	COMMAND ./mktree shell
+	DEPENDS tree
+)
+
 add_custom_target(env
 	COMMAND ./mktree env
 	DEPENDS tree
@@ -107,6 +112,10 @@ add_custom_target(tree
 	DEPENDS rpmtests
 	DEPENDS ${TESTPROGS}
 	DEPENDS ${TOP_TARGETS}
+)
+
+add_custom_target(reset
+	COMMAND ./mktree reset
 )
 
 add_custom_target(tree-clean

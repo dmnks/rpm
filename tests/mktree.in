@@ -6,6 +6,7 @@ TREE_DIR=$PWD/mktree.output
 BASE_DIR=$TREE_DIR/base
 INST_DIR=$TREE_DIR/inst
 
+SHELL_DIR=$PWD/mktree.shell
 CHECK_DIR=$PWD/mktree.check
 
 CMD=$1; shift
@@ -58,12 +59,18 @@ case $CMD in
         rm -rf $INST_DIR
         install $INST_DIR
     ;;
+    shell)
+        wrap $SHELL_DIR sandbox shell "$@"
+    ;;
     check)
         rm -rf $CHECK_DIR
         wrap $CHECK_DIR ./rpmtests "$@"
     ;;
     env)
         wrap $CHECK_DIR $SHELL
+    ;;
+    reset)
+        rm -rf $SHELL_DIR
     ;;
     clean)
         rm -rf $BASE_DIR
