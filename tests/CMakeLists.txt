@@ -65,6 +65,7 @@ foreach(prg ${TESTPROGS})
 	add_executable(${prg} EXCLUDE_FROM_ALL ${prg}.c)
 	target_link_libraries(${prg} PRIVATE librpmio)
 endforeach()
+string(REPLACE ";" " " TESTPROG_NAMES "${TESTPROGS}")
 
 # Detect suitable mktree backend
 if (NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/mktree.${OS_NAME})
