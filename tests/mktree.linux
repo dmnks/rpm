@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# Linux-native mktree backend using an OS-specific bootstrap script and
+# lightweight Bubblewrap & OverlayFS sandboxing.
+
 source ./mktree.common
 
 OS_BUILDER=./mktree.@OS_NAME@
