@@ -68,18 +68,25 @@ endforeach()
 string(REPLACE ";" " " TESTPROG_NAMES "${TESTPROGS}")
 
 # Detect suitable mktree backend
-if (NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/mktree.${OS_NAME})
-	message(WARNING
-		"No suitable mktree backend found for this platform. "
-		"Disabling test suite.")
-	return()
+if ("${MKTREE_BACKEND}" STREQUAL "")
+	if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/mktree.${OS_NAME})
+		set(MKTREE_BACKEND native)
+	else()
+		message(WARNING
+			"No suitable mktree backend found for this platform. "
+			"Disabling test suite.")
+		return()
+	endif()
 endif()
+
+# Set up mktree
+message(STATUS "Using mktree backend: ${MKTREE_BACKEND}")
+configure_file(mktree.common mktree.common @ONLY)
+configure_file(mktree.${OS_NAME} mktree.${OS_NAME} @ONLY)
+configure_file(mktree.${MKTREE_BACKEND} mktree @ONLY)
 
 configure_file(atlocal.in atlocal @ONLY)
 configure_file(package.m4.in package.m4 @ONLY)
-configure_file(mktree.common mktree.common @ONLY)
-configure_file(mktree.in mktree @ONLY)
-configure_file(mktree.${OS_NAME} mktree.${OS_NAME} @ONLY)
 
 include(ProcessorCount)
 ProcessorCount(nproc)
