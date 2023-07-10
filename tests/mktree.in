@@ -131,7 +131,7 @@ case $CMD in
     ;;
     check)
         sandbox init $SAND_DIR
-        ./rpmtests "$@"
+        sandbox shell --chdir /srv ./rpmtests "$@"
     ;;
     setup)
         :
