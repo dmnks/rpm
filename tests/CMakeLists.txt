@@ -97,6 +97,11 @@ add_custom_command(OUTPUT rpmtests
 	DEPENDS local.at
 )
 
+add_custom_target(env
+	COMMAND ./mktree env
+	DEPENDS tree
+)
+
 add_custom_target(tree
 	COMMAND ./mktree build
 	DEPENDS rpmtests
