@@ -14,6 +14,7 @@ else
     MOUNT_ARGS=""
 fi
 
+ENV_FILE=$BASE_DIR/.mktree.env
 ENV_MOTD="
 Welcome to RPM test environment!
 
@@ -105,6 +106,7 @@ case $CMD in
     env)
         set -a
         source ./atlocal
+        [ -f "$ENV_FILE" ] && source $ENV_FILE
         sandbox init $SAND_DIR
         echo "$ENV_MOTD"
         $SHELL
