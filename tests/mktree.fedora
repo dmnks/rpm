@@ -72,3 +72,15 @@ echo "%_dbpath $(rpm --eval '%_dbpath')" > $BASE_DIR/root/.rpmmacros
 
 # Configure default shell for root user
 cp -r $BASE_DIR/{etc/skel/.,/root}
+
+cat > $ENV_FILE << EOF
+ENV_MOTD+="
+To install packages into the tree, use
+
+  dnf install ...
+"
+function dnf()
+{
+    $DNF --installroot=\$RPMTEST "\$@"
+}
+EOF
