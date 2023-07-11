@@ -10,6 +10,7 @@ TREE_DIR=$OUT_DIR/tree
 SNAP_DIR=$OUT_DIR/snap
 CACHE_DIR=$PWD/mktree.cache
 
+ENV_FILE=$BASE_DIR/.mktree.env
 ENV_MOTD="
 Welcome to RPM test environment!
 
@@ -120,6 +121,7 @@ case $CMD in
         set -a
         source ./atlocal
         snapshot create
+        [ -f "$ENV_FILE" ] && source $ENV_FILE
         echo "$ENV_MOTD"
         $SHELL
         exit 0
