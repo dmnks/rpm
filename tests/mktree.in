@@ -7,6 +7,7 @@ BASE_DIR=$TREE_DIR/base
 INST_DIR=$TREE_DIR/inst
 SAND_DIR=$PWD/mktree.sandbox
 
+ENV_FILE=$BASE_DIR/.mktree.env
 ENV_MOTD="
 Welcome to RPM test environment!
 
@@ -69,6 +70,7 @@ case $CMD in
     ;;
     env)
         create_sandbox $SAND_DIR
+        [ -f "$ENV_FILE" ] && source $ENV_FILE
         echo "$ENV_MOTD"
         $SHELL
         exit 0

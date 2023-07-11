@@ -14,6 +14,11 @@
 # Any support files this script creates should be kept in the ./mktree.cache
 # directory.
 #
+# If a file named .mktree.env is created in the root of the tree, it will
+# automatically be sourced in "make env".  This is useful to define OS-specific
+# variables or functions such as to instruct the host package manager to
+# operate on the tree mounted at $RPMTEST.
+#
 # This script is to be executed as root (usually via a user namespace).
 
 DEST_DIR=$1; shift
@@ -90,3 +95,15 @@ echo "%_dbpath $(rpm --eval '%_dbpath')" > \
 
 # Configure default shell for root user
 cp -r $DEST_DIR/{etc/skel/.,/root}
+
+cat > $DEST_DIR/.mktree.env <<EOF
+ENV_MOTD+="
+To install packages into the tree, use
+
+  dnf install ...
+"
+function dnf()
+{
+    $DNF --installroot=\$RPMTEST "\$@"
+}
+EOF
