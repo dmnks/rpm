@@ -92,42 +92,6 @@ function setup_env()
     fi
 }
 
-function snapshot()
-{
-    local cmd=$1
-    shift
-    case $cmd in
-        mount)
-            local opts
-            if [ $# != 0 ]; then
-                mkdir -p $1/diff $1/work
-                opts="-o upperdir=$1/diff,workdir=$1/work"
-            fi
-            [ ${ROOTLESS:-1} == 1 ] && opts+=" -o userxattr"
-            mkdir -p ${RPMTEST}
-            mount -t overlay sandbox \
-                  -o lowerdir="${RPMTREE}" \
-                  ${opts} ${RPMTEST}
-        ;;
-        umount)
-            umount -ql $RPMTEST
-        ;;
-        prune)
-            local dir
-            for dir in "$@"; do
-                [ -d "$dir" ] && umount -ql $dir
-            done
-            return 0
-        ;;
-        exec)
-            (unset RPM_CONFIGDIR RPM_POPTEXEC_PATH
-             cd ${RPMTEST} && \
-             FAKECHROOT_BASE="${RPMTEST}" fakechroot "$@"
-            )
-        ;;
-    esac
-}
-
 function run()
 {
     setup_env
@@ -161,4 +125,5 @@ function runroot_other()
     snapshot exec "$@"
 }
 
+source ./mktree setup
 snapshot prune rpmtests.dir/*/tree
