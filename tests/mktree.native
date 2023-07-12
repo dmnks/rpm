@@ -35,8 +35,10 @@ function sandbox()
                   -o upperdir=$1/upper \
                   -o workdir=$1/work \
                   ${MOUNT_ARGS} ${RPMTEST}
+            mount --bind /dev $RPMTEST/dev/
         ;;
         umount)
+            umount -ql $RPMTEST/dev
             umount -ql $RPMTEST
         ;;
         prune)
@@ -48,8 +50,13 @@ function sandbox()
         ;;
         exec)
             @BWRAP@ --unshare-pid --dev-bind $RPMTEST / --clearenv \
-                    --setenv PATH "@CMAKE_INSTALL_FULL_BINDIR@:/usr/bin" \
+                    --setenv PATH "@CMAKE_INSTALL_FULL_BINDIR@:/usr/bin:/usr/sbin" \
                     --setenv HOME / --dev /dev --proc /proc --chdir / "$@"
+        ;;
+        exec2)
+            (export PATH="@CMAKE_INSTALL_FULL_BINDIR@:/usr/bin:/usr/sbin";
+            export HOME=/;
+            chroot $RPMTEST "$@";)
         ;;
         shell)
             local source=$(findmnt -no SOURCE --mountpoint $RPMTEST)
