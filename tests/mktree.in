@@ -7,7 +7,47 @@ BASE_DIR=$TREE_DIR/base
 INST_DIR=$TREE_DIR/inst
 SAND_DIR=$PWD/mktree.sandbox
 
+ROOTLESS=${ROOTLESS:-1}
+if [ $ROOTLESS == 1 ]; then
+    MOUNT_ARGS="-o userxattr"
+else
+    MOUNT_ARGS=""
+fi
+
 CMD=$1; shift
+
+# Manage lightweight bwrap containers on top of a directory tree
+function sandbox()
+{
+    local cmd=$1
+    shift
+    case $cmd in
+        mount)
+            mkdir -p $1/upper $1/work ${RPMTEST}
+            mount -t overlay ${2:-sandbox} \
+                  -o lowerdir="${RPMTREE}" \
+                  -o upperdir=$1/upper \
+                  -o workdir=$1/work \
+                  ${MOUNT_ARGS} ${RPMTEST}
+        ;;
+        umount)
+            umount -ql $RPMTEST
+        ;;
+        prune)
+            local dir
+            for dir in "$@"; do
+                [ -d "$dir" ] && umount -ql $dir
+            done
+            return 0
+        ;;
+        exec)
+            (unset RPM_CONFIGDIR RPM_POPTEXEC_PATH
+             cd ${RPMTEST} && \
+             FAKECHROOT_BASE="${RPMTEST}" fakechroot "$@"
+            )
+        ;;
+    esac
+}
 
 # Build and install RPM and the test-suite data into a directory
 function make_install()
@@ -53,6 +93,9 @@ case $CMD in
         sandbox mount $SAND_DIR
         shift
         ./rpmtests "$@"
+    ;;
+    setup)
+        :
     ;;
     reset)
         rm -rf $SAND_DIR
