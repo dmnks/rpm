@@ -82,7 +82,7 @@ case $CMD in
     ;;
     check)
         create_sandbox $SAND_DIR
-        ./rpmtests "$@"
+        sandbox shell --chdir /srv ./rpmtests "$@"
     ;;
     reset)
         rm -rf $SAND_DIR

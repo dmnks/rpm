@@ -12,9 +12,8 @@ struct test {
 
 static int test(struct test *test)
 {
-    // This program is run from BUILDDIR/tests/rpmtests.dir/XXX.  The
-    // data is in BUILDDIR/tests/mktree.sandbox/tree.
-    const char *dir = "../../mktree.sandbox/tree/data/";
+    // This program is run from a container, the data is in /data.
+    const char *dir = "/data/";
 
     const char *filename = test->filename;
     const char *fpr = test->fingerprint;
