@@ -83,7 +83,8 @@ case $CMD in
     ;;
     check)
         mount_tree $TREE_DIR
-        ./rpmtests "$@"
+        mount_tree $SAND_DIR/tree $SAND_DIR
+        snapshot shell --chdir /srv ./rpmtests "$@"
     ;;
     reset)
         rm -rf $SNAP_DIR
