@@ -130,7 +130,8 @@ case $CMD in
     ;;
     check)
         snapshot create $TREE_DIR
-        ./rpmtests "$@"
+        snapshot create $SAND_DIR/tree $SAND_DIR
+        snapshot shell --chdir /srv ./rpmtests "$@"
     ;;
     reset)
         rm -rf $SNAP_DIR
