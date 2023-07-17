@@ -1,4 +1,4 @@
-RPMTREE="@CMAKE_CURRENT_BINARY_DIR@/mktree.output/tree"
+RPMTREE="@CMAKE_CURRENT_BINARY_DIR@/mktree.sandbox/tree"
 
 RPMLIBDIR="@CMAKE_INSTALL_FULL_LIBDIR@"
 LD_LIBRARY_PATH="${RPMTREE}/${RPMLIBDIR}${LD_LIBRARY_PATH+:${LD_LIBRARY_PATH}}"
@@ -82,6 +82,13 @@ if ! LD_PRELOAD=${MALLOC_DEBUG} /bin/true 2>&1 | grep -q ERROR; then
     export LD_PRELOAD GLIBC_TUNABLES
 fi
 
+ROOTLESS=${ROOTLESS:-1}
+if [ $ROOTLESS == 1 ]; then
+    MOUNT_ARGS="-o userxattr"
+else
+    MOUNT_ARGS=""
+fi
+
 function setup_env()
 {
     if [ -d tree ]; then
@@ -98,8 +105,22 @@ function sandbox()
     shift
     case $cmd in
         mount)
-            cp -aP "${RPMTREE}" "${RPMTEST}"
-            chmod -R u+w "${RPMTEST}"
+            mkdir -p $1/upper $1/work ${RPMTEST}
+            mount -t overlay ${2:-sandbox} \
+                  -o lowerdir="${RPMTREE}" \
+                  -o upperdir=$1/upper \
+                  -o workdir=$1/work \
+                  ${MOUNT_ARGS} ${RPMTEST}
+        ;;
+        umount)
+            umount -ql $RPMTEST
+        ;;
+        prune)
+            local dir
+            for dir in "$@"; do
+                [ -d "$dir" ] && umount -ql $dir
+            done
+            return 0
         ;;
         exec)
             (unset RPM_CONFIGDIR RPM_POPTEXEC_PATH
@@ -131,7 +152,7 @@ function rundebug()
 function runroot()
 {
     setup_env
-    sandbox exec env MAGIC="/magic/magic" "$@" \
+    sandbox exec "$@" \
             --define "_buildhost testhost" \
             --define "_topdir /build" \
             --noplugins --nouserns
@@ -142,3 +163,5 @@ function runroot_other()
     setup_env
     sandbox exec "$@"
 }
+
+sandbox prune rpmtests.dir/*/tree
