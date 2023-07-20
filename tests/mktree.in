@@ -82,8 +82,7 @@ case $CMD in
         exit 0
     ;;
     check)
-        mount_tree $TREE_DIR
-        mount_tree $SAND_DIR/tree $SAND_DIR
+        mount_tree $TREE_DIR $SAND_DIR
         snapshot shell --chdir /srv ./rpmtests "$@"
     ;;
     reset)
