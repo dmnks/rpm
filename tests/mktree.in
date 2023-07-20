@@ -129,8 +129,7 @@ case $CMD in
         exit 0
     ;;
     check)
-        snapshot create $TREE_DIR
-        snapshot create $SAND_DIR/tree $SAND_DIR
+        snapshot create $TREE_DIR $SAND_DIR
         snapshot shell --chdir /srv ./rpmtests "$@"
     ;;
     reset)
