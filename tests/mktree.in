@@ -2,6 +2,7 @@
 
 OS_BUILDER=./mktree.@OS_NAME@
 OS_VERSION=@OS_VERSION@
+OS_EXTRA=./mktree.extra
 
 OUT_DIR=$PWD/mktree.output
 BASE_DIR=$OUT_DIR/base
@@ -65,9 +66,12 @@ fi
 
 case $CMD in
     build)
-        mkdir -p $CACHE_DIR
-        [ -d "$BASE_DIR" ] ||
-        source $OS_BUILDER
+        if [ ! -d "$BASE_DIR" ]; then
+            mkdir -p $CACHE_DIR
+            source $OS_BUILDER
+            [ -f "$OS_EXTRA" ] &&
+            source $OS_EXTRA
+        fi
         rm -rf $INST_DIR
         make_install $INST_DIR
     ;;
