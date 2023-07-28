@@ -1,0 +1,47 @@
+Writing mktree backends
+-----------------------
+
+The mktree program builds an OS filesystem tree (image) that includes an RPM
+installation built from source and the runtime and test dependencies.  Using
+that tree, it then runs the test-suite against it or invokes an interactive
+shell for manual testing.
+
+The program is built during CMake configuration by choosing an implementation
+("backend") native to the given platform, configuring it and copying it to the
+build directory as the "mktree" executable to be invoked by "make check" and
+other targets.  It can also be invoked directly if you wish to skip the verbose
+and time consuming CMake checks.
+
+Most backends will want to integrate with CMake and the host system by using
+the native package manager (e.g. DNF or Zypper) and the local build artifacts
+to produce the tree.  To make writing such backends easy, a sourcable shell
+script called mktree.native is provided which does most of the heavy lifting
+and is intended to be sourced or invoked from such backends.  As an example,
+see the provided mktree.fedora.
+
+Each backend needs to implement a set of commands described below.
+
+* Command: build
+
+This command bootstraps the base OS tree, builds RPM and installs it into tree
+by calling the make_install() shell function sourced from mktree.common with
+the target path as an argument.
+
+
+
+If sourcing mktree.native, your backend only needs to bootstrap the base OS
+tree into $BASE_DIR (absolute path) using packages that correspond to the
+host's distro version stored in $OS_VERSION.
+
+
+
+
+
+or a location native to the underlying tool (think Podman images).
+Any other intermediate files that are not to be removed by "make clean" should be
+stored in the mktree.cache/ directory.
+
+* Command: check
+
+This command runs the test-suite (rpmtests script) against the built tree.
+Normally, you want this to 
