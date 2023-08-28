@@ -1,3 +1,5 @@
+# Testing
+
 To run these tests, you need at least these dependencies on the host:
 
 1.    [bwrap](https://github.com/containers/bubblewrap/)
@@ -45,3 +47,11 @@ You can also run a containerized shell with your RPM checkout:
 To factory-reset the container, run:
 
     make reset
+
+## Architecture
+
+The test-suite runs in a Bubblewrap container on top of an RPM test tree
+produced by the `mktree` binary, see [mktree.README](mktree.README) for more
+information.
+
+Each

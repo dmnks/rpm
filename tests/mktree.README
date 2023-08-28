@@ -1,47 +1,47 @@
 Writing mktree backends
 -----------------------
 
-The mktree program builds an OS filesystem tree (image) that includes an RPM
-installation built from source and the runtime and test dependencies.  Using
-that tree, it then runs the test-suite against it or invokes an interactive
-shell for manual testing.
+The mktree executable is responsible for building a minimal OS filesystem tree
+that includes an RPM installation built from source and its runtime and test
+dependencies that are ABI compatible with the development headers used in the
+build.  This tree is then used to spawn a disposable container on top that runs
+the RPM test-suite (the rpmtests script) or an interactive shell for manual
+testing.  The desired operation is triggered by issuing a command (see below)
+and is normally invoked by "make tree" and other targets.
 
-The program is built during CMake configuration by choosing an implementation
-("backend") native to the given platform, configuring it and copying it to the
-build directory as the "mktree" executable to be invoked by "make check" and
-other targets.  It can also be invoked directly if you wish to skip the verbose
-and time consuming CMake checks.
+On most Linux distributions, the easiest way to bootstrap such a tree with
+matching library versions is to use the native package manager (DNF, Zypper,
+debootstrap, etc.) that allows for specifying a custom root directory and OS
+version.  To support that, the mktree executable is created during CMake
+configuration by choosing a suitable implementation (backend) from this source
+directory, configuring it and copying it to the build directory under the
+"mktree" name.
 
-Most backends will want to integrate with CMake and the host system by using
-the native package manager (e.g. DNF or Zypper) and the local build artifacts
-to produce the tree.  To make writing such backends easy, a sourcable shell
-script called mktree.native is provided which does most of the heavy lifting
-and is intended to be sourced or invoked from such backends.  As an example,
-see the provided mktree.fedora.
+To install the local RPM artifacts, backends should run "make install" with the
+appropriate DESTDIR setting.  This should produce a separate tree that can be
+rebuilt independently and layered on top of the base tree which is mostly
+static, in order for "make check" to run quickly.
 
-Each backend needs to implement a set of commands described below.
+To manage such overlays and containers, backends may use the snapshot() shell
+function defined in the "atlocal" file (by sourcing it) which is used by the
+test-suite to isolate writable tests from each other.  The function uses
+Bubblewrap and OverlayFS to spawn lightweight containers on top of a set of
+directories, see README for more information.
+
+A reference implementation for Fedora Linux hosts (mktree.fedora) is available.
+Developers wishing to test RPM on other distros are encouraged to write and
+contribute a backend for their distro by copying and adjusting mktree.fedora as
+needed.  Common logic can later be refactored into the mktree.common file.
+
+On distros that don't have a native backend (yet), CMake will automatically
+fall back to mktree.podman.  This backend uses the official Fedora OCI image to
+completely isolate the build process (including CMake) from the host and reuses
+the same image for the runtime (after removing the stock RPM installation from
+it).  One downside is that a new CMake build is done from scratch on each "make
+check" invocation.  The primary use case for this backend is for our CI
+environment which runs the test-suite in disposable Ubuntu VMs, one per job.
+
+Commands to implement
+---------------------
 
 * Command: build
-
-This command bootstraps the base OS tree, builds RPM and installs it into tree
-by calling the make_install() shell function sourced from mktree.common with
-the target path as an argument.
-
-
-
-If sourcing mktree.native, your backend only needs to bootstrap the base OS
-tree into $BASE_DIR (absolute path) using packages that correspond to the
-host's distro version stored in $OS_VERSION.
-
-
-
-
-
-or a location native to the underlying tool (think Podman images).
-Any other intermediate files that are not to be removed by "make clean" should be
-stored in the mktree.cache/ directory.
-
-* Command: check
-
-This command runs the test-suite (rpmtests script) against the built tree.
-Normally, you want this to 
