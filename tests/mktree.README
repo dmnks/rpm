@@ -2,20 +2,28 @@ Writing mktree backends
 -----------------------
 
 The mktree executable is responsible for building a minimal OS filesystem tree
-that includes an RPM installation built from source and its runtime and test
-dependencies that are ABI compatible with the development headers used in the
-build.  This tree is then used to spawn a disposable container on top that runs
-the RPM test-suite (the rpmtests script) or an interactive shell for manual
-testing.  The desired operation is triggered by issuing a command (see below)
-and is normally invoked by "make tree" and other targets.
+that includes an RPM installation built from these sources and its runtime and
+test dependencies that are ABI compatible with the development headers used in
+the build.  This tree is then used to spawn disposable containers on top that
+run RPM tests or interactive shells.  The executable accepts a series of
+commands described below.
 
-On most Linux distributions, the easiest way to bootstrap such a tree with
-matching library versions is to use the native package manager (DNF, Zypper,
-debootstrap, etc.) that allows for specifying a custom root directory and OS
-version.  To support that, the mktree executable is created during CMake
-configuration by choosing a suitable implementation (backend) from this source
-directory, configuring it and copying it to the build directory under the
-"mktree" name.
+Most Linux package managers such as DNF or Zypper allow for specifying a custom
+root directory and OS version which makes them a good candidate for setting up
+such a tree with matching library versions.  To support that, the final mktree
+executable is made during CMake configuration by choosing a host-native backend
+from this directory (files named with the "mktree." prefix), configuring it and
+copying it to the CMake build directory under the name "mktree" which is then
+invoked by "make tree" (a dependency of "make check" and "make shell").  It can
+also be invoked directly from the tests/ binary directory if one wishes to skip
+the CMake overhead.
+
+
+
+
+
+
+Most backends should use the local RPM build artifacts to CONTINUE HERE
 
 To install the local RPM artifacts, backends should run "make install" with the
 appropriate DESTDIR setting.  This should produce a separate tree that can be
