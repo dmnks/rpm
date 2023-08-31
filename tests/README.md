@@ -1,16 +1,34 @@
 # Test suite
 
+The test suite is written using GNU Autotest and, once built, is a standalone
+bash script named `rpmtests` which must be run as root and exercises the RPM
+installation in the root filesystem.
+
+When hacking on RPM, installing the build artifacts natively is typically not
+desired so `make check` runs the script in a container on top of a minimal OS
+filesystem tree that mirrors the host OS and includes a fresh installation of
+RPM in the configured prefix.
+
 ## Running tests
 
 To run these tests, you need [autom4te](https://www.gnu.org/software/autoconf/)
-and either of the following:
+and one of the following container tools:
 
-1. [bwrap](https://github.com/containers/bubblewrap/)
-1. [podman](https://github.com/containers/podman/)
-1. [docker](https://github.com/docker/)
+1. [Bubblewrap](https://github.com/containers/bubblewrap/)
+1. [Podman](https://github.com/containers/podman/)
+1. [Docker](https://github.com/docker/)
+
+These tools are required for isolation and are looked for in the given order.
+If none is available, the test suite will be disabled.
+
+Bubblewrap provides the best experience as it's lightweight, fast and runs the
+test suite against your local build directory.  Podman and Docker will perform
+a clean RPM build in a container on every run which is more portable and thus
+suitable for the CI environment but not as much for local development.
 
 > [!IMPORTANT]
-> If your host is *not* running Fedora Linux, `podman` or `docker` is required.
+> Bubblewrap is currently only supported by the test suite on Fedora Linux
+> hosts, other distros will need Podman or Docker installed.
 
 Then run the command:
 
