@@ -2,12 +2,13 @@
 
 The test suite is written using GNU Autotest and, once built, is a standalone
 bash script named `rpmtests` which must be run as root and exercises the RPM
-installation in the root filesystem.
+installation in the root filesystem.  The tests that need to modify the root
+filesystem get a writable, disposable snapshot of it.
 
 When hacking on RPM, installing the build artifacts natively is typically not
-desired so `make check` runs the script in a container on top of a minimal OS
-filesystem tree that mirrors the host OS and includes a fresh installation of
-RPM in the configured prefix.
+desired so, by default, `make check` runs this script in a container on top of
+a minimal OS image that mirrors the host OS and includes an installation of RPM
+in the configured prefix.
 
 ## Running tests
 
@@ -18,17 +19,20 @@ and one of the following container tools:
 1. [Podman](https://github.com/containers/podman/)
 1. [Docker](https://github.com/docker/)
 
-These tools are required for isolation and are looked for in the given order.
-If none is available, the test suite will be disabled.
+These tools are required for test suite isolation and are looked for in that
+order.  If none is available, the test suite will be disabled.
 
-Bubblewrap provides the best experience as it's lightweight, fast and runs the
-test suite against your local build directory.  Podman and Docker will perform
-a clean RPM build in a container on every run which is more portable and thus
-suitable for the CI environment but not as much for local development.
+Bubblewrap provides the best experience as it's lightweight and runs the test
+suite against your local build directory, using the native package manager such
+as DNF or Zypper to setup the OS image.
+
+Podman and Docker will perform a separate build in a container on every run,
+which is more portable and thus suitable for the CI environment but not as
+optimal for local development.
 
 > [!IMPORTANT]
-> Bubblewrap is currently only supported by the test suite on Fedora Linux
-> hosts, other distros will need Podman or Docker installed.
+> Currently, the Bubblewrap method is only supported on Fedora Linux hosts,
+> other distros will need Podman or Docker installed.
 
 Then run the command:
 
@@ -62,146 +66,100 @@ specific `-jN` value to limit, for example:
 
     make check TESTOPTS="-j4"
 
-## Running RPM manually
+## Interactive testing
 
-To test-drive your current RPM checkout in a shell, run:
+To manually test your RPM build in a shell, run:
 
     make shell
 
-This will drop you into a containerized shell with RPM built and installed into
-the configured prefix.  The container runs a minimal version of your host OS,
-with the `tests` directory mounted at `/srv` for your convenience.
+This spawns a container on top of the same OS image as the one used by the test
+suite, with a shell as the process and the `tests` directory mounted at `/srv`
+for easy sharing of files with the host.
 
-For any source changes to take effect, simply rerun this target, any other
-changes to the filesystem will be retained.
+When re-entering this shell, the image is rebuilt for any RPM source changes to
+take effect, the OS layer is reused and any user changes to the filesystem are
+retained.
 
-To factory-reset the container's filesystem, leave the shell and run:
+> [!IMPORTANT]
+> If using Podman or Docker, user changes are dropped too.
+
+To factory-reset the container (drop any user changes), run:
 
     make reset
 
-## How it works
+## Test-like environment
 
-### Overview
+This is like `make shell` on steroids, invoke it with:
 
-The test suite is written using GNU Autotest and, once built, is a standalone
-Bourne shell script named `rpmtests`.  The script is intended to be run as root
-and will exercise the RPM installation in the root filesystem that's preferably
-mounted as read-only.
+    make env
 
-Each test in the suite that needs write access to the root filesystem (such as
-to install packages) runs RPM in a mutable, disposable container (a *snapshot*)
-on top of the root filesystem.  This is to prevent the individual tests from
-affecting each other.
+This shell runs natively on the host, sources the `atlocal` file with the usual
+test commands such as `runroot`, and mounts a writable snapshot of the OS image
+at the path stored in `$RPMTEST`.
 
-When hacking on RPM, one typically does not wish to install the build artifacts
-into the host system and remount it as read-only.  To avoid that, `make check`
-creates a minimal OS filesystem tree that mirrors the host, `make install`s RPM
-into it and runs the `rpmtests` script in a container on top.  This completely
-isolates the test suite from the host.
+> [!WARNING]
+> Unlike a real test, this shell runs **without** filesystem isolation from the
+> host so be mindful when using destructive commands.
 
-The container technology used is a combination of
-[Bubblewrap](https://github.com/containers/bubblewrap/),
-[OverlayFS](https://docs.kernel.org/filesystems/overlayfs.html) and Linux
-`namespaces(7)`.  This allows for spawning a large number of lightweight
-containers, some in parallel, on top of a shared, read-only filesystem, with
-minimal overhead and thus very quickly.  Thanks to the use of namespaces, it
-works under a regular, non-root user.  Since most of these technologies are
-only available on Linux, this currently limits the test suite to Linux hosts
-only.
+The advantage over `make shell` is that you can use your native tooling to view
+or modify the contents of the filesystem in `$RPMTEST`.  It can also be handy
+when debugging a newly written test.
 
-### Making the tree
+> [!NOTE]
+> See the `motd(5)`-like output printed upon entering the shell for the
+> instructions on how to use it.
 
-The `mktree` executable is responsible for creating the filesystem tree and is
-invoked on `make tree` (which is a dependency of `make check` or `make shell`).
-The executable is made during CMake configuration by choosing an implementation
-(a *backend*) native to the running host, configuring it and copying it to the
-build directory under the `mktree` name.
+Effectively, `make shell` is just a shorthand for
 
-Most backends use the native package manager such as DNF or Zypper to install
-RPM's runtime dependencies matching the development headers used in the build,
-the test dependencies, and finally RPM itself using `make install` with the
-appropriate `$DESTDIR` value.  The tree is then cached in the form of layers
-(OS and RPM) and reused on subsequent `make check` runs, with only the RPM
-layer being redone.
+    make env
+    runroot_other $SHELL
 
-Currently, only Fedora Linux hosts are supported natively with `mktree.fedora`,
-other distros automatically fall back to `mktree.podman` which is an
-implementation using Podman/Docker and the official Fedora OCI image to achieve
-the same, with the difference being that RPM is configured and built in a
-container as well.  This makes it more portable and thus ideal for our CI
-purposes where we currently run Ubuntu VMs, but it is not optimal for iterative
-`make check` use as it does not reuse the existing build artifacts.
+> [!NOTE]
+> The snapshot used by `make shell` is the same as the one mounted at
+> `$RPMTEST` in `make env`.
 
 ## Advanced features
 
 ### Common OS layer
 
-If you use multiple CMake build directories during development, you may want
-them to reuse the same OS layer, to save time and disk space.  To enable that,
-simply do this from the root of the *source* directory:
+If you use multiple build directories during development, you may want them to
+reuse the same OS layer, to save time and disk space.  To enable that, simply
+run:
 
+    cd /path/to/source/dir/
     mkdir mktree.output
 
-This directory will then be used by `mktree` to store the OS layer, instead of
-the one in the build directory.
+This directory will then be used by the build system to store the OS layer,
+instead of the build directory.
 
 Note that if you're using `git-worktree(1)`, the `mktree.output` directory will
 only be looked for in the original (full) checkout.
 
 ### Rebuilding the OS layer
 
-Sometimes, you may want to recreate this layer, e.g. if some RPM dependencies
-change and/or to update the software installed in the layer.  Do it simply by
-running:
+Sometimes, you may need to recreate this layer, e.g. if some RPM dependencies
+change and/or to update the software installed in it.  Do it simply by running:
 
     make clean
 
 If you're using a [common OS layer](#common-os-layer), you have to delete it
-manually from the root of the *source* directory:
+manually:
 
+    cd /path/to/source/dir/
     rm -rf mktree.output/
 
-Next time the tree is needed, the OS layer will be rebuilt.
+Next time the image is needed, the OS layer will be rebuilt.
 
-### Interactive test-like environment
+### Reusing a build container
 
-This is like `make shell` on steroids, invoke it with:
+If you already have a throwaway container or VM for building and running RPM,
+you can instruct the test suite to run "natively" in the same root filesystem,
+rather than building a separate image for it, by configuring your build with:
 
-    make env
+    cmake -DMKTREE_BACKEND=rootfs /path/to/source/dir
 
-This shell runs natively on your host, sources the `atlocal` file and mounts a
-test tree at `$RPMTEST`, much like what a typical test would do.  The advantage
-over `make shell` is that you can use your native tools to view and manipulate
-the contents of the filesystem.
-
-This mode can also be useful when writing and debugging a new test.
-
-Note that the filesystem mounted at `$RPMTEST` is the same as the one used by
-`make shell`.  In fact, `make shell` is just a shorthand for
-
-    make env
-    runroot_other $SHELL
-
-with a few extras such as the `tests` directory mounted at `/srv`.
-
-A `motd(5)`-like piece of text is printed upon entering `make env` which
-contains more information on how to use it.
-
-### Specifying a mktree backend
-
-To override the autodetection, use the CMake option `MKTREE_BACKEND` with the
-desired backend name (`mktree` suffix).  This feature can be useful if you wish
-to use an alternative backend.
-
-For instance, if you already use a throwaway development container or VM with
-RPM's build dependencies, you may prefer to just reuse the same filesystem to
-run the test suite against.  In such a case, configure your build with:
-
-    cmake -DMKTREE_BACKEND=rootfs ...
-
-In the future, this option may also be useful if we add an alternative, OS
-agnostic backend that e.g. reflinks the required binaries and libraries from
-the host instead of installing them from packages.
+If you're brave enough, you can also do this on your host and then use `sudo
+make check` but that's not recommended.
 
 ### Running CI locally
 
@@ -212,7 +170,7 @@ following will run the same CI setup locally (needs Podman or Docker):
 
 This is equivalent to doing:
 
-    cmake -DMKTREE_BACKEND=podman ...
+    cmake -DMKTREE_BACKEND=podman /path/to/source/dir
     make check
 
 ## Known Issues
