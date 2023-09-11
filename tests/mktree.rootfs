@@ -14,10 +14,6 @@ case $CMD in
     build)
         source ./mktree.common
         make_install /
-
-        mkdir -p $DATA_DIR
-        cp $0 /usr/bin/
-        cp rpmtests atlocal $DATA_DIR/
     ;;
     check)
         ln -s $DATA_DIR/* .

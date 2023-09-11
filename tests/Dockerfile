@@ -1,4 +1,4 @@
-FROM registry.fedoraproject.org/fedora:38
+FROM registry.fedoraproject.org/fedora:38 AS base
 MAINTAINER rpm-maint@lists.rpm.org
 
 RUN echo -e "deltarpm=0\ninstall_weak_deps=0\ntsflags=nodocs" >> /etc/dnf/dnf.conf
@@ -51,6 +51,17 @@ RUN dnf -y install \
   pandoc \
   && dnf clean all
 RUN echo "%_dbpath $(rpm --eval '%_dbpath')" > /root/.rpmmacros
+RUN rpm -e --nodeps --nodb \
+  rpm \
+  rpm-libs \
+  rpm-build-libs \
+  rpm-sign-libs \
+  python3-rpm
+
+WORKDIR /
+CMD /bin/bash
+
+FROM base AS build
 
 WORKDIR /srv/rpm
 COPY . .
@@ -64,15 +75,7 @@ RUN cmake \
 	-DWITH_IMAEVM=ON \
 	-DMKTREE_BACKEND=rootfs \
 	../rpm
-RUN rpm -e --nodeps \
-	rpm \
-	rpm-libs \
-	rpm-build-libs \
-	rpm-sign-libs \
-	python3-rpm
 RUN make tree
 
 WORKDIR /
 RUN rm -rf /srv/{rpm,build}
-
-CMD /bin/bash

@@ -15,23 +15,63 @@ else
 fi
 
 IMAGE=rpm
+IMAGE_BASE=rpm-base
 NAME=${IMAGE}-sandbox
-ROOTLESS=$([ $(id -u) == 0 ] && echo 0 || echo 1)
-
+ROOTLESS=1
 CMD=$1; shift
+
+# Run CMD in a user namespace (if not root already)
+if [ $(id -u) != 0 ]; then
+    if [ -f /run/.toolboxenv ]; then
+        # toolbox(1) support
+        UNSHARE="sudo --preserve-env"
+    else
+        UNSHARE="podman unshare"
+    fi
+    $UNSHARE $0 $CMD "$@"
+    exit
+fi
+
 case $CMD in
     build)
-        cd $(dirname $0)
-        $PODMAN build -t $IMAGE -f Dockerfile $CONTEXT
+        # cd $(dirname $0)
+
+        # Build (base) image
+        podman image exists $IMAGE_BASE ||
+        podman build --target base -t $IMAGE_BASE -f Dockerfile @CMAKE_CURRENT_SOURCE_DIR@
+        # if [ "$target" != "base" ]; then
+        #     podman tag $IMAGE_BASE $IMAGE
+        #     exit
+        # fi
+
+        # Build RPM natively, layer it on top
+        source ./mktree.common
+        name=$(buildah from $IMAGE_BASE)
+        make_install $(buildah mount $name)
+        buildah rmi $IMAGE
+        buildah commit $name $IMAGE
+        buildah umount $name
+        buildah rm $name
     ;;
     shell)
-        if [ -n "$($PODMAN ps -a -q -f name=$NAME)" ]; then
-            $PODMAN start $NAME >/dev/null
-            $PODMAN attach $NAME
-            exit
+        source ./mktree.common
+        # if [ -n "$($PODMAN ps -a -q -f name=$NAME)" ]; then
+        #     $PODMAN start $NAME >/dev/null
+        #     $PODMAN attach $NAME
+        #     exit
+        # fi
+
+        if [ -z "$($PODMAN ps -a -q -f name=$NAME)" ]; then
+            $PODMAN create --privileged -it --name $NAME --hostname sandbox \
+                           -e ROOTLESS=$ROOTLESS -v $PWD:/srv:z $IMAGE "$@"
         fi
-        $PODMAN run --privileged -it --name $NAME --hostname sandbox \
-                    -e ROOTLESS=$ROOTLESS -v $PWD:/srv:z $IMAGE "$@"
+
+        name=$(podman mount $NAME)
+        make_install $name
+        podman umount $NAME
+
+        podman start --attach $NAME
+
         exit 0
     ;;
     check)
