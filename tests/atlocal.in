@@ -1,4 +1,4 @@
-RPMTREE=/
+RPMTREE=/srv/mktree.output/inst:/base
 
 RPMLIBDIR="@CMAKE_INSTALL_FULL_LIBDIR@"
 export RPMLIBDIR
@@ -21,7 +21,7 @@ else
     exit
 fi
 
-RPMTEST="$RPMTREE"
+RPMTEST="/"
 RPMDATA="/data/"
 
 RPM_CONFIGDIR_PATH="@RPM_CONFIGDIR@"
@@ -120,7 +120,7 @@ function snapshot()
                 fi
             fi
             snapshot exec --unshare-uts --hostname $source \
-                          --bind $PWD /srv "$@"
+                          --bind $PWD /srv --bind $RPMBASE /base "$@"
         ;;
     esac
 }

@@ -1,0 +1,91 @@
+#!/bin/bash
+
+source ./mktree.common
+
+IMAGE=rpm
+DESTDIR=$PWD/mktree.output/inst
+SANDBOX=$PWD/mktree.sandbox
+
+ENV_MOTD="
+Welcome to RPM test environment!
+
+This is like an interactive test with a writable \$RPMTEST
+tree, but with full host integration so you can use your
+native tools to inspect or modify the tree.
+
+The shell runs in a user namespace WITHOUT filesystem
+isolation so be mindful when using destructive commands.
+Treat it like any other shell on your host.
+
+The usual test commands are available, e.g.
+
+  runroot rpm ...
+
+DNF is configured to operate on the tree, use it simply
+like this:
+
+  dnf install ...
+
+To factory-reset the tree, leave this shell and run:
+
+  make reset
+"
+
+CMD=$1; shift
+
+mount_tree()
+{
+    source ./atlocal
+    RPMBASE=$(podman image mount $IMAGE)
+    RPMTREE=$DESTDIR:$RPMBASE
+    RPMTEST=${1:-$SANDBOX}/tree
+    snapshot mount $1
+}
+
+clean_up()
+{
+    [ -n "$RPMTEST" ] && snapshot umount
+    chmod -Rf u+rwX $SANDBOX rpmtests.dir
+}
+
+# Run CMD in a user namespace (if not root already)
+if [ $(id -u) != 0 ]; then
+    if [ -f /run/.toolboxenv ]; then
+        # toolbox(1) support
+        UNSHARE="sudo --preserve-env"
+    else
+        UNSHARE="podman unshare"
+    fi
+    $UNSHARE $0 $CMD "$@"
+    exit
+fi
+
+trap clean_up EXIT
+
+case $CMD in
+    build)
+        podman build --target base -t $IMAGE -f Dockerfile @CMAKE_CURRENT_SOURCE_DIR@
+        rm -rf "$DESTDIR"
+        make_install $DESTDIR
+    ;;
+    env)
+        set -a
+        mount_tree $SANDBOX
+        echo "$ENV_MOTD"
+        $SHELL
+        exit 0
+    ;;
+    shell)
+        mount_tree $SANDBOX
+        snapshot shell "$@"
+        exit 0
+    ;;
+    check)
+        mount_tree
+        snapshot shell --tmpfs /tmp sh -c 'cd /srv && exec ./rpmtests "$@"' \
+                                    rpmtests "$@"
+    ;;
+    reset)
+        rm -rf "$SANDBOX"
+    ;;
+esac
