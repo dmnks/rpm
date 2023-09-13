@@ -8,6 +8,7 @@ if [ "$PROGRAM" == "mktree" ]; then
     # Running from build directory
     PODMAN=@PODMAN@
     CONTEXT=@CMAKE_SOURCE_DIR@
+    source ./mktree.common
 else
     # Running from source directory
     PODMAN=$(echo $PROGRAM | cut -d'.' -f2)
@@ -15,14 +16,45 @@ else
 fi
 
 IMAGE=rpm
+IMAGE_BASE=${IMAGE}-base
 NAME=${IMAGE}-sandbox
-ROOTLESS=$([ $(id -u) == 0 ] && echo 0 || echo 1)
-
+export ROOTLESS=${ROOTLESS:-$([ $(id -u) == 0 ] && echo 0 || echo 1)}
 CMD=$1; shift
+
+# Run CMD in a user namespace (if not root already)
+if [ $(id -u) != 0 ]; then
+    if [ -f /run/.toolboxenv ]; then
+        # toolbox(1) support
+        UNSHARE="sudo --preserve-env"
+    else
+        UNSHARE="podman unshare"
+    fi
+    $UNSHARE $0 $CMD "$@"
+    exit
+fi
+
 case $CMD in
     build)
+        target=full
+        [ "$1" == "--native" ] && target=base
+
+        # Build (base) image
         cd $(dirname $0)
-        $PODMAN build -t $IMAGE -f Dockerfile $CONTEXT
+        $PODMAN build --target $target -t $IMAGE_BASE -f Dockerfile $CONTEXT
+
+        # Finish unless building RPM natively
+        if [ "$target" == "full" ]; then
+            podman tag $IMAGE_BASE $IMAGE
+            exit
+        fi
+
+        # Build RPM natively, layer it on top
+        name=$(buildah from $IMAGE_BASE)
+        make_install $(buildah mount $name)
+        buildah rmi $IMAGE
+        buildah commit $name $IMAGE
+        buildah umount $name
+        buildah rm $name
     ;;
     shell)
         if [ -n "$($PODMAN ps -a -q -f name=$NAME)" ]; then
