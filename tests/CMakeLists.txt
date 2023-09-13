@@ -136,7 +136,7 @@ add_custom_command(OUTPUT rpmtests
 )
 
 add_custom_target(tree
-	COMMAND ./mktree build
+	COMMAND ./mktree build --native
 	BYPRODUCTS mktree.output
 	DEPENDS rpmtests
 	DEPENDS ${TESTPROGS}
