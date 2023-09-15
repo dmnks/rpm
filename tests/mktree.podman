@@ -74,13 +74,11 @@ case $CMD in
         } >/dev/null
     ;;
     shell)
-        if [ -n "$($PODMAN ps -a -q -f name=$NAME)" ]; then
-            $PODMAN start $NAME >/dev/null
-            $PODMAN attach $NAME
-            exit
+        if [ -z "$($PODMAN ps -a -q -f name=$NAME)" ]; then
+            $PODMAN create --privileged -it --name $NAME --hostname sandbox \
+                           -e ROOTLESS=$ROOTLESS -v $PWD:/srv:z $IMAGE "$@"
         fi
-        $PODMAN run --privileged -it --name $NAME --hostname sandbox \
-                    -e ROOTLESS=$ROOTLESS -v $PWD:/srv:z $IMAGE "$@"
+        $PODMAN start --attach $NAME
         exit 0
     ;;
     check)
