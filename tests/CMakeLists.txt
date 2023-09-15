@@ -124,6 +124,10 @@ add_custom_target(check
 	DEPENDS tree
 )
 
+add_custom_target(update
+	COMMAND ./mktree update
+)
+
 add_custom_target(reset
 	COMMAND ./mktree reset
 )
@@ -136,8 +140,11 @@ add_custom_command(OUTPUT rpmtests
 )
 
 add_custom_target(tree
+	DEPENDS .tree
+)
+
+add_custom_command(OUTPUT .tree
 	COMMAND ./mktree build --native
-	BYPRODUCTS mktree.output
 	DEPENDS rpmtests
 	DEPENDS ${TESTPROGS}
 	DEPENDS ${TOP_TARGETS}

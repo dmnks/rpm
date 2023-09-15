@@ -34,6 +34,11 @@ elif [ $DOCKER == 0 ]; then
     exit
 fi
 
+function sandbox_exists()
+{
+    test -n "$($PODMAN ps -aqf name=$NAME)"
+}
+
 case $CMD in
     build)
         target=full
@@ -56,6 +61,7 @@ case $CMD in
 
         # Build (base) image
         $PODMAN build --target $target -t $IMAGE_BASE -f Dockerfile $CONTEXT
+        touch .tree
 
         # Finish unless building RPM natively
         if [ "$target" == "full" ]; then
@@ -67,19 +73,28 @@ case $CMD in
         name=$(buildah from $IMAGE_BASE)
         make_install $(buildah mount $name)
         {
-            buildah rmi $IMAGE
+            buildah rmi $IMAGE 2>/dev/null
             buildah commit -q $name $IMAGE
             buildah umount $name
             buildah rm $name
         } >/dev/null
     ;;
     shell)
-        if [ -z "$($PODMAN ps -a -q -f name=$NAME)" ]; then
+        if ! sandbox_exists; then
             $PODMAN create --privileged -it --name $NAME --hostname sandbox \
-                           -e ROOTLESS=$ROOTLESS -v $PWD:/srv:z $IMAGE "$@"
+                           -e ROOTLESS=$ROOTLESS -v $PWD:/srv:z $IMAGE "$@" \
+                           >/dev/null
         fi
         $PODMAN start --attach $NAME
         exit 0
+    ;;
+    update)
+        if ! sandbox_exists; then
+            echo "No sandbox exists yet." >&2
+            exit 1
+        fi
+        make_install $($PODMAN mount $NAME)
+        $PODMAN umount $NAME >/dev/null
     ;;
     check)
         # Pass select options to $PODMAN
@@ -93,8 +108,10 @@ case $CMD in
                     $OPTS $IMAGE mktree check "$@"
     ;;
     reset)
-        $PODMAN stop $NAME >/dev/null &&
-        $PODMAN rm $NAME >/dev/null
+        {
+            $PODMAN stop $NAME &&
+            $PODMAN rm $NAME
+        } >/dev/null
     ;;
     *)
         echo "Unsupported command." >&2
