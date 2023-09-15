@@ -48,7 +48,7 @@ case $CMD in
                 message="with Docker"
             fi
             if [ $error == 1 ]; then
-                echo "Native build not supported $message." >&2
+                echo "Native build is not supported $message." >&2
                 exit 1
             fi
             target=base
