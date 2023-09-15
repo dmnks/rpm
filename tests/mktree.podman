@@ -65,10 +65,12 @@ case $CMD in
         # Build RPM natively, layer it on top
         name=$(buildah from $IMAGE_BASE)
         make_install $(buildah mount $name)
-        buildah rmi $IMAGE
-        buildah commit $name $IMAGE
-        buildah umount $name
-        buildah rm $name
+        {
+            buildah rmi $IMAGE
+            buildah commit -q $name $IMAGE
+            buildah umount $name
+            buildah rm $name
+        } >/dev/null
     ;;
     shell)
         if [ -n "$($PODMAN ps -a -q -f name=$NAME)" ]; then
