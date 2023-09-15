@@ -36,10 +36,24 @@ fi
 case $CMD in
     build)
         target=full
-        [ "$1" == "--native" ] && target=base
+        if [ "$1" == "--native" ]; then
+            error=0
+            if [ "$CONTEXT" == ".." ]; then
+                error=1
+                message="in source dir"
+            fi
+            if [ "$(basename $PODMAN)" == "docker" ]; then
+                error=1
+                message="with Docker"
+            fi
+            if [ $error == 1 ]; then
+                echo "Native build not supported $message." >&2
+                exit 1
+            fi
+            target=base
+        fi
 
         # Build (base) image
-        cd $(dirname $0)
         $PODMAN build --target $target -t $IMAGE_BASE -f Dockerfile $CONTEXT
 
         # Finish unless building RPM natively
