@@ -20,11 +20,10 @@ case $CMD in
         cp rpmtests atlocal $DATA_DIR/
     ;;
     check)
-        ln -s $DATA_DIR/* .
+        for file in $DATA_DIR/*; do
+            [ -e "$(basename $file)" ] || ln -s $file .
+        done
         ./rpmtests "$@"
-        RC=$?
-        cat rpmtests.log
-        exit $RC
     ;;
     *)
         echo "Unsupported command." >&2

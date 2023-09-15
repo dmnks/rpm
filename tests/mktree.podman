@@ -90,7 +90,7 @@ case $CMD in
             *) OPTS= ;;
         esac
         $PODMAN run --privileged -it --rm --read-only --tmpfs /tmp \
-                    -v /srv --workdir /srv -e ROOTLESS=$ROOTLESS \
+                    -v $PWD:/srv:z --workdir /srv -e ROOTLESS=$ROOTLESS \
                     $OPTS $IMAGE mktree check "$@"
     ;;
     reset)
