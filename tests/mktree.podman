@@ -61,7 +61,6 @@ case $CMD in
 
         # Build (base) image
         $PODMAN build --target $target -t $IMAGE_BASE -f Dockerfile $CONTEXT
-        touch .tree
 
         # Finish unless building RPM natively
         if [ "$target" == "full" ]; then
@@ -71,7 +70,9 @@ case $CMD in
 
         # Build RPM natively, layer it on top
         name=$(buildah from $IMAGE_BASE)
-        make_install $(buildah mount $name)
+        export DESTDIR=$(buildah mount $name)
+        install_rpm
+        install_tests
         {
             buildah rmi $IMAGE 2>/dev/null
             buildah commit -q $name $IMAGE
@@ -93,7 +94,8 @@ case $CMD in
             echo "No sandbox exists yet." >&2
             exit 1
         fi
-        make_install $($PODMAN mount $NAME)
+        export DESTDIR=$($PODMAN mount $NAME)
+        install_rpm
         $PODMAN umount $NAME >/dev/null
     ;;
     check)

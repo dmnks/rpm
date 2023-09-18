@@ -1,6 +1,4 @@
-# Use our top-level targets as an ordering clue to cmake: the project
-# needs to be built before we can populate anything...
-get_property(TOP_TARGETS DIRECTORY .. PROPERTY BUILDSYSTEM_TARGETS)
+set(RPM_TARGETS librpm librpmio librpmbuild librpmsign)
 
 function(os_release var key)
 	execute_process(
@@ -111,17 +109,17 @@ configure_file(package.m4.in package.m4 @ONLY)
 
 add_custom_target(env
 	COMMAND ./mktree env
-	DEPENDS tree
+	DEPENDS mktree.dir/rebuilt
 )
 
 add_custom_target(shell
 	COMMAND ./mktree shell
-	DEPENDS tree
+	DEPENDS mktree.dir/updated
 )
 
 add_custom_target(check
 	COMMAND ./mktree check ${JOBS} $(TESTOPTS)
-	DEPENDS tree
+	DEPENDS mktree.dir/rebuilt
 )
 
 add_custom_target(update
@@ -140,12 +138,21 @@ add_custom_command(OUTPUT rpmtests
 )
 
 add_custom_target(tree
-	DEPENDS .tree
+	DEPENDS mktree.dir/rebuilt
 )
 
-add_custom_command(OUTPUT .tree
+add_custom_command(OUTPUT mktree.dir/updated
+	COMMAND ./mktree update
+	COMMAND mkdir -p mktree.dir
+	COMMAND touch mktree.dir/updated
+	DEPENDS ${RPM_TARGETS}
+)
+
+add_custom_command(OUTPUT mktree.dir/rebuilt
 	COMMAND ./mktree build --native
+	COMMAND mkdir -p mktree.dir
+	COMMAND touch mktree.dir/rebuilt
 	DEPENDS rpmtests
 	DEPENDS ${TESTPROGS}
-	DEPENDS ${TOP_TARGETS}
+	DEPENDS ${RPM_TARGETS}
 )

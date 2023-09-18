@@ -13,7 +13,9 @@ CMD=$1; shift
 case $CMD in
     build)
         source ./mktree.common
-        make_install /
+        DESTDIR=/
+        install_rpm
+        install_tests
 
         mkdir -p $DATA_DIR
         cp $0 /usr/bin/
