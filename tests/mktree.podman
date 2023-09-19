@@ -18,6 +18,7 @@ fi
 IMAGE=rpm
 IMAGE_BASE=${IMAGE}-base
 NAME=${IMAGE}-sandbox
+SANDBOX=$PWD/mktree.sandbox
 CMD=$1; shift
 
 if [ "$(basename $PODMAN)" == "docker" ]; then
@@ -38,6 +39,8 @@ function sandbox_exists()
 {
     test -n "$($PODMAN ps -aqf name=$NAME)"
 }
+
+source ./snapshot
 
 case $CMD in
     build)
@@ -71,8 +74,7 @@ case $CMD in
         # Build RPM natively, layer it on top
         name=$(buildah from $IMAGE_BASE)
         export DESTDIR=$(buildah mount $name)
-        install_rpm
-        install_tests
+        make_install
         {
             buildah rmi $IMAGE 2>/dev/null
             buildah commit -q $name $IMAGE
@@ -81,42 +83,22 @@ case $CMD in
         } >/dev/null
     ;;
     shell)
-        if ! sandbox_exists; then
-            $PODMAN create --privileged -it --name $NAME --hostname sandbox \
-                           -e ROOTLESS=$ROOTLESS -v $PWD:/srv:z $IMAGE "$@" \
-                           >/dev/null
-        fi
-        $PODMAN start --attach $NAME
+        RPMTREE=$(podman image mount $IMAGE)
+        RPMTEST=$SANDBOX/tree
+        snapshot mount $SANDBOX
+        snapshot shell "$@"
+        snapshot umount
+        podman image umount $IMAGE
         exit 0
     ;;
-    update)
-        if ! sandbox_exists; then
-            echo "No sandbox exists yet." >&2
-            exit 1
-        fi
-        export DESTDIR=$($PODMAN mount $NAME)
-        install_rpm
-        $PODMAN umount $NAME >/dev/null
-    ;;
     check)
-        # Pass select options to $PODMAN
-        case "$1" in
-            # Useful for CI environments without a tty
-            --interactive=*) OPTS=$1; shift ;;
-            *) OPTS= ;;
-        esac
-        $PODMAN run --privileged -it --rm --read-only --tmpfs /tmp \
-                    -v $PWD:/srv:z --workdir /srv -e ROOTLESS=$ROOTLESS \
-                    $OPTS $IMAGE mktree check "$@"
+        RPMTEST=$(podman image mount $IMAGE)
+        snapshot shell --tmpfs /tmp --chdir /srv mktree check "$@"
+    ;;
+    env)
+        # TODO
     ;;
     reset)
-        {
-            $PODMAN stop $NAME &&
-            $PODMAN rm $NAME
-        } >/dev/null
-    ;;
-    *)
-        echo "Unsupported command." >&2
-        exit 1
+        # TODO
     ;;
 esac

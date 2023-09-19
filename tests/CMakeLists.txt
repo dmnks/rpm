@@ -106,6 +106,7 @@ configure_file(mktree.${MKTREE_BACKEND} mktree @ONLY)
 
 configure_file(atlocal.in atlocal @ONLY)
 configure_file(package.m4.in package.m4 @ONLY)
+configure_file(snapshot snapshot COPYONLY)
 
 add_custom_target(env
 	COMMAND ./mktree env

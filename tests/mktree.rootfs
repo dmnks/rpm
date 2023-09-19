@@ -14,8 +14,7 @@ case $CMD in
     build)
         source ./mktree.common
         DESTDIR=/
-        install_rpm
-        install_tests
+        make_install
 
         mkdir -p $DATA_DIR
         cp $0 /usr/bin/
