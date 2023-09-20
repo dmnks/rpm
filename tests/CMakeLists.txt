@@ -115,16 +115,12 @@ add_custom_target(env
 
 add_custom_target(shell
 	COMMAND ./mktree shell
-	DEPENDS mktree.dir/updated
+	DEPENDS mktree.dir/base
 )
 
 add_custom_target(check
 	COMMAND ./mktree check ${JOBS} $(TESTOPTS)
-	DEPENDS mktree.dir/rebuilt
-)
-
-add_custom_target(update
-	COMMAND ./mktree update
+	DEPENDS mktree.dir/full
 )
 
 add_custom_target(reset
@@ -138,22 +134,15 @@ add_custom_command(OUTPUT rpmtests
 	DEPENDS local.at
 )
 
-add_custom_target(tree
-	DEPENDS mktree.dir/rebuilt
-)
-
-add_custom_command(OUTPUT mktree.dir/updated
-	COMMAND ./mktree update
-	COMMAND mkdir -p mktree.dir
-	COMMAND touch mktree.dir/updated
-	DEPENDS ${RPM_TARGETS}
-)
-
-add_custom_command(OUTPUT mktree.dir/rebuilt
+add_custom_command(OUTPUT mktree.dir/full
 	COMMAND ./mktree build --native
-	COMMAND mkdir -p mktree.dir
-	COMMAND touch mktree.dir/rebuilt
+	DEPENDS Dockerfile
 	DEPENDS rpmtests
 	DEPENDS ${TESTPROGS}
 	DEPENDS ${RPM_TARGETS}
+)
+
+add_custom_command(OUTPUT mktree.dir/base
+	COMMAND ./mktree build --base
+	DEPENDS Dockerfile
 )

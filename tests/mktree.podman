@@ -6,94 +6,110 @@
 PROGRAM=$(basename $0)
 if [ "$PROGRAM" == "mktree" ]; then
     # Running from build directory
-    PODMAN=@PODMAN@
     CONTEXT=@CMAKE_SOURCE_DIR@
     source ./mktree.common
 else
     # Running from source directory
-    PODMAN=$(echo $PROGRAM | cut -d'.' -f2)
     CONTEXT=..
 fi
+source ./snapshot
 
 IMAGE=rpm
 IMAGE_BASE=${IMAGE}-base
+TREE_DIR=$PWD/mktree.dir
+
 NAME=${IMAGE}-sandbox
 SANDBOX=$PWD/mktree.sandbox
+
 CMD=$1; shift
 
-if [ "$(basename $PODMAN)" == "docker" ]; then
-    DOCKER=1
-else
-    DOCKER=0
-fi
-
-if [ $(id -u) == 0 ]; then
-    ROOTLESS=${ROOTLESS:-0}
-elif [ $DOCKER == 0 ]; then
-    export ROOTLESS=1
+if [ $(id -u) != 0 ]; then
     podman unshare $0 $CMD "$@"
     exit
 fi
 
-function sandbox_exists()
+clean_up()
 {
-    test -n "$($PODMAN ps -aqf name=$NAME)"
+    case $CMD in
+        check)
+            podman image umount $IMAGE >/dev/null
+        ;;
+        shell)
+            snapshot umount
+            podman image umount $IMAGE_BASE >/dev/null
+        ;;
+    esac
+    chmod -Rf u+rwX rpmtests.dir $SANDBOX
 }
 
-source ./snapshot
+trap clean_up EXIT
 
 case $CMD in
     build)
-        target=full
-        if [ "$1" == "--native" ]; then
-            error=0
-            if [ "$CONTEXT" == ".." ]; then
-                error=1
-                message="in source dir"
-            fi
-            if [ $DOCKER == 1 ]; then
-                error=1
-                message="with Docker"
-            fi
-            if [ $error == 1 ]; then
-                echo "Native build is not supported $message." >&2
-                exit 1
-            fi
-            target=base
-        fi
+        mkdir -p $TREE_DIR
+
+        mode=$1
+        case $mode in
+            --native)
+                if [ "$CONTEXT" == ".." ]; then
+                    echo "Native build is not supported in source dir." >&2
+                    exit 1
+                fi
+                target=base
+            ;;
+            --base)
+                target=base
+            ;;
+            *)
+                target=full
+            ;;
+        esac
 
         # Build (base) image
-        $PODMAN build --target $target -t $IMAGE_BASE -f Dockerfile $CONTEXT
+        podman build --target $target -t $IMAGE_BASE -f Dockerfile $CONTEXT
+        podman image inspect --format '{{.Id}}' $IMAGE_BASE > $TREE_DIR/base
 
-        # Finish unless building RPM natively
-        if [ "$target" == "full" ]; then
-            $PODMAN tag $IMAGE_BASE $IMAGE
+        [ "$mode" == "--base" ] && exit
+        if [ "$mode" != "--native" ]; then
+            podman tag $IMAGE_BASE $IMAGE
             exit
         fi
 
         # Build RPM natively, layer it on top
         name=$(buildah from $IMAGE_BASE)
         export DESTDIR=$(buildah mount $name)
-        make_install
+        install_rpm
+        install_tests
         {
             buildah rmi $IMAGE 2>/dev/null
             buildah commit -q $name $IMAGE
             buildah umount $name
             buildah rm $name
         } >/dev/null
-    ;;
-    shell)
-        RPMTREE=$(podman image mount $IMAGE)
-        RPMTEST=$SANDBOX/tree
-        snapshot mount $SANDBOX
-        snapshot shell "$@"
-        snapshot umount
-        podman image umount $IMAGE
-        exit 0
+        touch $TREE_DIR/full
     ;;
     check)
         RPMTEST=$(podman image mount $IMAGE)
         snapshot shell --tmpfs /tmp --chdir /srv mktree check "$@"
+    ;;
+    shell)
+        RPMTREE=$(podman image mount $IMAGE_BASE)
+        RPMTEST=$SANDBOX/tree
+
+        if [ -f "$SANDBOX/base" ]; then
+            if ! cmp -s {$TREE_DIR,$SANDBOX}/base; then
+                echo "Image changed!"
+                exit 0
+            fi
+        else
+            mkdir -p $SANDBOX
+            cp {$TREE_DIR,$SANDBOX}/base
+        fi
+
+        snapshot mount $SANDBOX
+        DESTDIR=$RPMTEST install_rpm
+        snapshot shell "$@"
+        exit 0
     ;;
     env)
         # TODO

@@ -1,7 +1,7 @@
 DATADIR=/usr/share/mktree
 
 # Build and install RPM and the test-suite data into a directory
-make_install()
+install_rpm()
 {
     local ld_conf_dir=$DESTDIR/@CMAKE_INSTALL_SYSCONFDIR@/ld.so.conf.d
 
@@ -9,7 +9,10 @@ make_install()
     mkdir -p $ld_conf_dir
     echo @CMAKE_INSTALL_FULL_LIBDIR@ > $ld_conf_dir/rpm.conf
     ldconfig -r $DESTDIR @CMAKE_INSTALL_FULL_LIBDIR@
+}
 
+install_tests()
+{
     cp -r @CMAKE_CURRENT_SOURCE_DIR@/data $DESTDIR/
 
     mkdir -p $DESTDIR/usr/bin

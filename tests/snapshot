@@ -12,9 +12,9 @@ function snapshot()
                 mkdir -p $1/diff $1/work
                 opts="-o upperdir=$1/diff,workdir=$1/work"
             fi
-            [ ${ROOTLESS:-1} == 1 ] && opts+=" -o userxattr"
             mkdir -p ${RPMTEST}
             mount -t overlay sandbox \
+                  -o userxattr \
                   -o lowerdir="${RPMTREE}" \
                   ${opts} ${RPMTEST}
         ;;
@@ -44,6 +44,7 @@ function snapshot()
                 fi
             fi
             snapshot exec --unshare-uts --hostname $source \
+                          --setenv TERM $TERM \
                           --bind $PWD /srv "$@"
         ;;
     esac
