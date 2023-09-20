@@ -61,6 +61,7 @@ case $CMD in
                 target=base
             ;;
             *)
+                mode=--full
                 target=full
             ;;
         esac
@@ -69,11 +70,14 @@ case $CMD in
         podman build --target $target -t $IMAGE_BASE -f Dockerfile $CONTEXT
         podman image inspect --format '{{.Id}}' $IMAGE_BASE > $TREE_DIR/base
 
-        [ "$mode" == "--base" ] && exit
-        if [ "$mode" != "--native" ]; then
-            podman tag $IMAGE_BASE $IMAGE
-            exit
-        fi
+        # Finish unless native mode was selected
+        case $mode in
+            --base) exit ;;
+            --full)
+                podman tag $IMAGE_BASE $IMAGE
+                exit
+            ;;
+        esac
 
         # Build RPM natively, layer it on top
         name=$(buildah from $IMAGE_BASE)
