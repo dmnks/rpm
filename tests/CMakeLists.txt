@@ -108,19 +108,19 @@ configure_file(atlocal.in atlocal @ONLY)
 configure_file(package.m4.in package.m4 @ONLY)
 configure_file(snapshot snapshot COPYONLY)
 
-add_custom_target(env
-	COMMAND ./mktree env
-	DEPENDS mktree.dir/rebuilt
-)
-
-add_custom_target(shell
-	COMMAND ./mktree shell
-	DEPENDS mktree.dir/base
-)
-
 add_custom_target(check
 	COMMAND ./mktree check ${JOBS} $(TESTOPTS)
 	DEPENDS mktree.dir/full
+)
+
+add_custom_target(shell
+	COMMAND ./mktree shell ||:
+	DEPENDS mktree.dir/base
+)
+
+add_custom_target(test
+	COMMAND ./mktree test ||:
+	DEPENDS mktree.dir/base
 )
 
 add_custom_target(reset

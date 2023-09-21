@@ -13,8 +13,7 @@ CMD=$1; shift
 case $CMD in
     build)
         source ./mktree.common
-        DESTDIR=/
-        make_install
+        make_install --full /
 
         mkdir -p $DATA_DIR
         cp $0 /usr/bin/

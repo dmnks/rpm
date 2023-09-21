@@ -28,21 +28,22 @@ if [ $(id -u) != 0 ]; then
     exit
 fi
 
-clean_up()
+mount_sandbox()
 {
-    case $CMD in
-        check)
-            podman image umount $IMAGE >/dev/null
-        ;;
-        shell)
-            snapshot umount
-            podman image umount $IMAGE_BASE >/dev/null
-        ;;
-    esac
-    chmod -Rf u+rwX rpmtests.dir $SANDBOX
-}
+    cleanup()
+    {
+        snapshot umount
+        podman image umount $IMAGE_BASE >/dev/null
+        chmod -Rf u+rwX $SANDBOX
+    }
+    trap cleanup EXIT
 
-trap clean_up EXIT
+    RPMTREE=$(podman image mount $IMAGE_BASE)
+    RPMBASE=$(cat $TREE_DIR/base)
+    RPMTEST=$SANDBOX/tree
+    snapshot mount $SANDBOX
+    make_install $RPMTEST
+}
 
 case $CMD in
     build)
@@ -81,11 +82,9 @@ case $CMD in
 
         # Build RPM natively, layer it on top
         name=$(buildah from $IMAGE_BASE)
-        export DESTDIR=$(buildah mount $name)
-        install_rpm
-        install_tests
+        make_install --full $(buildah mount $name)
         {
-            buildah rmi $IMAGE 2>/dev/null
+            buildah rmi $IMAGE
             buildah commit -q $name $IMAGE
             buildah umount $name
             buildah rm $name
@@ -93,32 +92,27 @@ case $CMD in
         touch $TREE_DIR/full
     ;;
     check)
+        cleanup()
+        {
+            podman image umount $IMAGE >/dev/null
+            chmod -Rf u+rwX rpmtests.dir
+        }
+        trap cleanup EXIT
+
         RPMTEST=$(podman image mount $IMAGE)
         snapshot shell --tmpfs /tmp --chdir /srv mktree check "$@"
     ;;
     shell)
-        RPMTREE=$(podman image mount $IMAGE_BASE)
-        RPMTEST=$SANDBOX/tree
-
-        if [ -f "$SANDBOX/base" ]; then
-            if ! cmp -s {$TREE_DIR,$SANDBOX}/base; then
-                echo "Image changed!"
-                exit 0
-            fi
-        else
-            mkdir -p $SANDBOX
-            cp {$TREE_DIR,$SANDBOX}/base
-        fi
-
-        snapshot mount $SANDBOX
-        DESTDIR=$RPMTEST install_rpm
+        mount_sandbox
         snapshot shell "$@"
-        exit 0
     ;;
-    env)
-        # TODO
+    test)
+        set -a
+        source ./atlocal
+        mount_sandbox
+        $SHELL
     ;;
     reset)
-        # TODO
+        rm -rf "$SANDBOX"
     ;;
 esac

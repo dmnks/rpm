@@ -6,17 +6,23 @@ function snapshot()
     shift
     case $cmd in
         mount)
-            # No argument means mount as read-only
-            local opts
-            if [ $# != 0 ]; then
-                mkdir -p $1/diff $1/work
-                opts="-o upperdir=$1/diff,workdir=$1/work"
+            mkdir -p $1/diff $1/work ${RPMTEST}
+            if [ -n "${RPMBASE}" ]; then
+                if [ -f $1/base ]; then
+                    if [ "$(cat $1/base)" != "${RPMBASE}" ]; then
+                        echo "Image changed!"
+                        exit 0
+                    fi
+                else
+                    echo "${RPMBASE}" > $1/base
+                fi
             fi
-            mkdir -p ${RPMTEST}
             mount -t overlay sandbox \
                   -o userxattr \
                   -o lowerdir="${RPMTREE}" \
-                  ${opts} ${RPMTEST}
+                  -o upperdir=$1/diff \
+                  -o workdir=$1/work \
+                  ${RPMTEST}
         ;;
         umount)
             umount -ql $RPMTEST
