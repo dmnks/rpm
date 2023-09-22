@@ -28,15 +28,31 @@ if [ $(id -u) != 0 ]; then
     exit
 fi
 
-mount_sandbox()
+fix_perm()
 {
-    cleanup()
+    chmod -Rf u+rwX $SANDBOX rpmtests.dir
+}
+
+mount_tree()
+{
+    if [ "$1" == "--read-only" ]; then
+        clean_up()
+        {
+            podman image umount $IMAGE >/dev/null
+            fix_perm
+        }
+        trap clean_up EXIT
+        RPMTEST=$(podman image mount $IMAGE)
+        return
+    fi
+
+    clean_up()
     {
         snapshot umount
         podman image umount $IMAGE_BASE >/dev/null
-        chmod -Rf u+rwX $SANDBOX
+        fix_perm
     }
-    trap cleanup EXIT
+    trap clean_up EXIT
 
     RPMTREE=$(podman image mount $IMAGE_BASE)
     RPMBASE=$(cat $TREE_DIR/base)
@@ -92,24 +108,17 @@ case $CMD in
         touch $TREE_DIR/full
     ;;
     check)
-        cleanup()
-        {
-            podman image umount $IMAGE >/dev/null
-            chmod -Rf u+rwX rpmtests.dir
-        }
-        trap cleanup EXIT
-
-        RPMTEST=$(podman image mount $IMAGE)
+        mount_tree --read-only
         snapshot shell --tmpfs /tmp --chdir /srv mktree check "$@"
     ;;
     shell)
-        mount_sandbox
+        mount_tree
         snapshot shell "$@"
     ;;
     test)
         set -a
         source ./atlocal
-        mount_sandbox
+        mount_tree
         $SHELL
     ;;
     reset)
