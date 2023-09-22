@@ -89,7 +89,7 @@ message(STATUS "Using mktree backend: ${MKTREE_BACKEND}")
 # Set up mktree
 if ("${MKTREE_BACKEND}" STREQUAL "podman")
 	find_program(PODMAN NAMES podman docker REQUIRED)
-	configure_file(Dockerfile Dockerfile COPYONLY)
+	configure_file(Dockerfile.${OS_NAME} Dockerfile COPYONLY)
 else()
 	find_program(BWRAP bwrap REQUIRED)
 	if (PODMAN)
