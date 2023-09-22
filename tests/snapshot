@@ -36,7 +36,7 @@ function snapshot()
         ;;
         exec)
             bwrap --unshare-pid --dev-bind $RPMTEST / --clearenv \
-                  --setenv PATH $PATH --setenv HOME /root --chdir / \
+                  --setenv PATH $PATH --setenv HOME /root \
                   --dev /dev --proc /proc --die-with-parent "$@"
         ;;
         shell)
