@@ -57,7 +57,7 @@ RUN ln -sf \
     $(rpm -E '%{_target_cpu}-%{_vendor}-%{_target_os}%{?_gnu}')-pkg-config \
     /usr/bin/pkg-config
 
-RUN rpm -e --nodeps \
+RUN rpm -e --nodeps --nodb \
 	rpm \
 	rpm-libs \
 	rpm-build-libs \
