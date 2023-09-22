@@ -109,7 +109,8 @@ case $CMD in
     ;;
     check)
         mount_tree --read-only
-        snapshot shell --tmpfs /tmp --chdir /srv mktree check "$@"
+        snapshot exec --tmpfs /tmp --bind $PWD /srv --chdir /srv \
+                      mktree check "$@"
     ;;
     shell)
         mount_tree

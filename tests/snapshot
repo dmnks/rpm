@@ -50,8 +50,7 @@ function snapshot()
                 fi
             fi
             snapshot exec --unshare-uts --hostname $source \
-                          --setenv TERM $TERM \
-                          --bind $PWD /srv "$@"
+                          --setenv TERM $TERM "$@"
         ;;
     esac
 }
