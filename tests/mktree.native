@@ -36,7 +36,7 @@ case $CMD in
         ln -sf ../data/SOURCES $DESTDIR/build/
 
         cp $0 $DESTDIR/usr/bin/mktree
-        cp rpmtests atlocal $DESTDIR/$DATA_DIR/
+        cp rpmtests atlocal snapshot $DESTDIR/$DATA_DIR/
     ;;
     check)
         for file in $DATA_DIR/*; do

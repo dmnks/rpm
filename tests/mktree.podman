@@ -4,22 +4,6 @@
 # Works standalone (outside of a build directory) too.
 
 PROGRAM=$(basename $0)
-if [ "$PROGRAM" == "mktree" ]; then
-    # Running from build directory
-    CONTEXT=@CMAKE_SOURCE_DIR@
-else
-    # Running from source directory
-    CONTEXT=..
-fi
-source ./snapshot
-
-IMAGE=rpm
-IMAGE_BASE=${IMAGE}-base
-TREE_DIR=$PWD/mktree.dir
-
-NAME=${IMAGE}-sandbox
-SANDBOX=$PWD/mktree.sandbox
-
 CMD=$1; shift
 
 if [ $(id -u) != 0 ]; then
@@ -27,9 +11,24 @@ if [ $(id -u) != 0 ]; then
     exit
 fi
 
+if [ "$PROGRAM" == "mktree" ]; then
+    # Running from build directory
+    CONTEXT=@CMAKE_SOURCE_DIR@
+else
+    # Running from source directory
+    CONTEXT=..
+fi
+
+source ./snapshot
+
+IMAGE=rpm
+IMAGE_BASE=${IMAGE}-base
+TREE_DIR=$PWD/mktree.dir
+SANDBOX_DIR=$TREE_DIR/sandbox
+
 fix_perm()
 {
-    chmod -Rf u+rwX $SANDBOX rpmtests.dir
+    chmod -Rf u+rwX $SANDBOX_DIR rpmtests.dir
 }
 
 mount_tree()
@@ -55,8 +54,8 @@ mount_tree()
 
     RPMTREE=$(podman image mount $IMAGE_BASE)
     RPMBASE=$(cat $TREE_DIR/base)
-    RPMTEST=$SANDBOX/tree
-    snapshot mount $SANDBOX
+    RPMTEST=$SANDBOX_DIR/tree
+    snapshot mount $SANDBOX_DIR
     ./mktree.native build $RPMTEST
 }
 
@@ -122,6 +121,6 @@ case $CMD in
         $SHELL
     ;;
     reset)
-        rm -rf "$SANDBOX"
+        rm -rf "$SANDBOX_DIR"
     ;;
 esac
