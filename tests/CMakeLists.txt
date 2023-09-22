@@ -101,7 +101,7 @@ else()
 		)
 	endif()
 endif()
-configure_file(mktree.common mktree.common @ONLY)
+configure_file(mktree.native mktree.native @ONLY)
 configure_file(mktree.${MKTREE_BACKEND} mktree @ONLY)
 
 configure_file(atlocal.in atlocal @ONLY)

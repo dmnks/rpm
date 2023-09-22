@@ -7,7 +7,6 @@ PROGRAM=$(basename $0)
 if [ "$PROGRAM" == "mktree" ]; then
     # Running from build directory
     CONTEXT=@CMAKE_SOURCE_DIR@
-    source ./mktree.common
 else
     # Running from source directory
     CONTEXT=..
@@ -58,7 +57,7 @@ mount_tree()
     RPMBASE=$(cat $TREE_DIR/base)
     RPMTEST=$SANDBOX/tree
     snapshot mount $SANDBOX
-    make_install $RPMTEST
+    ./mktree.native build $RPMTEST
 }
 
 case $CMD in
@@ -98,7 +97,7 @@ case $CMD in
 
         # Build RPM natively, layer it on top
         name=$(buildah from $IMAGE_BASE)
-        make_install --full $(buildah mount $name)
+        ./mktree.native build --full $(buildah mount $name)
         {
             buildah rmi $IMAGE
             buildah commit -q $name $IMAGE

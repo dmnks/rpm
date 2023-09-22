@@ -1,0 +1,51 @@
+#!/bin/bash
+#
+# Rootfs mktree backend for use in throwaway build containers.
+# Installs RPM into / and runs the test-suite against the same.
+#
+# PWD must be host-mounted for OverlayFS mounts to work.
+# The / filesystem should be read-only to prevent parallel tests from altering
+# it (online changes to an underlying filesystem are disallowed in OverlayFS).
+
+DATA_DIR=/usr/share/mktree
+
+CMD=$1; shift
+case $CMD in
+    build)
+        full=0
+        if [ "$1" == "--full" ]; then
+            full=1
+            shift
+        fi
+
+        export DESTDIR=${1:-/}
+        ld_conf_dir=$DESTDIR/@CMAKE_INSTALL_SYSCONFDIR@/ld.so.conf.d
+
+        @CMAKE_MAKE_PROGRAM@ -C @CMAKE_BINARY_DIR@ install
+
+        mkdir -p $ld_conf_dir
+        echo @CMAKE_INSTALL_FULL_LIBDIR@ > $ld_conf_dir/rpm.conf
+        ldconfig -r $DESTDIR @CMAKE_INSTALL_FULL_LIBDIR@
+
+        [ $full == 0 ] && exit
+
+        mkdir -p $DESTDIR/{usr/bin,build,$DATA_DIR}
+
+        cp -r @CMAKE_CURRENT_SOURCE_DIR@/data $DESTDIR/
+        cp @TESTPROG_NAMES@ $DESTDIR/usr/bin/
+        ln -sf ../data/SOURCES $DESTDIR/build/
+
+        cp $0 $DESTDIR/usr/bin/mktree
+        cp rpmtests atlocal $DESTDIR/$DATA_DIR/
+    ;;
+    check)
+        for file in $DATA_DIR/*; do
+            [ -e "$(basename $file)" ] || ln -s $file .
+        done
+        ./rpmtests "$@"
+    ;;
+    *)
+        echo "Unsupported command." >&2
+        exit 1
+    ;;
+esac

@@ -79,7 +79,7 @@ RUN cmake \
 	-DENABLE_BDB_RO=ON \
 	-DWITH_FSVERITY=ON \
 	-DWITH_IMAEVM=ON \
-	-DMKTREE_BACKEND=rootfs \
+	-DMKTREE_BACKEND=native \
 	../rpm
 RUN make tree
 
