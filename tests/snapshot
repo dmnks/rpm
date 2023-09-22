@@ -1,11 +1,5 @@
 #!/bin/bash
 
-ERROR_BASE="
-Base image has changed, aborting.
-Fix by recreating the sandbox with:
-  make reset
-"
-
 function snapshot()
 {
     local cmd=$1
@@ -13,16 +7,6 @@ function snapshot()
     case $cmd in
         mount)
             mkdir -p $1/diff $1/work ${RPMTEST}
-            if [ -n "${RPMBASE}" ]; then
-                if [ -f $1/base ]; then
-                    if [ "$(cat $1/base)" != "${RPMBASE}" ]; then
-                        echo "$ERROR_BASE" >&2
-                        exit
-                    fi
-                else
-                    echo "${RPMBASE}" > $1/base
-                fi
-            fi
             mount -t overlay $(basename $1) \
                   -o userxattr \
                   -o lowerdir="${RPMTREE}" \

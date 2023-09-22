@@ -44,6 +44,19 @@ mount_tree()
         return
     fi
 
+    if [ -f $SANDBOX_DIR/base ]; then
+        if ! cmp -s {$TREE_DIR,$SANDBOX_DIR}/base; then
+            echo >&2
+            echo "Error: Base image has changed, aborting." >&2
+            echo "Fix by recreating the sandbox with: make reset" >&2
+            echo >&2
+            exit
+        fi
+    else
+        mkdir -p $SANDBOX_DIR
+        cp {$TREE_DIR,$SANDBOX_DIR}/base
+    fi
+
     clean_up()
     {
         snapshot umount
@@ -53,7 +66,6 @@ mount_tree()
     trap clean_up EXIT
 
     RPMTREE=$(podman image mount $IMAGE_BASE)
-    RPMBASE=$(cat $TREE_DIR/base)
     RPMTEST=$SANDBOX_DIR/tree
     snapshot mount $SANDBOX_DIR
     ./mktree.native build $RPMTEST
