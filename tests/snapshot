@@ -17,7 +17,7 @@ function snapshot()
                     echo "${RPMBASE}" > $1/base
                 fi
             fi
-            mount -t overlay sandbox \
+            mount -t overlay $(basename $1) \
                   -o userxattr \
                   -o lowerdir="${RPMTREE}" \
                   -o upperdir=$1/diff \
