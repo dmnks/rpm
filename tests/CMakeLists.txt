@@ -118,8 +118,8 @@ add_custom_target(shell
 	DEPENDS mktree.dir/base
 )
 
-add_custom_target(test
-	COMMAND ./mktree test ||:
+add_custom_target(atshell
+	COMMAND ./mktree atshell ||:
 	DEPENDS mktree.dir/base
 )
 

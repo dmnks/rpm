@@ -126,7 +126,7 @@ case $CMD in
         mount_tree
         snapshot shell "$@"
     ;;
-    test)
+    atshell)
         set -a
         source ./atlocal
         mount_tree
