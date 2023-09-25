@@ -23,6 +23,8 @@ source ./snapshot
 
 IMAGE=rpm
 IMAGE_BASE=${IMAGE}-base
+IMAGE_SANDBOX=${IMAGE}-sandbox
+
 TREE_DIR=$PWD/mktree.dir
 SANDBOX_DIR=$TREE_DIR/sandbox
 
@@ -44,28 +46,15 @@ mount_tree()
         return
     fi
 
-    if [ -f $SANDBOX_DIR/base ]; then
-        if ! cmp -s {$TREE_DIR,$SANDBOX_DIR}/base; then
-            echo >&2
-            echo "Error: Base image has changed, aborting." >&2
-            echo "Fix by recreating the sandbox with: make reset" >&2
-            echo >&2
-            exit
-        fi
-    else
-        mkdir -p $SANDBOX_DIR
-        cp {$TREE_DIR,$SANDBOX_DIR}/base
-    fi
-
     clean_up()
     {
         snapshot umount
-        podman image umount $IMAGE_BASE >/dev/null
+        podman image umount $IMAGE_SANDBOX >/dev/null
         fix_perm
     }
     trap clean_up EXIT
 
-    RPMTREE=$(podman image mount $IMAGE_BASE)
+    RPMTREE=$(podman image mount $IMAGE_SANDBOX)
     RPMTEST=$SANDBOX_DIR/tree
     snapshot mount $SANDBOX_DIR
     ./mktree.native build --base $RPMTEST
@@ -77,7 +66,8 @@ case $CMD in
 
         # Build base image
         podman build --target base -t $IMAGE_BASE -f Dockerfile $CONTEXT
-        podman image inspect --format '{{.Id}}' $IMAGE_BASE > $TREE_DIR/base
+        podman image exists $IMAGE_SANDBOX || podman tag $IMAGE_BASE $IMAGE_SANDBOX
+        touch $TREE_DIR/base
         [ "$1" == "--base" ] && exit
 
         # Build full image and finish unless native mode was selected
@@ -118,6 +108,8 @@ case $CMD in
         $SHELL
     ;;
     reset)
+        podman rmi -i $IMAGE_SANDBOX
         rm -rf "$SANDBOX_DIR"
+        rm -f "$TREE_DIR/base"
     ;;
 esac
