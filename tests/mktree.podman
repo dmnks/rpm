@@ -75,36 +75,21 @@ case $CMD in
     build)
         mkdir -p $TREE_DIR
 
-        mode=$1
-        case $mode in
-            --native)
-                if [ "$CONTEXT" == ".." ]; then
-                    echo "Native build is not supported in source dir." >&2
-                    exit 1
-                fi
-                target=base
-            ;;
-            --base)
-                target=base
-            ;;
-            *)
-                mode=--full
-                target=full
-            ;;
-        esac
-
-        # Build (base) image
-        podman build --target $target -t $IMAGE_BASE -f Dockerfile $CONTEXT
+        # Build base image
+        podman build --target base -t $IMAGE_BASE -f Dockerfile $CONTEXT
         podman image inspect --format '{{.Id}}' $IMAGE_BASE > $TREE_DIR/base
+        [ "$1" == "--base" ] && exit
 
-        # Finish unless native mode was selected
-        case $mode in
-            --base) exit ;;
-            --full)
-                podman tag $IMAGE_BASE $IMAGE
-                exit
-            ;;
-        esac
+        # Build full image and finish unless native mode was selected
+        if [ "$1" != "--native" ]; then
+            podman build -t $IMAGE -f Dockerfile $CONTEXT
+            exit
+        fi
+
+        if [ "$CONTEXT" == ".." ]; then
+            echo "Native build is not supported in source dir." >&2
+            exit 1
+        fi
 
         # Build RPM natively, layer it on top
         name=$(buildah from $IMAGE_BASE)
