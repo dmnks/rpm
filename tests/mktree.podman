@@ -21,9 +21,9 @@ fi
 
 source ./snapshot
 
-IMAGE=rpm
-IMAGE_BASE=${IMAGE}-base
-IMAGE_SANDBOX=${IMAGE}-sandbox
+TREE_IMG=rpm
+IMAGE_BASE=${TREE_IMG}-base
+IMAGE_SANDBOX=${TREE_IMG}-sandbox
 
 TREE_DIR=$PWD/mktree.dir
 SANDBOX_DIR=$TREE_DIR/sandbox
@@ -38,11 +38,11 @@ mount_tree()
     if [ "$1" == "--read-only" ]; then
         clean_up()
         {
-            podman image umount $IMAGE >/dev/null
+            podman image umount $TREE_IMG >/dev/null
             fix_perm
         }
         trap clean_up EXIT
-        RPMTEST=$(podman image mount $IMAGE)
+        RPMTEST=$(podman image mount $TREE_IMG)
         return
     fi
 
@@ -72,7 +72,7 @@ case $CMD in
 
         # Build full image and finish unless native mode was selected
         if [ "$1" != "--native" ]; then
-            podman build -t $IMAGE -f Dockerfile $CONTEXT
+            podman build -t $TREE_IMG -f Dockerfile $CONTEXT
             exit
         fi
 
@@ -85,8 +85,8 @@ case $CMD in
         name=$(buildah from $IMAGE_BASE)
         ./mktree.native build $(buildah mount $name)
         {
-            buildah rmi $IMAGE
-            buildah commit -q $name $IMAGE
+            buildah rmi $TREE_IMG
+            buildah commit -q $name $TREE_IMG
             buildah umount $name
             buildah rm $name
         } >/dev/null
