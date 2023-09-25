@@ -68,7 +68,7 @@ mount_tree()
     RPMTREE=$(podman image mount $IMAGE_BASE)
     RPMTEST=$SANDBOX_DIR/tree
     snapshot mount $SANDBOX_DIR
-    ./mktree.native build $RPMTEST
+    ./mktree.native build --base $RPMTEST
 }
 
 case $CMD in
@@ -108,7 +108,7 @@ case $CMD in
 
         # Build RPM natively, layer it on top
         name=$(buildah from $IMAGE_BASE)
-        ./mktree.native build --full $(buildah mount $name)
+        ./mktree.native build $(buildah mount $name)
         {
             buildah rmi $IMAGE
             buildah commit -q $name $IMAGE

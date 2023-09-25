@@ -12,9 +12,9 @@ DATA_DIR=/usr/share/mktree
 CMD=$1; shift
 case $CMD in
     build)
-        full=0
-        if [ "$1" == "--full" ]; then
-            full=1
+        base=0
+        if [ "$1" == "--base" ]; then
+            base=1
             shift
         fi
 
@@ -27,7 +27,7 @@ case $CMD in
         echo @CMAKE_INSTALL_FULL_LIBDIR@ > $ld_conf_dir/rpm.conf
         ldconfig -r $DESTDIR @CMAKE_INSTALL_FULL_LIBDIR@
 
-        [ $full == 0 ] && exit
+        [ $base == 1 ] && exit
 
         mkdir -p $DESTDIR/{usr/bin,build,$DATA_DIR}
 

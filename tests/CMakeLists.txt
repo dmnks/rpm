@@ -127,6 +127,10 @@ add_custom_target(reset
 	COMMAND ./mktree reset
 )
 
+add_custom_target(tree
+	DEPENDS mktree.dir/full
+)
+
 add_custom_command(OUTPUT rpmtests
 	COMMAND ${AUTOTEST} -I ${CMAKE_CURRENT_SOURCE_DIR}
 		-o rpmtests rpmtests.at
