@@ -23,7 +23,7 @@ source ./snapshot
 
 TREE_IMG=rpm
 BASE_IMG=${TREE_IMG}-base
-IMAGE_SANDBOX=${TREE_IMG}-sandbox
+SANDBOX_IMG=${TREE_IMG}-sandbox
 
 TREE_DIR=$PWD/mktree.dir
 SANDBOX_DIR=$TREE_DIR/sandbox
@@ -49,12 +49,12 @@ mount_tree()
     clean_up()
     {
         snapshot umount
-        podman image umount $IMAGE_SANDBOX >/dev/null
+        podman image umount $SANDBOX_IMG >/dev/null
         fix_perm
     }
     trap clean_up EXIT
 
-    RPMTREE=$(podman image mount $IMAGE_SANDBOX)
+    RPMTREE=$(podman image mount $SANDBOX_IMG)
     RPMTEST=$SANDBOX_DIR/tree
     snapshot mount $SANDBOX_DIR
     ./mktree.native build --base $RPMTEST
@@ -66,7 +66,7 @@ case $CMD in
 
         # Build base image
         podman build --target base -t $BASE_IMG -f Dockerfile $CONTEXT
-        podman image exists $IMAGE_SANDBOX || podman tag $BASE_IMG $IMAGE_SANDBOX
+        podman image exists $SANDBOX_IMG || podman tag $BASE_IMG $SANDBOX_IMG
         touch $TREE_DIR/base
         [ "$1" == "--base" ] && exit
 
@@ -108,7 +108,7 @@ case $CMD in
         $SHELL
     ;;
     reset)
-        podman rmi -i $IMAGE_SANDBOX
+        podman rmi -i $SANDBOX_IMG
         rm -rf "$SANDBOX_DIR"
         rm -f "$TREE_DIR/base"
     ;;
