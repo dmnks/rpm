@@ -22,7 +22,7 @@ fi
 source ./snapshot
 
 TREE_IMG=rpm
-IMAGE_BASE=${TREE_IMG}-base
+BASE_IMG=${TREE_IMG}-base
 IMAGE_SANDBOX=${TREE_IMG}-sandbox
 
 TREE_DIR=$PWD/mktree.dir
@@ -65,8 +65,8 @@ case $CMD in
         mkdir -p $TREE_DIR
 
         # Build base image
-        podman build --target base -t $IMAGE_BASE -f Dockerfile $CONTEXT
-        podman image exists $IMAGE_SANDBOX || podman tag $IMAGE_BASE $IMAGE_SANDBOX
+        podman build --target base -t $BASE_IMG -f Dockerfile $CONTEXT
+        podman image exists $IMAGE_SANDBOX || podman tag $BASE_IMG $IMAGE_SANDBOX
         touch $TREE_DIR/base
         [ "$1" == "--base" ] && exit
 
@@ -82,7 +82,7 @@ case $CMD in
         fi
 
         # Build RPM natively, layer it on top
-        name=$(buildah from $IMAGE_BASE)
+        name=$(buildah from $BASE_IMG)
         ./mktree.native build $(buildah mount $name)
         {
             buildah rmi $TREE_IMG
