@@ -23,14 +23,34 @@ source ./snapshot
 
 TREE_IMG=rpm
 BASE_IMG=${TREE_IMG}-base
-SANDBOX_IMG=${TREE_IMG}-sandbox
+SNAP_IMG=${TREE_IMG}-snapshot
 
 TREE_DIR=$PWD/mktree.dir
-SANDBOX_DIR=$TREE_DIR/sandbox
+SNAP_DIR=$TREE_DIR/snapshot
+
+SHELL_MOTD="
+Welcome to RPM @CMAKE_PROJECT_VERSION@ container!
+
+This is a container running a minimal version of the host
+system in a writable snapshot, with the RPM build installed
+and ready to experiment with.
+
+To update the RPM installation with the latest source
+changes, rerun this target.
+
+To throw away the snapshot and start over, run:
+
+  make reset
+"
 
 fix_perm()
 {
-    chmod -Rf u+rwX $SANDBOX_DIR rpmtests.dir
+    chmod -Rf u+rwX $SNAP_DIR rpmtests.dir
+}
+
+get_image_id()
+{
+    podman image inspect --format '{{.Id}}' $1
 }
 
 mount_tree()
@@ -49,15 +69,18 @@ mount_tree()
     clean_up()
     {
         snapshot umount
-        podman image umount $SANDBOX_IMG >/dev/null
+        podman image umount $SNAP_IMG >/dev/null
         fix_perm
     }
     trap clean_up EXIT
 
-    RPMTREE=$(podman image mount $SANDBOX_IMG)
-    RPMTEST=$SANDBOX_DIR/tree
-    snapshot mount $SANDBOX_DIR
+    RPMTREE=$(podman image mount $SNAP_IMG)
+    RPMTEST=$SNAP_DIR/tree
+    snapshot mount $SNAP_DIR
     ./mktree.native build --base $RPMTEST
+
+    [ "$(get_image_id $SNAP_IMG)" == "$(get_image_id $BASE_IMG)" ] ||
+    SHELL_MOTD+="\nNew base image is available, reset to use.\n"
 }
 
 case $CMD in
@@ -66,7 +89,7 @@ case $CMD in
 
         # Build base image
         podman build --target base -t $BASE_IMG -f Dockerfile $CONTEXT
-        podman image exists $SANDBOX_IMG || podman tag $BASE_IMG $SANDBOX_IMG
+        podman image exists $SNAP_IMG || podman tag $BASE_IMG $SNAP_IMG
         touch $TREE_DIR/base
         [ "$1" == "--base" ] && exit
 
@@ -99,6 +122,7 @@ case $CMD in
     ;;
     shell)
         mount_tree
+        echo -e "$SHELL_MOTD"
         snapshot shell "$@"
     ;;
     atshell)
@@ -108,8 +132,7 @@ case $CMD in
         $SHELL
     ;;
     reset)
-        podman rmi -i $SANDBOX_IMG
-        rm -rf "$SANDBOX_DIR"
-        rm -f "$TREE_DIR/base"
+        podman rmi -i $SNAP_IMG
+        rm -rf "$SNAP_DIR" "$TREE_DIR/base"
     ;;
 esac
