@@ -28,6 +28,11 @@ SNAP_IMG=${TREE_IMG}-snapshot
 TREE_DIR=$PWD/mktree.dir
 SNAP_DIR=$TREE_DIR/snapshot
 
+RESET_MOTD="
+To throw away the snapshot and start over, run:
+
+  make reset"
+
 SHELL_MOTD="
 Welcome to RPM @CMAKE_PROJECT_VERSION@ container!
 
@@ -36,11 +41,26 @@ system in a writable snapshot, with the RPM build installed
 and ready to experiment with.
 
 To update the RPM installation with the latest source
-changes, rerun this target.
+changes, re-enter this target.
+$RESET_MOTD
+"
 
-To throw away the snapshot and start over, run:
+ATSHELL_MOTD="
+Welcome to RPM @CMAKE_PROJECT_VERSION@ Autotest shell!
 
-  make reset
+This is like an interactive test with a writable snapshot
+mounted at \$RPMTEST, with full host integration allowing
+you to use your native tools to inspect and/or modify the
+snapshot.
+
+The shell runs in a user namespace WITHOUT filesystem
+isolation so be mindful when using destructive commands.
+Treat it like any other shell running on your host.
+
+The usual test commands are available, e.g.
+
+  runroot rpm ...
+$RESET_MOTD
 "
 
 fix_perm()
@@ -129,6 +149,7 @@ case $CMD in
         set -a
         source ./atlocal
         mount_tree
+        echo -e "$ATSHELL_MOTD"
         $SHELL
     ;;
     reset)
