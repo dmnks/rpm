@@ -110,17 +110,13 @@ mount_snapshot()
     RPMTEST=$SNAP_DIR/tree
     snapshot mount $SNAP_DIR
 
-    if [ $NATIVE == 1 ]; then
-        ./mktree.native build $RPMTEST
-    fi
+    [ $NATIVE == 1 ] && ./mktree.native build $RPMTEST
 }
 
 source ./snapshot
 
 case $CMD in
     build)
-        mkdir -p $TREE_DIR
-
         if [ $NATIVE == 1 ]; then
             target=base
             image=$BASE_IMG
@@ -129,8 +125,11 @@ case $CMD in
             image=$FULL_IMG
         fi
 
-        # Build (base) image
+        # Build the (base) image
         podman build --target $target -t $image -f Dockerfile $CONTEXT
+
+        # Artifact for the build system
+        mkdir -p $TREE_DIR
         touch $TREE_DIR/built
 
         # Finish unless native mode was selected
