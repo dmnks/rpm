@@ -12,12 +12,6 @@ DATA_DIR=/usr/share/mktree
 CMD=$1; shift
 case $CMD in
     build)
-        base=0
-        if [ "$1" == "--base" ]; then
-            base=1
-            shift
-        fi
-
         export DESTDIR=${1:-/}
         ld_conf_dir=$DESTDIR/@CMAKE_INSTALL_SYSCONFDIR@/ld.so.conf.d
 
@@ -26,8 +20,6 @@ case $CMD in
         mkdir -p $ld_conf_dir
         echo @CMAKE_INSTALL_FULL_LIBDIR@ > $ld_conf_dir/rpm.conf
         ldconfig -r $DESTDIR @CMAKE_INSTALL_FULL_LIBDIR@
-
-        [ $base == 1 ] && exit
 
         mkdir -p $DESTDIR/{usr/bin,build,$DATA_DIR}
 

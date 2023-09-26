@@ -28,11 +28,6 @@ else
     CONTEXT=..
 fi
 
-RESET_MOTD="
-To throw away the snapshot and start over, run:
-
-  make reset"
-
 SHELL_MOTD="
 Welcome to RPM @CMAKE_PROJECT_VERSION@ container!
 
@@ -42,7 +37,6 @@ and ready to experiment with.
 
 To update the RPM installation with the latest source
 changes, re-enter this target.
-$RESET_MOTD
 "
 
 ATSHELL_MOTD="
@@ -60,8 +54,25 @@ Treat it like any other shell running on your host.
 The usual test commands are available, e.g.
 
   runroot rpm ...
-$RESET_MOTD
 "
+
+print_motd()
+{
+    case $CMD in
+        shell) echo "$SHELL_MOTD" ;;
+        atshell) echo "$ATSHELL_MOTD" ;;
+    esac
+    echo "To throw away the snapshot and start over, run:"
+    echo
+    echo "  make reset"
+    echo
+    if [ $NEW_IMAGE == 1 ]; then
+        echo "## --------------------------------------- ##"
+        echo "## Image has been rebuilt, reset to apply. ##"
+        echo "## --------------------------------------- ##"
+        echo
+    fi
+}
 
 fix_perm()
 {
@@ -100,10 +111,12 @@ mount_snapshot()
         image=$FULL_IMG
     fi
 
-    if [ ! -d "$SNAP_DIR" ]; then
-        podman tag $image $SNAP_IMG
-    elif [ "$(get_image_id $SNAP_IMG)" != "$(get_image_id $image)" ]; then
-        SHELL_MOTD+="\nNew base image is available, reset to use.\n"
+    [ -d "$SNAP_DIR" ] || podman tag $image $SNAP_IMG
+
+    if [ "$(get_image_id $SNAP_IMG)" == "$(get_image_id $image)" ]; then
+        NEW_IMAGE=0
+    else
+        NEW_IMAGE=1
     fi
 
     RPMTREE=$(podman image mount $SNAP_IMG)
@@ -117,6 +130,11 @@ source ./snapshot
 
 case $CMD in
     build)
+        if [ "$1" == "--full" ]; then
+            NATIVE=0
+            shift
+        fi
+
         if [ $NATIVE == 1 ]; then
             target=base
             image=$BASE_IMG
@@ -152,14 +170,14 @@ case $CMD in
     ;;
     shell)
         mount_snapshot
-        echo -e "$SHELL_MOTD"
+        print_motd
         snapshot shell "$@"
     ;;
     atshell)
         set -a
         source ./atlocal
         mount_snapshot
-        echo -e "$ATSHELL_MOTD"
+        print_motd
         $SHELL
     ;;
     reset)

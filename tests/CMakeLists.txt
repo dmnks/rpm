@@ -69,47 +69,44 @@ if (nproc GREATER 1)
 	set(JOBS -j${nproc})
 endif()
 
-set(OS_NAME opensuse)
-# Set up mktree
 find_program(BWRAP bwrap REQUIRED)
-if ("${MKTREE_BACKEND}" STREQUAL "")
-	set(MKTREE_BACKEND podman)
-endif()
+
+set(MKTREE_BACKEND podman CACHE STRING "Mktree backend to use")
 message(STATUS "Using mktree backend: ${MKTREE_BACKEND}")
+
+# Set up mktree
 if ("${MKTREE_BACKEND}" STREQUAL "podman")
 	find_program(PODMAN podman REQUIRED)
 	if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/Dockerfile.${OS_NAME})
 		# Native build mode
 		set(MKTREE_NATIVE 1)
 		configure_file(Dockerfile.${OS_NAME} Dockerfile COPYONLY)
+		add_custom_target(ci
+			COMMAND ./mktree build --full
+			COMMAND ./mktree check ${JOBS} $(TESTOPTS)
+		)
 	else()
 		# Containerized build mode
 		set(MKTREE_NATIVE 0)
 		configure_file(Dockerfile Dockerfile COPYONLY)
+		add_custom_target(ci DEPENDS check)
 		message(WARNING
-			"Native build integration with test-suite is not "
-			"available on this platform, falling back to "
-			"containerized building.")
+			"Native mktree mode not available on this platform, "
+			"falling back to containerized building.")
 	endif()
-	configure_file(mktree.native mktree.native @ONLY)
 	set(MKTREE_BUILD_DEPS Dockerfile)
+	configure_file(mktree.native mktree.native @ONLY)
 endif()
 configure_file(mktree.${MKTREE_BACKEND} mktree @ONLY)
+configure_file(snapshot snapshot COPYONLY)
 
 configure_file(atlocal.in atlocal @ONLY)
 configure_file(package.m4.in package.m4 @ONLY)
-configure_file(snapshot snapshot COPYONLY)
 
 add_custom_target(check
 	COMMAND ./mktree check ${JOBS} $(TESTOPTS)
 	DEPENDS tree
 )
-
-# add_custom_target(ci
-# 	COMMAND ./mktree.podman build
-# 	COMMAND ./mktree.podman check ${JOBS} $(TESTOPTS)
-# 	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-# )
 
 add_custom_target(shell
 	COMMAND ./mktree shell ||:
@@ -138,8 +135,8 @@ add_custom_command(OUTPUT rpmtests
 
 add_custom_command(OUTPUT mktree.dir/built
 	COMMAND ./mktree build
-	DEPENDS ${MKTREE_BUILD_DEPS}
 	DEPENDS rpmtests
 	DEPENDS ${TESTPROGS}
 	DEPENDS ${RPM_TARGETS}
+	DEPENDS ${MKTREE_BUILD_DEPS}
 )
