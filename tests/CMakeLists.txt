@@ -102,7 +102,7 @@ configure_file(snapshot snapshot COPYONLY)
 
 add_custom_target(check
 	COMMAND ./mktree check ${JOBS} $(TESTOPTS)
-	DEPENDS mktree.dir/full
+	DEPENDS tree
 )
 
 # add_custom_target(ci
@@ -113,12 +113,12 @@ add_custom_target(check
 
 add_custom_target(shell
 	COMMAND ./mktree shell ||:
-	DEPENDS mktree.dir/base
+	DEPENDS tree
 )
 
 add_custom_target(atshell
 	COMMAND ./mktree atshell ||:
-	DEPENDS mktree.dir/base
+	DEPENDS tree
 )
 
 add_custom_target(reset
@@ -134,11 +134,6 @@ add_custom_command(OUTPUT rpmtests
 		-o rpmtests rpmtests.at
 	DEPENDS ${TESTSUITE_AT}
 	DEPENDS local.at
-)
-
-add_custom_command(OUTPUT mktree.dir/base
-	COMMAND ./mktree build --base
-	DEPENDS ${MKTREE_BUILD_DEPS}
 )
 
 add_custom_command(OUTPUT mktree.dir/full

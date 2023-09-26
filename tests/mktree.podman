@@ -94,19 +94,24 @@ mount_snapshot()
     }
     trap clean_up EXIT
 
-    RPMTREE=$(podman image mount $SNAP_IMG)
-    RPMTEST=$SNAP_DIR/tree
-    snapshot mount $SNAP_DIR
-
     if [ $NATIVE == 1 ]; then
-        ./mktree.native build --base $RPMTEST
         image=$BASE_IMG
     else
         image=$FULL_IMG
     fi
 
-    if [ "$(get_image_id $SNAP_IMG)" != "$(get_image_id $image)" ]; then
+    if [ ! -d "$SNAP_DIR" ]; then
+        podman tag $image $SNAP_IMG
+    elif [ "$(get_image_id $SNAP_IMG)" != "$(get_image_id $image)" ]; then
         SHELL_MOTD+="\nNew base image is available, reset to use.\n"
+    fi
+
+    RPMTREE=$(podman image mount $SNAP_IMG)
+    RPMTEST=$SNAP_DIR/tree
+    snapshot mount $SNAP_DIR
+
+    if [ $NATIVE == 1 ]; then
+        ./mktree.native build $RPMTEST
     fi
 }
 
@@ -126,14 +131,10 @@ case $CMD in
 
         # Build (base) image
         podman build --target $target -t $image -f Dockerfile $CONTEXT
-        podman image exists $SNAP_IMG || podman tag $image $SNAP_IMG
-        touch $TREE_DIR/base
 
         # Finish unless native mode was selected
         if [ $NATIVE == 0 ]; then
             touch $TREE_DIR/full
-            exit
-        elif [ "$1" == "--base" ]; then
             exit
         fi
 
@@ -167,6 +168,6 @@ case $CMD in
     ;;
     reset)
         podman rmi -i $SNAP_IMG
-        rm -rf "$SNAP_DIR" "$TREE_DIR/base"
+        rm -rf "$SNAP_DIR"
     ;;
 esac
