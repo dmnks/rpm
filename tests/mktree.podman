@@ -10,8 +10,8 @@ FULL_IMG=rpm
 BASE_IMG=${FULL_IMG}-base
 SNAP_IMG=${FULL_IMG}-snapshot
 
-TREE_DIR=$PWD/mktree.dir
-SNAP_DIR=$TREE_DIR/snapshot
+TREE_DIR=${PWD}/mktree.dir
+SNAP_DIR=${TREE_DIR}/snapshot
 
 if [ $(id -u) != 0 ]; then
     podman unshare $0 $CMD "$@"
@@ -131,12 +131,10 @@ case $CMD in
 
         # Build (base) image
         podman build --target $target -t $image -f Dockerfile $CONTEXT
+        touch $TREE_DIR/built
 
         # Finish unless native mode was selected
-        if [ $NATIVE == 0 ]; then
-            touch $TREE_DIR/full
-            exit
-        fi
+        [ $NATIVE == 1 ] || exit 0
 
         # Build RPM natively, layer it on top
         name=$(buildah from $image)
@@ -147,7 +145,6 @@ case $CMD in
             buildah umount $name
             buildah rm $name
         } >/dev/null
-        touch $TREE_DIR/full
     ;;
     check)
         mount_image
