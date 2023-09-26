@@ -157,7 +157,7 @@ case $CMD in
         name=$(buildah from $image)
         ./mktree.native build $(buildah mount $name)
         {
-            buildah rmi $FULL_IMG
+            buildah rmi $FULL_IMG 2>/dev/null
             buildah commit -q $name $FULL_IMG
             buildah umount $name
             buildah rm $name
