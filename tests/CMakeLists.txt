@@ -90,7 +90,6 @@ if ("${MKTREE_BACKEND}" STREQUAL "podman")
 			"Native mktree mode not available on this platform, "
 			"falling back to containerized building.")
 	endif()
-	set(MKTREE_BUILD_DEPS Dockerfile)
 	add_custom_target(ci
 		COMMAND ./mktree build --full
 		COMMAND ./mktree check ${JOBS} $(TESTOPTS)
@@ -109,20 +108,30 @@ add_custom_target(check
 
 add_custom_target(shell
 	COMMAND ./mktree shell ||:
-	DEPENDS tree
+	DEPENDS tree-base
 )
 
 add_custom_target(atshell
 	COMMAND ./mktree atshell ||:
-	DEPENDS tree
+	DEPENDS tree-base
 )
 
 add_custom_target(reset
 	COMMAND ./mktree reset
 )
 
+add_custom_target(tree-base
+	COMMAND ./mktree build --base
+	DEPENDS rpmtests
+	DEPENDS ${TESTPROGS}
+	DEPENDS ${RPM_TARGETS}
+)
+
 add_custom_target(tree
-	DEPENDS mktree.dir/tags/full
+	COMMAND ./mktree build
+	DEPENDS rpmtests
+	DEPENDS ${TESTPROGS}
+	DEPENDS ${RPM_TARGETS}
 )
 
 add_custom_command(OUTPUT rpmtests
@@ -130,12 +139,4 @@ add_custom_command(OUTPUT rpmtests
 		-o rpmtests rpmtests.at
 	DEPENDS ${TESTSUITE_AT}
 	DEPENDS local.at
-)
-
-add_custom_command(OUTPUT mktree.dir/tags/full mktree.dir/tags/base
-	COMMAND ./mktree build
-	DEPENDS rpmtests
-	DEPENDS ${TESTPROGS}
-	DEPENDS ${RPM_TARGETS}
-	DEPENDS ${MKTREE_BUILD_DEPS}
 )

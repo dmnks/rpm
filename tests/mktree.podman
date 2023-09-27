@@ -7,10 +7,11 @@ PROGRAM=$(basename $0)
 CMD=$1; shift
 
 TREE_DIR=${PWD}/mktree.dir
-TAGS_DIR=${TREE_DIR}/tags
 SNAP_DIR=${TREE_DIR}/snapshot
 
-IMAGE=rpm
+FULL_IMG=rpm
+BASE_IMG=rpm-base
+SNAP_IMG=rpm-base
 
 if [ $(id -u) != 0 ]; then
     podman unshare $0 $CMD "$@"
@@ -88,63 +89,38 @@ fix_perm()
     chmod -Rf u+rwX $SNAP_DIR rpmtests.dir
 }
 
-tag_add()
-{
-    mkdir -p $TAGS_DIR
-    podman image inspect --format '{{.Id}}' $1 > $TAGS_DIR/$2
-}
-
-tag_del()
-{
-    rm -f $TAGS_DIR/$1
-}
-
-tag_get()
-{
-    cat $TAGS_DIR/$1
-}
-
-tag_exists()
-{
-    test -f $TAGS_DIR/$1
-}
-
 mount_image()
 {
-    FULL_TAG=$(tag_get full)
-
     clean_up()
     {
-        silent podman image umount $FULL_TAG
+        silent podman image umount $FULL_IMG
         fix_perm
     }
     trap clean_up EXIT
-
-    RPMTEST=$(podman image mount $FULL_TAG)
+    RPMTEST=$(podman image mount $FULL_IMG)
 }
 
 mount_snapshot()
 {
-    BASE_TAG=$(tag_get base)
-
     clean_up()
     {
         snapshot umount
-        silent podman image umount $SNAP_TAG
+        silent podman image umount $SNAP_IMG
         fix_perm
     }
     trap clean_up EXIT
 
-    tag_exists snap || tag_add $BASE_TAG snap
-    SNAP_TAG=$(tag_get snap)
+    # tag_exists snap || tag_add $BASE_TAG snap
+    # SNAP_TAG=$(tag_get snap)
 
-    if [ "$SNAP_TAG" == "$BASE_TAG" ]; then
-        NEW_IMAGE=0
-    else
-        NEW_IMAGE=1
-    fi
+    NEW_IMAGE=0
+    # if [ "$SNAP_TAG" == "$BASE_TAG" ]; then
+    #     NEW_IMAGE=0
+    # else
+    #     NEW_IMAGE=1
+    # fi
 
-    RPMTREE=$(podman image mount $SNAP_TAG)
+    RPMTREE=$(podman image mount $SNAP_IMG)
     RPMTEST=$SNAP_DIR/tree
     snapshot mount $SNAP_DIR
 
@@ -152,18 +128,6 @@ mount_snapshot()
 }
 
 source ./snapshot
-
-
-REBUILD=0
-for tag in full base snap; do
-    if tag_exists $tag && ! podman image exists $(tag_get $tag); then
-        tag_del $tag
-        REBUILD=1
-    fi
-done
-if [ $REBUILD == 1 ]; then
-    $0 build
-fi
 
 case $CMD in
     build)
@@ -174,27 +138,29 @@ case $CMD in
 
         if [ $NATIVE == 1 ]; then
             target=base
+            image=$BASE_IMG
         else
             target=full
+            image=$FULL_IMG
         fi
 
         # Build base image
-        podman build --target $target -t $IMAGE -f Dockerfile $CONTEXT
-        tag_add $IMAGE base
+        podman build --target $target -t $image -f Dockerfile $CONTEXT
+
+        [ "$1" == "--base" ] && exit 0
 
         # Promote to full image and finish unless in native mode
         if [ $NATIVE == 0 ]; then
-            tag_add $IMAGE full
+            podman tag $image $FULL_IMG
             exit 0
         fi
 
         # Build RPM natively, layer it on top
-        name=$(buildah from $IMAGE)
+        name=$(buildah from $image)
         trap "silent buildah umount $name; silent buildah rm $name" EXIT
         ./mktree.native build $(buildah mount $name)
-        tag_exists full && silent -f buildah rmi $(tag_get full)
-        silent buildah commit -q $name $IMAGE
-        tag_add $IMAGE full
+        silent -f buildah rmi $FULL_IMG
+        silent buildah commit -q $name $FULL_IMG
     ;;
     check)
         mount_image
@@ -214,9 +180,6 @@ case $CMD in
         $SHELL
     ;;
     reset)
-        tag_del snap
         rm -rf "$SNAP_DIR"
-    ;;
-    refresh)
     ;;
 esac
