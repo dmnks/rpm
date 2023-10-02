@@ -11,6 +11,7 @@ TAGS_DIR=${TREE_DIR}/tags
 SNAP_DIR=${TREE_DIR}/snapshot
 
 IMAGE=rpm
+IMAGE_BASE=rpm/base
 
 if [ $(id -u) != 0 ]; then
     podman unshare $0 $CMD "$@"
@@ -111,22 +112,20 @@ tag_exists()
 
 mount_image()
 {
-    FULL_TAG=$(tag_get full)
+    podman image exists $(tag_get full) || $0 build
 
     clean_up()
     {
-        silent podman image umount $FULL_TAG
+        silent podman image umount $(tag_get full)
         fix_perm
     }
     trap clean_up EXIT
 
-    RPMTEST=$(podman image mount $FULL_TAG)
+    RPMTEST=$(podman image mount $(tag_get full))
 }
 
 mount_snapshot()
 {
-    BASE_TAG=$(tag_get base)
-
     clean_up()
     {
         snapshot umount
@@ -135,10 +134,10 @@ mount_snapshot()
     }
     trap clean_up EXIT
 
-    tag_exists snap || tag_add $BASE_TAG snap
+    tag_exists snap || tag_add $(tag_get base) snap
     SNAP_TAG=$(tag_get snap)
 
-    if [ "$SNAP_TAG" == "$BASE_TAG" ]; then
+    if [ "$SNAP_TAG" == "$(tag_get base)" ]; then
         NEW_IMAGE=0
     else
         NEW_IMAGE=1
@@ -153,47 +152,26 @@ mount_snapshot()
 
 source ./snapshot
 
-
-REBUILD=0
-for tag in full base snap; do
-    if tag_exists $tag && ! podman image exists $(tag_get $tag); then
-        tag_del $tag
-        REBUILD=1
-    fi
-done
-if [ $REBUILD == 1 ]; then
-    $0 build
-fi
-
 case $CMD in
     build)
-        if [ "$1" == "--full" ]; then
-            NATIVE=0
-            shift
-        fi
+        # Base image
+        podman build --target base -t $IMAGE_BASE -f Dockerfile $CONTEXT
+        tag_add $IMAGE_BASE base
 
-        if [ $NATIVE == 1 ]; then
-            target=base
-        else
-            target=full
-        fi
-
-        # Build base image
-        podman build --target $target -t $IMAGE -f Dockerfile $CONTEXT
-        tag_add $IMAGE base
-
-        # Promote to full image and finish unless in native mode
+        # Full image
+        tag_exists full && silent -f podman rmi $(tag_get full)
         if [ $NATIVE == 0 ]; then
-            tag_add $IMAGE full
-            exit 0
+            # Isolated RPM build
+            podman build --target full -t $IMAGE -f Dockerfile $CONTEXT
+            # Use same image as snapshot base
+            tag_add $IMAGE base
+        else
+            # Native RPM build
+            name=$(buildah from $IMAGE_BASE)
+            trap "silent buildah umount $name; silent buildah rm $name" EXIT
+            ./mktree.native build $(buildah mount $name)
+            silent buildah commit -q $name $IMAGE
         fi
-
-        # Build RPM natively, layer it on top
-        name=$(buildah from $IMAGE)
-        trap "silent buildah umount $name; silent buildah rm $name" EXIT
-        ./mktree.native build $(buildah mount $name)
-        tag_exists full && silent -f buildah rmi $(tag_get full)
-        silent buildah commit -q $name $IMAGE
         tag_add $IMAGE full
     ;;
     check)
