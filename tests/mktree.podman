@@ -67,9 +67,9 @@ print_motd()
     echo "  make reset"
     echo
     if [ $NEW_IMAGE == 1 ]; then
-        echo "## --------------------------------------- ##"
-        echo "## Image has been rebuilt, reset to apply. ##"
-        echo "## --------------------------------------- ##"
+        echo "## ------------------------------------- ##"
+        echo "## New image available, reset to use it. ##"
+        echo "## ------------------------------------- ##"
         echo
     fi
 }
@@ -110,40 +110,54 @@ tag_exists()
     test -f $TAGS_DIR/$1
 }
 
+tag_base() { tag_get base; }
+tag_full() { tag_get full; }
+tag_snap() { tag_get snap; }
+
+image_exists()
+{
+    tag_exists $1 && podman image exists $(tag_get $1)
+}
+
 mount_image()
 {
-    podman image exists $(tag_get full) || $0 build
+    image_exists full || $0 build
 
     clean_up()
     {
-        silent podman image umount $(tag_get full)
+        silent podman image umount $(tag_full)
         fix_perm
     }
     trap clean_up EXIT
 
-    RPMTEST=$(podman image mount $(tag_get full))
+    RPMTEST=$(podman image mount $(tag_full))
 }
 
 mount_snapshot()
 {
+    image_exists base || $0 build
+
+    NEW_IMAGE=0
+    if ! tag_exists snap; then
+        tag_add $(tag_base) snap
+    elif ! image_exists snap; then
+        echo "Error: Image not found, fix by recreating the snapshot with:"
+        echo
+        echo "  make reset"
+        exit 1
+    elif [ "$(tag_snap)" != "$(tag_base)" ]; then
+        NEW_IMAGE=1
+    fi
+
     clean_up()
     {
         snapshot umount
-        silent podman image umount $SNAP_TAG
+        silent podman image umount $(tag_snap)
         fix_perm
     }
     trap clean_up EXIT
 
-    tag_exists snap || tag_add $(tag_get base) snap
-    SNAP_TAG=$(tag_get snap)
-
-    if [ "$SNAP_TAG" == "$(tag_get base)" ]; then
-        NEW_IMAGE=0
-    else
-        NEW_IMAGE=1
-    fi
-
-    RPMTREE=$(podman image mount $SNAP_TAG)
+    RPMTREE=$(podman image mount $(tag_snap))
     RPMTEST=$SNAP_DIR/tree
     snapshot mount $SNAP_DIR
 
@@ -159,11 +173,11 @@ case $CMD in
         tag_add $IMAGE_BASE base
 
         # Full image
-        tag_exists full && silent -f podman rmi $(tag_get full)
+        image_exists full && podman rmi $(tag_full)
         if [ $NATIVE == 0 ]; then
             # Isolated RPM build
             podman build --target full -t $IMAGE -f Dockerfile $CONTEXT
-            # Use same image as snapshot base
+            # This is now also our snapshot base
             tag_add $IMAGE base
         else
             # Native RPM build
