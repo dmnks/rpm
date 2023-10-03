@@ -86,10 +86,8 @@ if ("${MKTREE_BACKEND}" STREQUAL "podman")
 		# Containerized build mode
 		set(MKTREE_NATIVE 0)
 		configure_file(Dockerfile Dockerfile COPYONLY)
-		message(WARNING
-			"Native mktree mode not available on this platform, "
-			"falling back to containerized building.")
 	endif()
+	message(STATUS "Native mktree mode: ${MKTREE_NATIVE}")
 	set(MKTREE_BUILD_DEPS Dockerfile)
 	add_custom_target(ci
 		COMMAND ./mktree build --full
@@ -122,7 +120,7 @@ add_custom_target(reset
 )
 
 add_custom_target(tree
-	DEPENDS mktree.dir/tags/full
+	DEPENDS mktree.dir
 )
 
 add_custom_command(OUTPUT rpmtests
@@ -132,7 +130,7 @@ add_custom_command(OUTPUT rpmtests
 	DEPENDS local.at
 )
 
-add_custom_command(OUTPUT mktree.dir/tags/full mktree.dir/tags/base
+add_custom_command(OUTPUT mktree.dir
 	COMMAND ./mktree build
 	DEPENDS rpmtests
 	DEPENDS ${TESTPROGS}

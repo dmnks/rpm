@@ -6,13 +6,6 @@
 PROGRAM=$(basename $0)
 CMD=$1; shift
 
-TREE_DIR=${PWD}/mktree.dir
-TAGS_DIR=${TREE_DIR}/tags
-SNAP_DIR=${TREE_DIR}/snapshot
-
-IMAGE=rpm
-IMAGE_BASE=rpm/base
-
 if [ $(id -u) != 0 ]; then
     podman unshare $0 $CMD "$@"
     exit
@@ -22,11 +15,22 @@ if [ "$PROGRAM" == "mktree" ]; then
     # Running from build directory
     NATIVE=@MKTREE_NATIVE@
     CONTEXT=@CMAKE_SOURCE_DIR@
+    TAG=$(printf "@CMAKE_BINARY_DIR@" | sha256sum | head -c7)
 else
     # Running from source directory
     NATIVE=0
     CONTEXT=..
+    TAG=latest
 fi
+
+TREE_DIR=${PWD}/mktree.dir
+SNAP_DIR=${TREE_DIR}/snapshot
+
+IMAGE=rpm:$TAG
+BASE_IMAGE=rpm/base:$TAG
+SNAP_IMAGE=rpm/snap:$TAG
+
+PODMAN_ARGS="-f Dockerfile $CONTEXT"
 
 SHELL_MOTD="
 Welcome to RPM @CMAKE_PROJECT_VERSION@ container!
@@ -67,20 +71,7 @@ print_motd()
     echo "  make reset"
     echo
     if [ $NEW_IMAGE == 1 ]; then
-        echo "## ------------------------------------- ##"
-        echo "## New image available, reset to use it. ##"
-        echo "## ------------------------------------- ##"
-        echo
-    fi
-}
-
-silent()
-{
-    if [ "$1" == "-f" ]; then
-        shift
-        "$@" >/dev/null 2>&1
-    else
-        "$@" >/dev/null
+        echo "Warning: New image is available, reset to use it."
     fi
 }
 
@@ -89,74 +80,44 @@ fix_perm()
     chmod -Rf u+rwX $SNAP_DIR rpmtests.dir
 }
 
-tag_add()
-{
-    mkdir -p $TAGS_DIR
-    podman image inspect --format '{{.Id}}' $1 > $TAGS_DIR/$2
-}
-
-tag_del()
-{
-    rm -f $TAGS_DIR/$1
-}
-
-tag_get()
-{
-    cat $TAGS_DIR/$1
-}
-
-tag_exists()
-{
-    test -f $TAGS_DIR/$1
-}
-
-tag_base() { tag_get base; }
-tag_full() { tag_get full; }
-tag_snap() { tag_get snap; }
-
-image_exists()
-{
-    tag_exists $1 && podman image exists $(tag_get $1)
-}
-
 mount_image()
 {
-    image_exists full || $0 build
+    podman image exists $IMAGE || $0 build
 
     clean_up()
     {
-        silent podman image umount $(tag_full)
+        podman image umount $IMAGE >/dev/null
         fix_perm
     }
     trap clean_up EXIT
 
-    RPMTEST=$(podman image mount $(tag_full))
+    RPMTEST=$(podman image mount $IMAGE)
+}
+
+image_id()
+{
+    podman image inspect --format '{{.Id}}' $1
 }
 
 mount_snapshot()
 {
-    image_exists base || $0 build
-
-    NEW_IMAGE=0
-    if ! tag_exists snap; then
-        tag_add $(tag_base) snap
-        podman tag $(tag_base) rpm/snap
-    elif ! image_exists snap; then
-        echo "Error: Image not found, fix with: make reset"
-        exit 1
-    elif [ "$(tag_snap)" != "$(tag_base)" ]; then
+    podman image exists $BASE_IMAGE || $0 build
+    podman image exists $SNAP_IMAGE || podman tag $BASE_IMAGE $SNAP_IMAGE
+    if [ "$(image_id $SNAP_IMAGE)" == "$(image_id $BASE_IMAGE)" ]; then
+        NEW_IMAGE=0
+    else
         NEW_IMAGE=1
     fi
 
     clean_up()
     {
         snapshot umount
-        silent podman image umount $(tag_snap)
+        podman image umount $SNAP_IMAGE >/dev/null
         fix_perm
     }
     trap clean_up EXIT
 
-    RPMTREE=$(podman image mount $(tag_snap))
+    RPMTREE=$(podman image mount $SNAP_IMAGE)
     RPMTEST=$SNAP_DIR/tree
     snapshot mount $SNAP_DIR
 
@@ -167,25 +128,24 @@ source ./snapshot
 
 case $CMD in
     build)
-        # Base image
-        podman build --target base -t $IMAGE_BASE -f Dockerfile $CONTEXT
-        tag_add $IMAGE_BASE base
+        # Build base image
+        podman build --target base -t $BASE_IMAGE $PODMAN_ARGS
 
-        # Full image
-        image_exists full && podman rmi $(tag_full)
+        # Build full image
+        podman image exists $IMAGE && podman rmi $IMAGE
         if [ $NATIVE == 0 ]; then
-            # Isolated RPM build
-            podman build --target full -t $IMAGE -f Dockerfile $CONTEXT
-            # This is now also our snapshot base
-            tag_add $IMAGE base
+            # Containerized RPM build
+            podman build --target full -t $IMAGE $PODMAN_ARGS
         else
             # Native RPM build
-            name=$(buildah from $IMAGE_BASE)
-            trap "silent buildah umount $name; silent buildah rm $name" EXIT
+            name=$(buildah from $BASE_IMAGE)
             ./mktree.native build $(buildah mount $name)
-            silent buildah commit -q $name $IMAGE
+            buildah commit -q --rm $name $IMAGE
         fi
-        tag_add $IMAGE full
+
+        # Signal change to build system
+        mkdir -p $TREE_DIR
+        touch $TREE_DIR
     ;;
     check)
         mount_image
@@ -205,8 +165,7 @@ case $CMD in
         $SHELL
     ;;
     reset)
-        tag_del snap
-        # podman rmi rpm/snap
+        podman image exists $SNAP_IMAGE && podman rmi $SNAP_IMAGE >/dev/null
         rm -rf "$SNAP_DIR"
     ;;
     refresh)
