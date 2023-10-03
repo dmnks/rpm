@@ -1,7 +1,7 @@
 #!/bin/bash
 #
-# Podman-based mktree backend using an OCI image to build and run RPM.
-# Works standalone (outside of a build directory) too.
+# OCI image based mktree backend, works also standalone (outside of a build
+# directory).
 
 PROGRAM=$(basename $0)
 CMD=$1; shift
