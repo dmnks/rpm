@@ -17,7 +17,7 @@ if [ "$PROGRAM" == "mktree" ]; then
     CONTEXT=@CMAKE_SOURCE_DIR@
 else
     # Running from source directory
-    NATIVE=0
+    NATIVE=OFF
     CONTEXT=..
 fi
 
@@ -81,7 +81,7 @@ tag()
         # Tag existence check
         -e) test -f $TAGS_DIR/$2; return ;;
         # Image existence check
-        -p) $(tag -e $2) && podman image exists $(tag $2); return ;;
+        -i) $(tag -e $2) && podman image exists $(tag $2); return ;;
     esac
 
     # Handle load/save
@@ -102,7 +102,7 @@ fix_perm()
 
 mount_image()
 {
-    tag -p full || $0 build
+    tag -i full || $0 build
 
     clean_up()
     {
@@ -116,15 +116,27 @@ mount_image()
 
 mount_snapshot()
 {
-    tag -p base || $0 build
+    if [ $NATIVE == ON ]; then
+        tag=base
+    else
+        tag=full
+    fi
+
+    tag -i $tag || $0 build
 
     NEW_IMAGE=0
     if ! tag -e snap; then
-        tag $(tag base) snap
-    elif ! $(tag -p snap); then
-        echo "Error: Image not found, fix with: make reset" >&2
+        tag $(tag $tag) snap
+    elif ! $(tag -i snap); then
+        {
+            echo
+            echo "Error: Image not found, fix with:"
+            echo
+            echo "  make reset"
+            echo
+        } >&2
         exit 1
-    elif [ "$(tag snap)" != "$(tag base)" ]; then
+    elif [ "$(tag snap)" != "$(tag $tag)" ]; then
         NEW_IMAGE=1
     fi
 
@@ -140,7 +152,7 @@ mount_snapshot()
     RPMTEST=$SNAP_DIR/tree
     snapshot mount $SNAP_DIR
 
-    [ $NATIVE == 1 ] && ./mktree.native build $RPMTEST
+    [ $NATIVE == ON ] && ./mktree.native build $RPMTEST
 }
 
 source ./snapshot
@@ -151,18 +163,25 @@ case $CMD in
         podman build --target base -t $IMAGE/base $PODMAN_ARGS
         tag $IMAGE/base base
 
+        # Force non-native mode?
+        [ "$1" == "--full" ] && NATIVE=OFF
+
         # Build full image
-        tag -p full && podman rmi $(tag full)
-        if [ $NATIVE == 0 ]; then
-            # Containerized RPM build
-            podman build --target full -t $IMAGE $PODMAN_ARGS
-        else
+        tag -i full && podman rmi $(tag full)
+        if [ $NATIVE == ON ]; then
             # Native RPM build
             name=$(buildah from $IMAGE/base)
             ./mktree.native build $(buildah mount $name)
             buildah commit -q --rm $name $IMAGE
+        else
+            # Containerized RPM build
+            podman build --target full -t $IMAGE $PODMAN_ARGS
         fi
         tag $IMAGE full
+
+        # Signal change to build system
+        mkdir -p $TREE_DIR
+        touch $TREE_DIR
     ;;
     check)
         mount_image

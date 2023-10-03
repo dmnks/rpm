@@ -72,19 +72,21 @@ endif()
 find_program(BWRAP bwrap REQUIRED)
 
 set(MKTREE_BACKEND podman CACHE STRING "Mktree backend to use")
+set(MKTREE_NATIVE ON CACHE BOOL "Mktree native mode")
+
 message(STATUS "Using mktree backend: ${MKTREE_BACKEND}")
 
 # Set up mktree
 if ("${MKTREE_BACKEND}" STREQUAL "podman")
 	find_program(PODMAN podman REQUIRED)
+	find_program(BUILDAH buildah REQUIRED)
 	if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/Dockerfile.${OS_NAME})
-		# Native build mode
-		set(MKTREE_NATIVE 1)
+		# Native building available
 		configure_file(Dockerfile.${OS_NAME} Dockerfile COPYONLY)
 		configure_file(mktree.native mktree.native @ONLY)
 	else()
-		# Containerized build mode
-		set(MKTREE_NATIVE 0)
+		# Fall back to containerized building
+		set(MKTREE_NATIVE OFF)
 		configure_file(Dockerfile Dockerfile COPYONLY)
 	endif()
 	message(STATUS "Native mktree mode: ${MKTREE_NATIVE}")
@@ -102,17 +104,17 @@ configure_file(package.m4.in package.m4 @ONLY)
 
 add_custom_target(check
 	COMMAND ./mktree check ${JOBS} $(TESTOPTS)
-	DEPENDS tree
+	DEPENDS mktree.dir
 )
 
 add_custom_target(shell
 	COMMAND ./mktree shell ||:
-	DEPENDS tree
+	DEPENDS mktree.dir
 )
 
 add_custom_target(atshell
 	COMMAND ./mktree atshell ||:
-	DEPENDS tree
+	DEPENDS mktree.dir
 )
 
 add_custom_target(reset
