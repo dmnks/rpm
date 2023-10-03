@@ -124,7 +124,6 @@ mount_snapshot()
 
     tag -i $tag || $0 build
 
-    NEW_IMAGE=0
     if ! tag -e snap; then
         tag $(tag $tag) snap
     elif ! $(tag -i snap); then
@@ -136,7 +135,11 @@ mount_snapshot()
             echo
         } >&2
         exit 1
-    elif [ "$(tag snap)" != "$(tag $tag)" ]; then
+    fi
+
+    if [ "$(tag snap)" == "$(tag $tag)" ]; then
+        NEW_IMAGE=0
+    else
         NEW_IMAGE=1
     fi
 
@@ -152,10 +155,10 @@ mount_snapshot()
     RPMTEST=$SNAP_DIR/tree
     snapshot mount $SNAP_DIR
 
-    [ $NATIVE == ON ] && ./mktree.native build $RPMTEST
+    [ $NATIVE == ON ] && make_install $RPMTEST
 }
 
-source ./snapshot
+source ./mktree.common
 
 case $CMD in
     build)
@@ -171,7 +174,7 @@ case $CMD in
         if [ $NATIVE == ON ]; then
             # Native RPM build
             name=$(buildah from $IMAGE/base)
-            ./mktree.native build $(buildah mount $name)
+            make_install $(buildah mount $name)
             buildah commit -q --rm $name $IMAGE
         else
             # Containerized RPM build

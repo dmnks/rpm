@@ -110,5 +110,5 @@ function runroot_other()
     snapshot exec "$@"
 }
 
-source ./snapshot
+source ./mktree.common
 snapshot prune rpmtests.dir/*/tree

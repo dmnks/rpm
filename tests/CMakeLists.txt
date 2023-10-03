@@ -81,9 +81,8 @@ if ("${MKTREE_BACKEND}" STREQUAL "podman")
 	find_program(PODMAN podman REQUIRED)
 	find_program(BUILDAH buildah REQUIRED)
 	if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/Dockerfile.${OS_NAME})
-		# Native building available
+		# Native building supported
 		configure_file(Dockerfile.${OS_NAME} Dockerfile COPYONLY)
-		configure_file(mktree.native mktree.native @ONLY)
 	else()
 		# Fall back to containerized building
 		set(MKTREE_NATIVE OFF)
@@ -97,7 +96,8 @@ if ("${MKTREE_BACKEND}" STREQUAL "podman")
 	)
 endif()
 configure_file(mktree.${MKTREE_BACKEND} mktree @ONLY)
-configure_file(snapshot snapshot COPYONLY)
+configure_file(mktree.common mktree.common @ONLY)
+configure_file(mktree.rootfs mktree.rootfs @ONLY)
 
 configure_file(atlocal.in atlocal @ONLY)
 configure_file(package.m4.in package.m4 @ONLY)
