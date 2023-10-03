@@ -71,13 +71,13 @@ endif()
 
 find_program(BWRAP bwrap REQUIRED)
 
-set(MKTREE_BACKEND podman CACHE STRING "Mktree backend to use")
+set(MKTREE_BACKEND oci CACHE STRING "Mktree backend to use")
 set(MKTREE_NATIVE ON CACHE BOOL "Mktree native mode")
 
 message(STATUS "Using mktree backend: ${MKTREE_BACKEND}")
 
 # Set up mktree
-if ("${MKTREE_BACKEND}" STREQUAL "podman")
+if ("${MKTREE_BACKEND}" STREQUAL "oci")
 	find_program(PODMAN podman REQUIRED)
 	find_program(BUILDAH buildah REQUIRED)
 	if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/Dockerfile.${OS_NAME})

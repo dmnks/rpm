@@ -29,14 +29,16 @@ IMAGE=rpm
 PODMAN_ARGS="-f Dockerfile $CONTEXT"
 
 SHELL_MOTD="
-Welcome to RPM @CMAKE_PROJECT_VERSION@ container!
+Welcome to RPM @CMAKE_PROJECT_VERSION@ snapshot shell!
 
 This is a container running a minimal version of the host
-system in a writable snapshot, with the RPM build installed
-and ready to experiment with.
+system in a writable snapshot, with the current RPM build
+installed and ready to experiment with.
 
-To update the RPM installation with the latest source
-changes, re-enter this target.
+For any later RPM source changes to be reflected, re-enter
+this target.
+
+To throw away the snapshot and start over, run: make reset
 "
 
 ATSHELL_MOTD="
@@ -47,13 +49,13 @@ mounted at \$RPMTEST, with full host integration allowing
 you to use your native tools to inspect and/or modify the
 snapshot.
 
-The shell runs in a user namespace WITHOUT filesystem
-isolation so be mindful when using destructive commands.
-Treat it like any other shell running on your host.
+The usual test commands are available, e.g. runroot ...
+To throw away the snapshot and start over, run: make reset
 
-The usual test commands are available, e.g.
-
-  runroot rpm ...
+WARNING: The shell runs in a user namespace, without file
+system isolation, so be cautious when using destructive
+commands. Treat it like any other shell running on your
+host.
 "
 
 print_motd()
@@ -62,12 +64,8 @@ print_motd()
         shell) echo "$SHELL_MOTD" ;;
         atshell) echo "$ATSHELL_MOTD" ;;
     esac
-    echo "To throw away the snapshot and start over, run:"
-    echo
-    echo "  make reset"
-    echo
     if [ $NEW_IMAGE == 1 ]; then
-        echo "Warning: New image is available, reset to use it."
+        echo "WARNING: New image is available, reset to use it."
     fi
 }
 
@@ -129,9 +127,7 @@ mount_snapshot()
     elif ! $(tag -i snap); then
         {
             echo
-            echo "Error: Image not found, fix with:"
-            echo
-            echo "  make reset"
+            echo "Error: Image not found, fix with: make reset"
             echo
         } >&2
         exit 1
