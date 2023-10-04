@@ -166,7 +166,7 @@ case $CMD in
         # Configure default shell for root user
         cp -r $BASE_DIR/{etc/skel/.,/root}
     ;;
-    env)
+    atshell)
         set -a
         mount_tree $SANDBOX_DIR
 
