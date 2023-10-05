@@ -14,6 +14,21 @@ make_install()
     mkdir -p $DESTDIR/usr/bin
     cp @TESTPROG_NAMES@ $DESTDIR/usr/bin/
 
+    # Wrapper for rpmtests that operates from the current directory and uses
+    # the bundled version in /data/bin.
+    {
+        echo '#!/bin/bash'
+        echo '[ "$1" == "-C" ] && { cd "$2"; shift 2; }'
+        echo 'for file in /data/bin/*'
+        echo 'do [ -e "$(basename $file)" ] || ln -s $file .'
+        echo 'done'
+        echo 'exec ./rpmtests "$@"'
+    } > $DESTDIR/usr/bin/rpmtests
+    chmod +x $DESTDIR/usr/bin/rpmtests
+
+    mkdir -p $DESTDIR/data/bin
+    cp rpmtests atlocal mktree.common $DESTDIR/data/bin/
+
     mkdir -p $DESTDIR/build
     ln -sf ../data/SOURCES $DESTDIR/build/
 }

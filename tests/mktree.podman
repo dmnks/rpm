@@ -41,8 +41,8 @@ case $CMD in
             *) OPTS= ;;
         esac
         $PODMAN run --privileged -it --rm --read-only --tmpfs /tmp \
-                    -v $PWD:/srv:z --workdir /srv -e ROOTLESS=$ROOTLESS \
-                    $OPTS $IMAGE mktree check "$@"
+                    -v $PWD:/srv:z -e ROOTLESS=$ROOTLESS \
+                    $OPTS $IMAGE rpmtests -C /srv "$@"
     ;;
     reset)
         $PODMAN stop $NAME >/dev/null &&
