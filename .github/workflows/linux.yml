@@ -14,3 +14,6 @@ jobs:
       - name: Run the test suite
         run: sudo ./mktree.docker check --interactive=false -j$(nproc)
         working-directory: ./tests
+      - name: Print the test log
+        run: cat rpmtests.log
+        working-directory: ./tests

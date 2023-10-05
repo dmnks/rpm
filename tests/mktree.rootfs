@@ -20,9 +20,6 @@ case $CMD in
     check)
         ln -s /data/bin/* .
         ./rpmtests "$@"
-        RC=$?
-        cat rpmtests.log
-        exit $RC
     ;;
     *)
         echo "Unsupported command." >&2
