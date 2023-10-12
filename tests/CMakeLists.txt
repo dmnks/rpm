@@ -71,23 +71,26 @@ if (nproc GREATER 1)
 	set(JOBS -j${nproc})
 endif()
 
-# Detect suitable mktree backend, prefer native
 find_program(BWRAP bwrap)
-mark_as_advanced(BWRAP)
 find_program(PODMAN NAMES podman)
 find_program(DOCKER NAMES docker)
+get_filename_component(PODMAN ${PODMAN} NAME)
+set(DOCKERFILE ${CMAKE_CURRENT_SOURCE_DIR}/Dockerfile.${OS_NAME})
+
+mark_as_advanced(BWRAP)
 mark_as_advanced(PODMAN)
 mark_as_advanced(DOCKER)
-if ("${MKTREE_BACKEND}" STREQUAL "")
-	if (PODMAN AND BWRAP AND
-	    EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/Dockerfile.${OS_NAME})
+
+# Detect suitable mktree backend, prefer native
+set(MKTREE_BACKEND auto CACHE STRING "Mktree backend to use")
+if (MKTREE_BACKEND STREQUAL "auto")
+	if (PODMAN AND BWRAP AND EXISTS ${DOCKERFILE})
 		set(MKTREE_BACKEND native)
 	elseif (PODMAN OR DOCKER)
 		set(MKTREE_BACKEND podman)
 	else()
 		message(WARNING
-			"No suitable mktree backend found for this platform. "
-			"Disabling test-suite.")
+			"No suitable mktree backend found, disabling tests.")
 		return()
 	endif()
 endif()
@@ -101,7 +104,7 @@ else()
 	find_program(BWRAP bwrap REQUIRED)
 	if ("${MKTREE_BACKEND}" STREQUAL "native")
 		find_program(PODMAN NAMES podman REQUIRED)
-		configure_file(Dockerfile.${OS_NAME} Dockerfile COPYONLY)
+		configure_file(${DOCKERFILE} Dockerfile COPYONLY)
 	endif()
 	if (PODMAN)
 		get_filename_component(PODMAN ${PODMAN} NAME)
