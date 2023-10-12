@@ -43,28 +43,20 @@ RPM_MACROS="
 "
 
 ATSHELL_MOTD="
-Welcome to RPM test environment!
+Welcome to RPM @CMAKE_PROJECT_VERSION@ Autotest shell!
 
-This is like an interactive test with a writable \$RPMTEST
-tree, but with full host integration so you can use your
-native tools to inspect or modify the tree.
+This is like an interactive test with a writable snapshot
+mounted at \$RPMTEST, with full host integration allowing
+you to use your native tools to inspect and/or modify the
+snapshot.
 
-The shell runs in a user namespace WITHOUT filesystem
-isolation so be mindful when using destructive commands.
-Treat it like any other shell on your host.
+The usual test commands are available, e.g. runroot ...
+To throw away the snapshot and start over, run: make reset
 
-The usual test commands are available, e.g.
-
-  runroot rpm ...
-
-DNF is configured to operate on the tree, use it simply
-like this:
-
-  dnf install ...
-
-To factory-reset the tree, leave this shell and run:
-
-  make reset
+WARNING: This shell runs in a user namespace without file
+system isolation so be cautious when using destructive
+commands. Treat it like any other shell running on your
+host.
 "
 
 dnf()
