@@ -71,20 +71,21 @@ if (nproc GREATER 1)
 	set(JOBS -j${nproc})
 endif()
 
-# Detect suitable mktree backend
 find_program(BWRAP bwrap)
 mark_as_advanced(BWRAP)
 find_program(PODMAN NAMES podman docker)
 mark_as_advanced(PODMAN)
-if ("${MKTREE_BACKEND}" STREQUAL "")
+
+# Detect suitable mktree backend if not explicitly set
+set(MKTREE_BACKEND auto CACHE STRING "Mktree backend to use")
+if ("${MKTREE_BACKEND}" STREQUAL "auto")
 	if (BWRAP AND EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/Dockerfile.${OS_NAME})
 		set(MKTREE_BACKEND native)
 	elseif (PODMAN)
 		set(MKTREE_BACKEND podman)
 	else()
 		message(WARNING
-			"No suitable mktree backend found for this platform. "
-			"Disabling test-suite.")
+			"No suitable mktree backend found, disabling tests.")
 		return()
 	endif()
 endif()
