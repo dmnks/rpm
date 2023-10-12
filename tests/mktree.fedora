@@ -4,6 +4,18 @@
 # the RPM runtime and test dependencies but no stock RPM preinstalled.
 # Lightweight snapshotting built into the test-suite is used for isolation.
 
+# Run in a user namespace (if not root already)
+if [ $(id -u) != 0 ]; then
+    if [ -f /run/.toolboxenv ]; then
+        # toolbox(1) support
+        UNSHARE="sudo --preserve-env"
+    else
+        UNSHARE="unshare -r --mount --map-auto"
+    fi
+    $UNSHARE $0 "$@"
+    exit
+fi
+
 source ./mktree.common
 
 # Obtain source dir (or common git-worktree(1) if one exists)
@@ -21,7 +33,8 @@ BASE_DIR=$SOURCE_DIR/mktree.output/base
 CACHE_DIR=$SOURCE_DIR/mktree.cache
 
 # Build-specific dirs
-INST_DIR=$PWD/mktree.output/inst
+TREE_DIR=$PWD/mktree.output
+INST_DIR=$TREE_DIR/inst
 SANDBOX_DIR=$PWD/mktree.sandbox
 
 RPM_MACROS="
@@ -54,8 +67,6 @@ To factory-reset the tree, leave this shell and run:
   make reset
 "
 
-CMD=$1; shift
-
 dnf()
 {
     HOME=$CACHE_DIR command dnf \
@@ -66,11 +77,6 @@ dnf()
         --setopt=install_weak_deps=0 \
         --disablerepo=\* --enablerepo=fedora,updates \
         --exclude=rpm,systemd-udev "$@"
-}
-
-fix_perm()
-{
-    chmod -Rf u+rwX "$@"
 }
 
 mount_tree()
@@ -90,18 +96,12 @@ umount_tree()
     snapshot umount
 }
 
-# Run CMD in a user namespace (if not root already)
-if [ $(id -u) != 0 ]; then
-    if [ -f /run/.toolboxenv ]; then
-        # toolbox(1) support
-        UNSHARE="sudo --preserve-env"
-    else
-        UNSHARE="unshare -r --mount --map-auto"
-    fi
-    $UNSHARE $0 $CMD "$@"
-    exit
-fi
+fix_perm()
+{
+    chmod -Rf u+rwX "$@"
+}
 
+CMD=$1; shift
 case $CMD in
     build)
         mkdir -p $CACHE_DIR
@@ -174,7 +174,7 @@ case $CMD in
         make_install $INST_DIR
 
         # Signal change to build system
-        touch mktree.output
+        touch $TREE_DIR
     ;;
     atshell)
         set -a
