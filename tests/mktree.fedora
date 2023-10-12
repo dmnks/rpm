@@ -68,9 +68,15 @@ dnf()
         --exclude=rpm,systemd-udev "$@"
 }
 
+fix_perm()
+{
+    chmod -Rf u+rwX "$@"
+}
+
 mount_tree()
 {
     local dir=$SANDBOX_DIR
+    trap : INT  # Continue on SIGINT
     if [ "$1" == "--read-only" ]; then
         unset dir
     fi
@@ -79,10 +85,9 @@ mount_tree()
     snapshot mount $dir
 }
 
-clean_up()
+umount_tree()
 {
-    [ -n "$RPMTEST" ] && snapshot umount
-    chmod -Rf u+rwX $BASE_DIR $SANDBOX_DIR rpmtests.dir
+    snapshot umount
 }
 
 # Run CMD in a user namespace (if not root already)
@@ -96,8 +101,6 @@ if [ $(id -u) != 0 ]; then
     $UNSHARE $0 $CMD "$@"
     exit
 fi
-
-trap clean_up EXIT
 
 case $CMD in
     build)
@@ -164,6 +167,8 @@ case $CMD in
         # Configure default shell for root user
         cp -r $BASE_DIR/{etc/skel/.,/root}
 
+        fix_perm $BASE_DIR
+
         # Add RPM installation layer
         rm -rf "$INST_DIR"
         make_install $INST_DIR
@@ -182,15 +187,22 @@ case $CMD in
 
         echo "$ATSHELL_MOTD"
         $SHELL
+
+        umount_tree
+        fix_perm $SANDBOX_DIR
     ;;
     shell)
         mount_tree
         snapshot shell "$@"
+        umount_tree
+        fix_perm $SANDBOX_DIR
     ;;
     check)
         mount_tree --read-only
         snapshot exec --tmpfs /tmp --bind $PWD $PWD --setenv RPMTREE $RPMTREE \
                       rpmtests -C $PWD "$@"
+        umount_tree
+        fix_perm rpmtests.dir
     ;;
     reset)
         rm -rf "$SANDBOX_DIR"
