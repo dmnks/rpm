@@ -71,15 +71,18 @@ if (nproc GREATER 1)
 	set(JOBS -j${nproc})
 endif()
 
-# Detect suitable mktree backend
+# Detect suitable mktree backend, prefer native
 find_program(BWRAP bwrap)
 mark_as_advanced(BWRAP)
-find_program(PODMAN NAMES podman docker)
+find_program(PODMAN NAMES podman)
+find_program(DOCKER NAMES docker)
 mark_as_advanced(PODMAN)
+mark_as_advanced(DOCKER)
 if ("${MKTREE_BACKEND}" STREQUAL "")
-	if (BWRAP AND EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/mktree.${OS_NAME})
+	if (PODMAN AND BWRAP AND
+	    EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/Dockerfile.${OS_NAME})
 		set(MKTREE_BACKEND ${OS_NAME})
-	elseif (PODMAN)
+	elseif (PODMAN OR DOCKER)
 		set(MKTREE_BACKEND podman)
 	else()
 		message(WARNING
@@ -96,6 +99,10 @@ if ("${MKTREE_BACKEND}" STREQUAL "podman")
 	configure_file(Dockerfile Dockerfile COPYONLY)
 else()
 	find_program(BWRAP bwrap REQUIRED)
+	if ("${MKTREE_BACKEND}" STREQUAL "${OS_NAME}")
+		find_program(PODMAN NAMES podman REQUIRED)
+		configure_file(Dockerfile.${OS_NAME} Dockerfile COPYONLY)
+	endif()
 	if (PODMAN)
 		get_filename_component(PODMAN ${PODMAN} NAME)
 		add_custom_target(ci
@@ -104,6 +111,9 @@ else()
 			WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 		)
 	endif()
+endif()
+if (NOT "${MKTREE_BACKEND}" STREQUAL "rootfs")
+	set(MKTREE_DEPS Dockerfile)
 endif()
 configure_file(mktree.common mktree.common @ONLY)
 configure_file(mktree.${MKTREE_BACKEND} mktree @ONLY)
@@ -147,4 +157,5 @@ add_custom_command(OUTPUT mktree.output
 	DEPENDS ${TESTPROGS}
 	DEPENDS ${TOOLPROGS}
 	DEPENDS mktree
+	DEPENDS ${MKTREE_DEPS}
 )
