@@ -1,7 +1,14 @@
 #!/bin/bash
 #
-# Podman-based mktree backend using an OCI image to build and run RPM.
-# Works standalone (outside of a build directory) too.
+# Podman mktree backend
+#
+# Base: OCI image (stable Fedora)
+# RPM build: isolated
+# Isolation of rpmtests: podman
+# Optimized for: portability (CI)
+# Works without cmake: yes
+# Notes:
+#   - invoke via mktree.docker symlink to use docker instead
 
 PROGRAM=$(basename $0)
 if [ "$PROGRAM" == "mktree" ]; then

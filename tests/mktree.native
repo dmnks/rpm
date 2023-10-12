@@ -1,8 +1,12 @@
 #!/bin/bash
 #
-# Fedora-native mktree backend using DNF to bootstrap a minimal OS tree with
-# the RPM runtime and test dependencies but no stock RPM preinstalled.
-# Lightweight snapshotting built into the test-suite is used for isolation.
+# Native mktree backend
+#
+# Base: OCI image (host-native)
+# RPM build: native
+# Isolation of rpmtests: bwrap
+# Optimized for: development
+# Works without cmake: no
 
 if [ $(id -u) != 0 ]; then
     @PODMAN@ unshare $0 "$@"
