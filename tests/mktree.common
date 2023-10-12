@@ -1,3 +1,5 @@
+# Common functions and variables to be sourced from mktree backends
+
 # Build and install RPM and the test-suite data into a directory
 make_install()
 {
@@ -24,6 +26,7 @@ make_install()
     ln -sf ../data/SOURCES $DESTDIR/build/
 }
 
+# Manage lightweight containers using Bubblewrap and OverlayFS
 snapshot()
 {
     local cmd=$1
