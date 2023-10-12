@@ -1,8 +1,12 @@
 #!/bin/bash
 #
-# Fedora-native mktree backend using an OCI image as a minimal OS tree with the
-# RPM runtime and test dependencies but no stock RPM preinstalled.
-# Lightweight snapshotting built into the test-suite is used for isolation.
+# Native mktree backend
+#
+# Base:                     OCI image (host-native)
+# RPM build:                native
+# Isolation of rpmtests:    bwrap
+# Optimized for:            development
+# Works without cmake:      no
 
 if [ $(id -u) != 0 ]; then
     @PODMAN@ unshare $0 "$@"
@@ -19,23 +23,20 @@ INST_DIR=$TREE_DIR/inst
 SANDBOX_DIR=$PWD/mktree.sandbox
 
 ATSHELL_MOTD="
-Welcome to RPM test environment!
+Welcome to RPM @CMAKE_PROJECT_VERSION@ Autotest shell!
 
-This is like an interactive test with a writable \$RPMTEST
-tree, but with full host integration so you can use your
-native tools to inspect or modify the tree.
+This is like an interactive test with a writable snapshot
+mounted at \$RPMTEST, with full host integration allowing
+you to use your native tools to inspect and/or modify the
+snapshot.
 
-The shell runs in a user namespace WITHOUT filesystem
-isolation so be mindful when using destructive commands.
-Treat it like any other shell on your host.
+The usual test commands are available, e.g. runroot ...
+To throw away the snapshot and start over, run: make reset
 
-The usual test commands are available, e.g.
-
-  runroot rpm ...
-
-To factory-reset the tree, leave this shell and run:
-
-  make reset
+WARNING: This shell runs in a user namespace without file
+system isolation so be cautious when using destructive
+commands. Treat it like any other shell running on your
+host.
 "
 
 # Mount the filesystem tree and return its location via $RPMTEST
