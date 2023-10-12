@@ -38,7 +38,7 @@ case $CMD in
         esac
         $PODMAN run --privileged -it --rm --read-only --tmpfs /tmp \
                     -v /srv --workdir /srv -e ROOTLESS=$ROOTLESS \
-                    --env RPMTREE=/ $OPTS $IMAGE rpmtests --log "$@"
+                    $OPTS $IMAGE rpmtests --log "$@"
     ;;
     *)
         echo "Unsupported command." >&2
