@@ -1,7 +1,15 @@
 #!/bin/bash
 #
-# Podman-based mktree backend using an OCI image to build and run RPM.
-# Works standalone (outside of a build directory) too.
+# Podman-based mktree backend using OCI images.
+#
+# If a Dockerfile matching the host distribution is found, it is built and then
+# combined with the local RPM build to produce the final image ("native" mode).
+# Otherwise, the default Dockerfile is used and RPM is built as part of the
+# image ("non-native" mode).
+#
+# This script can also be invoked directly from the source directory, in which
+# case it performs a non-native build (useful for CI purposes).  If invoked via
+# the mktree.docker symlink, docker is used instead of podman.
 
 PROGRAM=$(basename $0)
 if [ "$PROGRAM" == "mktree" ]; then

@@ -1,8 +1,21 @@
-To run these tests, you need at least these dependencies on the host:
+To run these tests, you need either of:
 
-1.    [bwrap](https://github.com/containers/bubblewrap/)
-1.    [gdb](https://www.gnu.org/software/gdb/)
-1.    [gnupg](https://www.gnupg.org/) >= 2.0
+1.    [Podman](https://github.com/containers/podman)
+1.    [Docker](https://github.com/docker)
+
+The test suite runs in a Podman/Docker container and supports two modes:
+
+1. *Native* - Exercises the local build of RPM against a minimal image of the
+   host Linux distribution.  Currently, only Fedora Linux is supported.  This
+   mode is optimized for local RPM development and requires Podman.
+1. *Non-native* - Performs a fresh build of RPM (including cmake configuration)
+   from the local checkout as part of a Fedora-based image.  This mode is
+   optimized for portability (CI environment) and works with both Podman and
+   Docker.
+
+The mode is selected automatically by cmake based on the host distribution and
+the container tools installed, with the native mode being preferred whenever
+possible.
 
 Then run the command
 
@@ -32,16 +45,21 @@ For all available options, see the output of the command:
 By default, tests are executed in parallel using all available cores, pass
 a specific -jN value to limit.
 
-To drop into an Autotest-like shell, run:
+To drop into an interactive Autotest-like shell, run:
 
     make atshell
 
-See the printed help for details on how to use it.
+This is like a singular, empty `RPMTEST_CHECK()` with a shell running in it and
+a writable tree available at the path stored in `$RPMTEST`.  From this shell,
+you can run the same commands as a normal test would, such as `runroot rpm`.
+This can be used to quickly prototype (or debug) a test.
 
-You can also run a containerized shell with your RPM checkout:
+You can also drop straight into the `$RPMTEST` container like so:
 
     make shell
 
-To factory-reset the container, run:
+This is just a shorthand for `make atshell` followed by `runroot_other bash`.
+
+To factory-reset the `$RPMTEST` container, run:
 
     make reset
