@@ -5,8 +5,15 @@ HAVE_UNSHARE=@HAVE_UNSHARE@
 PYTHON=@PYTHON@
 PGP=@PGP@
 
+# OS filesystem tree to test, in the form of a colon-separated list of paths to
+# be used as OverlayFS lowerdir when creating per-test writable snapshots.
 RPMTREE=${RPMTREE:-/}
+
+# Read-only mount of RPMTREE for tests that don't require write access.
+# Currently hard-coded to root due to some tests assuming that, this may be
+# fixed in the future.
 RPMTEST=/
+
 RPMDATA="/data/"
 
 RPM_CONFIGDIR_PATH="@RPM_CONFIGDIR@"
