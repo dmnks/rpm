@@ -75,3 +75,11 @@ snapshot()
         ;;
     esac
 }
+
+unsupported()
+{
+    echo
+    echo "Error: Backend @MKTREE_BACKEND@: Command not supported: $CMD" >&2
+    echo
+    exit 1
+}
