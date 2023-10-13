@@ -24,6 +24,8 @@ fi
 IMAGE=rpm
 ROOTLESS=$([ $(id -u) == 0 ] && echo 0 || echo 1)
 
+source ./mktree.common
+
 CMD=$1; shift
 case $CMD in
     build)
@@ -40,8 +42,5 @@ case $CMD in
                     -v /srv --workdir /srv -e ROOTLESS=$ROOTLESS \
                     $OPTS $IMAGE rpmtests --log "$@"
     ;;
-    *)
-        echo "Unsupported command." >&2
-        exit 1
-    ;;
+    *) unsupported ;;
 esac
