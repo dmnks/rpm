@@ -21,8 +21,5 @@ case $CMD in
     check)
         ./rpmtests "$@"
     ;;
-    *)
-        echo "Unsupported command." >&2
-        exit 1
-    ;;
+    *) unsupported ;;
 esac
