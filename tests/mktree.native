@@ -56,15 +56,27 @@ mount_tree()
 {
     tag -i base || $0 build
     trap : INT  # Continue on SIGINT
-    RPMIMAG=base
-    RPMBASE=$(@PODMAN@ image mount $(tag $RPMIMAG))
-    RPMTREE=$RPMINST:$RPMBASE
     RPMTEST=$SANDBOX_DIR/tree
     if [ "$1" == "--read-only" ]; then
+        RPMIMAG=base
+        RPMBASE=$(@PODMAN@ image mount $(tag $RPMIMAG))
+        RPMTREE=$RPMINST:$RPMBASE
         mkdir -p $RPMINST/$PWD
         snapshot mount
     else
+        RPMIMAG=snap
+        if ! tag -e $RPMIMAG; then
+            tag $(tag base) $RPMIMAG
+        elif ! tag -i $RPMIMAG; then
+            echo "ERROR: Image not found, fix with: make reset" >&2
+            exit 1
+        elif [ "$(tag $RPMIMAG)" != "$(tag base)" ]; then
+            EXTRA_MOTD="WARNING: New image available, reset to apply it."
+        fi
+        RPMBASE=$(@PODMAN@ image mount $(tag $RPMIMAG))
+        RPMTREE=$RPMBASE
         snapshot mount $SANDBOX_DIR
+        make_install $RPMTEST
     fi
 }
 
@@ -106,6 +118,7 @@ tag()
 print_motd()
 {
     echo "$1"
+    [ -n "$EXTRA_MOTD" ] && echo "$EXTRA_MOTD"
 }
 
 CMD=$1; shift
@@ -146,6 +159,7 @@ case $CMD in
         fix_perm rpmtests.dir
     ;;
     reset)
+        tag -d snap
         rm -rf "$SANDBOX_DIR"
     ;;
 esac
