@@ -55,21 +55,22 @@ host.
 mount_tree()
 {
     tag -i base || $0 build
-    local dir=$SANDBOX_DIR
     trap : INT  # Continue on SIGINT
-    RPMBASE=$(@PODMAN@ image mount $(tag base))
-    if [ "$1" == "--read-only" ]; then
-        mkdir -p $RPMINST/$PWD
-        unset dir
-    fi
+    RPMIMAG=base
+    RPMBASE=$(@PODMAN@ image mount $(tag $RPMIMAG))
     RPMTREE=$RPMINST:$RPMBASE
     RPMTEST=$SANDBOX_DIR/tree
-    snapshot mount $dir
+    if [ "$1" == "--read-only" ]; then
+        mkdir -p $RPMINST/$PWD
+        snapshot mount
+    else
+        snapshot mount $SANDBOX_DIR
+    fi
 }
 
 umount_tree()
 {
-    @PODMAN@ image umount $(tag base) >/dev/null
+    @PODMAN@ image umount $(tag $RPMIMAG) >/dev/null
     snapshot umount
 }
 
