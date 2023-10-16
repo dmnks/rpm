@@ -102,6 +102,11 @@ tag()
     fi
 }
 
+print_motd()
+{
+    echo "$1"
+}
+
 CMD=$1; shift
 case $CMD in
     build)
@@ -120,14 +125,14 @@ case $CMD in
         set -a
         source ./atlocal
         mount_tree
-        echo "$ATSHELL_MOTD"
+        print_motd "$ATSHELL_MOTD"
         $SHELL
         umount_tree
         fix_perm $SANDBOX_DIR
     ;;
     shell)
         mount_tree
-        echo "$SHELL_MOTD"
+        print_motd "$SHELL_MOTD"
         snapshot shell "$@"
         umount_tree
         fix_perm $SANDBOX_DIR
