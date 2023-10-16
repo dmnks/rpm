@@ -18,9 +18,9 @@ source ./mktree.common
 FROM=@OS_NAME@:@OS_VERSION@
 IMAGE=rpm
 
-TREE_DIR=$PWD/mktree.output
-TAGS_DIR=$PWD/mktree.tags
-SANDBOX_DIR=$PWD/mktree.sandbox
+TREE_DIR=$PWD/mktree.dir
+TAGS_DIR=$TREE_DIR/tags
+SANDBOX_DIR=$TREE_DIR/sandbox
 RPMINST=$TREE_DIR/inst
 
 SHELL_MOTD="

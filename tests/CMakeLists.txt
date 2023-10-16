@@ -144,7 +144,7 @@ add_custom_target(reset
 )
 
 add_custom_target(tree
-	DEPENDS mktree.output
+	DEPENDS mktree.dir
 )
 
 add_custom_command(OUTPUT rpmtests
@@ -154,7 +154,7 @@ add_custom_command(OUTPUT rpmtests
 	DEPENDS local.at
 )
 
-add_custom_command(OUTPUT mktree.output
+add_custom_command(OUTPUT mktree.dir
 	COMMAND ./mktree build
 	DEPENDS rpmtests
 	DEPENDS ${TESTPROGS}
