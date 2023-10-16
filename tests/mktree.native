@@ -23,6 +23,18 @@ TAGS_DIR=$PWD/mktree.tags
 INST_DIR=$TREE_DIR/inst
 SANDBOX_DIR=$PWD/mktree.sandbox
 
+SHELL_MOTD="
+Welcome to RPM @CMAKE_PROJECT_VERSION@ snapshot shell!
+
+This is a container running a minimal version of the host
+system in a writable snapshot, with the current RPM build
+installed and ready to experiment with.
+
+For any later RPM source changes to be reflected, re-enter
+this target.
+
+To throw away the snapshot and start over, run: make reset
+"
 ATSHELL_MOTD="
 Welcome to RPM @CMAKE_PROJECT_VERSION@ Autotest shell!
 
@@ -115,6 +127,7 @@ case $CMD in
     ;;
     shell)
         mount_tree
+        echo "$SHELL_MOTD"
         snapshot shell "$@"
         umount_tree
         fix_perm $SANDBOX_DIR
