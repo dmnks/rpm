@@ -15,6 +15,7 @@ else
 fi
 
 IMAGE=rpm
+BUILD_ARGS="-f Dockerfile $CONTEXT"
 ROOTLESS=$([ $(id -u) == 0 ] && echo 0 || echo 1)
 
 rpmtests()
@@ -34,8 +35,12 @@ rpmtests()
 CMD=$1; shift
 case $CMD in
     build)
-        cd $(dirname $0)
-        $PODMAN build -t $IMAGE -f Dockerfile $CONTEXT
+        # Build base image
+        $PODMAN build --target base -t $IMAGE/base $BUILD_ARGS
+
+        # Add RPM install on top
+        [ -n "$($PODMAN images -q $IMAGE)" ] && $PODMAN rmi $IMAGE
+        $PODMAN build --target full -t $IMAGE $BUILD_ARGS
     ;;
     check)
         rpmtests "$@"
