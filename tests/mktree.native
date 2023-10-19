@@ -19,6 +19,7 @@ FROM=@OS_NAME@:@OS_VERSION@
 IMAGE=rpm
 
 TREE_DIR=$PWD/mktree.output
+BASE_IID=$TREE_DIR/base
 INST_DIR=$TREE_DIR/inst
 SANDBOX_DIR=$PWD/mktree.sandbox
 
@@ -43,8 +44,9 @@ host.
 # Accepts the --read-only flag
 mount_tree()
 {
+    [ -f "$BASE_IID" ] && @PODMAN@ image exists $(cat $BASE_IID) || $0 build
     trap : INT  # Ensure cleanup on SIGINT
-    BASE_DIR=$(@PODMAN@ image mount $IMAGE)
+    BASE_DIR=$(@PODMAN@ image mount $(cat $BASE_IID))
     RPMTREE=$INST_DIR:$BASE_DIR
     RPMTEST=$SANDBOX_DIR/tree
     if [ "$1" == "--read-only" ]; then
@@ -57,7 +59,7 @@ mount_tree()
 
 umount_tree()
 {
-    @PODMAN@ image umount $IMAGE >/dev/null
+    @PODMAN@ image umount $(cat $BASE_IID) >/dev/null
     snapshot umount
     chmod -Rf u+rwX rpmtests.dir $SANDBOX_DIR
 }
@@ -66,7 +68,9 @@ CMD=$1; shift
 case $CMD in
     build)
         # Build base image
-        @PODMAN@ build --from $FROM --target base --tag $IMAGE .
+        mkdir -p $TREE_DIR
+        @PODMAN@ build --from $FROM --target base \
+                       --iidfile $BASE_IID --tag $IMAGE .
 
         # Build RPM layer natively
         rm -rf "$INST_DIR"
