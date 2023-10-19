@@ -15,8 +15,21 @@ else
 fi
 
 IMAGE=rpm
-NAME=${IMAGE}-sandbox
 ROOTLESS=$([ $(id -u) == 0 ] && echo 0 || echo 1)
+
+rpmtests()
+{
+    local opt
+    if [ "$1" == "--unattended" ]; then
+        opt=
+        shift
+        set -- --log "$@"
+    else
+        opt="-i"
+    fi
+    $PODMAN run --privileged -t --rm --read-only $opt --tmpfs /tmp -v /srv \
+                --workdir /srv -e ROOTLESS=$ROOTLESS $IMAGE rpmtests "$@"
+}
 
 CMD=$1; shift
 case $CMD in
@@ -24,33 +37,16 @@ case $CMD in
         cd $(dirname $0)
         $PODMAN build -t $IMAGE -f Dockerfile $CONTEXT
     ;;
-    shell)
-        if [ -n "$($PODMAN ps -a -q -f name=$NAME)" ]; then
-            $PODMAN start $NAME >/dev/null
-            $PODMAN attach $NAME
-            exit
-        fi
-        $PODMAN run --privileged -it --name $NAME --hostname sandbox \
-                    -e ROOTLESS=$ROOTLESS -v $PWD:/srv:z $IMAGE "$@"
-    ;;
     check)
-        if [ "$1" == "--unattended" ]; then
-            opt=
-            shift
-            set -- --log "$@"
-        else
-            opt="-i"
-        fi
-        $PODMAN run --privileged -t --rm --read-only $opt --tmpfs /tmp \
-                    -v /srv --workdir /srv -e ROOTLESS=$ROOTLESS \
-                    --env RPMTREE=/ $OPTS $IMAGE rpmtests "$@"
+        rpmtests "$@"
+    ;;
+    atshell)
+        rpmtests --shell
+    ;;
+    shell)
+        rpmtests --shell snapshot shell
     ;;
     reset)
-        $PODMAN stop $NAME >/dev/null &&
-        $PODMAN rm $NAME >/dev/null
-    ;;
-    *)
-        echo "Unsupported command." >&2
-        exit 1
+        rpmtests --reset
     ;;
 esac
