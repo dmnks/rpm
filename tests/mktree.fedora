@@ -172,11 +172,8 @@ case $CMD in
     atshell)
         set -a
         mount_tree
-
-        export CACHE_DIR
-        export BASE_DIR=$RPMTEST
+        dnf() { command dnf --installroot=$RPMTEST "$@"; }
         export -f dnf
-
         echo "$ATSHELL_MOTD"
         $SHELL
     ;;
