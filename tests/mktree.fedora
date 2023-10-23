@@ -4,6 +4,18 @@
 # the RPM runtime and test dependencies but no stock RPM preinstalled.
 # Lightweight snapshotting built into the test-suite is used for isolation.
 
+# Run in a user namespace (if not root already)
+if [ $(id -u) != 0 ]; then
+    if [ -f /run/.toolboxenv ]; then
+        # toolbox(1) support
+        UNSHARE="sudo --preserve-env"
+    else
+        UNSHARE="unshare -r --mount --map-auto"
+    fi
+    $UNSHARE $0 "$@"
+    exit
+fi
+
 source ./mktree.common
 
 # Obtain source dir (or common git-worktree(1) if one exists)
@@ -23,6 +35,8 @@ CACHE_DIR=$SOURCE_DIR/mktree.cache
 # Build-specific dirs
 INST_DIR=$PWD/mktree.output/inst
 SANDBOX_DIR=$PWD/mktree.sandbox
+
+CMD=$1; shift
 
 # Final tree (in OverlayFS lowerdir format)
 export RPMTREE=$INST_DIR:$BASE_DIR
@@ -59,8 +73,6 @@ To factory-reset the tree, leave this shell and run:
   make reset
 "
 
-CMD=$1; shift
-
 dnf()
 {
     HOME=$CACHE_DIR command dnf \
@@ -72,18 +84,6 @@ dnf()
         --disablerepo=\* --enablerepo=fedora,updates \
         --exclude=rpm,systemd-udev "$@"
 }
-
-# Run CMD in a user namespace (if not root already)
-if [ $(id -u) != 0 ]; then
-    if [ -f /run/.toolboxenv ]; then
-        # toolbox(1) support
-        UNSHARE="sudo --preserve-env"
-    else
-        UNSHARE="unshare -r --mount --map-auto"
-    fi
-    $UNSHARE $0 $CMD "$@"
-    exit
-fi
 
 case $CMD in
     build)
@@ -169,8 +169,7 @@ case $CMD in
     check)
         trap : INT
         snapshot mount
-        snapshot exec --tmpfs /tmp --bind $PWD $PWD --setenv RPMTREE $RPMTREE \
-                      rpmtests -C $PWD "$@"
+        snapshot exec --tmpfs /tmp --bind $PWD /srv rpmtests -C /srv "$@"
         snapshot umount
     ;;
     reset)
