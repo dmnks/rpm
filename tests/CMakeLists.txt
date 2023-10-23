@@ -76,15 +76,13 @@ find_program(BWRAP bwrap)
 mark_as_advanced(BWRAP)
 find_program(PODMAN NAMES podman)
 find_program(BUILDAH NAMES buildah)
-find_program(DOCKER NAMES docker)
 mark_as_advanced(PODMAN)
 mark_as_advanced(BUILDAH)
-mark_as_advanced(DOCKER)
 if ("${MKTREE_BACKEND}" STREQUAL "")
 	if (PODMAN AND BUILDAH AND BWRAP AND
 	    EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/Dockerfile.${OS_NAME})
 		set(MKTREE_BACKEND native)
-	elseif (PODMAN OR DOCKER)
+	elseif (PODMAN)
 		set(MKTREE_BACKEND podman)
 	else()
 		message(WARNING
@@ -97,18 +95,17 @@ message(STATUS "Using mktree backend: ${MKTREE_BACKEND}")
 
 # Set up mktree
 if ("${MKTREE_BACKEND}" STREQUAL "podman")
-	find_program(PODMAN NAMES podman docker REQUIRED)
+	find_program(PODMAN podman REQUIRED)
 	configure_file(Dockerfile Dockerfile COPYONLY)
 else()
 	find_program(BWRAP bwrap REQUIRED)
 	if ("${MKTREE_BACKEND}" STREQUAL "native")
-		find_program(PODMAN NAMES podman REQUIRED)
+		find_program(PODMAN podman REQUIRED)
 		find_program(BUILDAH buildah REQUIRED)
 		configure_file(Dockerfile.${OS_NAME} Dockerfile COPYONLY)
-		get_filename_component(PODMAN ${PODMAN} NAME)
 		add_custom_target(ci
-			COMMAND ./mktree.${PODMAN} build
-			COMMAND ./mktree.${PODMAN} check ${JOBS} $(TESTOPTS)
+			COMMAND ./mktree.podman build
+			COMMAND ./mktree.podman check ${JOBS} $(TESTOPTS)
 			WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 		)
 	endif()
