@@ -105,6 +105,7 @@ else()
 		)
 	endif()
 endif()
+configure_file(rpmtests.sh rpmtests.sh COPYONLY)
 configure_file(mktree.common mktree.common @ONLY)
 configure_file(mktree.${MKTREE_BACKEND} mktree @ONLY)
 

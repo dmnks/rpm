@@ -24,6 +24,11 @@ CACHE_DIR=$SOURCE_DIR/mktree.cache
 INST_DIR=$PWD/mktree.output/inst
 SANDBOX_DIR=$PWD/mktree.sandbox
 
+# Final tree (in OverlayFS lowerdir format)
+export RPMTREE=$INST_DIR:$BASE_DIR
+# Mount point for the tree
+export RPMTEST=$PWD/mktree.output/tree
+
 RPM_MACROS="
 %_netsharedpath %{nil}
 %__transaction_systemd_inhibit %{nil}
@@ -68,24 +73,6 @@ dnf()
         --exclude=rpm,systemd-udev "$@"
 }
 
-mount_tree()
-{
-    local dir=$SANDBOX_DIR
-    if [ "$1" == "--read-only" ]; then
-        unset dir
-    fi
-    source ./atlocal
-    RPMTREE=$INST_DIR:$BASE_DIR
-    RPMTEST=$SANDBOX_DIR/tree
-    snapshot mount $dir
-}
-
-clean_up()
-{
-    [ -n "$RPMTEST" ] && snapshot umount
-    chmod -Rf u+rwX $BASE_DIR $SANDBOX_DIR rpmtests.dir
-}
-
 # Run CMD in a user namespace (if not root already)
 if [ $(id -u) != 0 ]; then
     if [ -f /run/.toolboxenv ]; then
@@ -97,8 +84,6 @@ if [ $(id -u) != 0 ]; then
     $UNSHARE $0 $CMD "$@"
     exit
 fi
-
-trap clean_up EXIT
 
 case $CMD in
     build)
@@ -165,31 +150,30 @@ case $CMD in
         # Configure default shell for root user
         cp -r $BASE_DIR/{etc/skel/.,/root}
 
+        # Allow the user to remove the directory
+        chmod -Rf u+rwX $BASE_DIR
+
         # Add RPM installation layer
         rm -rf "$INST_DIR"
         make_install $INST_DIR
     ;;
     atshell)
-        set -a
-        mount_tree
-
-        export CACHE_DIR
-        export BASE_DIR=$RPMTEST
+        dnf() { command dnf --installroot=$RPMTEST "$@"; }
         export -f dnf
-
         echo "$ATSHELL_MOTD"
-        $SHELL
+        ./rpmtests.sh --shell
     ;;
     shell)
-        mount_tree
-        snapshot shell "$@"
+        ./rpmtests.sh --shell snapshot shell
     ;;
     check)
-        mount_tree --read-only
+        trap : INT
+        snapshot mount
         snapshot exec --tmpfs /tmp --bind $PWD $PWD --setenv RPMTREE $RPMTREE \
                       rpmtests -C $PWD "$@"
+        snapshot umount
     ;;
     reset)
-        rm -rf "$SANDBOX_DIR"
+        ./rpmtests.sh --reset
     ;;
 esac
