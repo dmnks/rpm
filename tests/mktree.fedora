@@ -77,13 +77,14 @@ mount_tree()
     source ./atlocal
     RPMTREE=$INST_DIR:$BASE_DIR
     RPMTEST=$SANDBOX_DIR/tree
+    trap : INT
     snapshot mount $dir
 }
 
 clean_up()
 {
-    [ -n "$RPMTEST" ] && snapshot umount
-    chmod -Rf u+rwX $BASE_DIR $SANDBOX_DIR rpmtests.dir
+    snapshot umount
+    chmod -Rf u+rwX $SANDBOX_DIR rpmtests.dir/*/{diff,work}
 }
 
 # Run CMD in a user namespace (if not root already)
@@ -97,8 +98,6 @@ if [ $(id -u) != 0 ]; then
     $UNSHARE $0 $CMD "$@"
     exit
 fi
-
-trap clean_up EXIT
 
 case $CMD in
     build)
@@ -165,6 +164,9 @@ case $CMD in
         # Configure default shell for root user
         cp -r $BASE_DIR/{etc/skel/.,/root}
 
+        # Allow the user to remove the directory
+        chmod -Rf u+rwX $BASE_DIR
+
         # Add RPM installation layer
         rm -rf "$INST_DIR"
         make_install $INST_DIR
@@ -176,15 +178,18 @@ case $CMD in
         export -f dnf
         echo "$ATSHELL_MOTD"
         $SHELL
+        clean_up
     ;;
     shell)
         mount_tree
         snapshot shell "$@"
+        clean_up
     ;;
     check)
         mount_tree --read-only
         snapshot exec --tmpfs /tmp --bind $PWD $PWD --setenv RPMTREE $RPMTREE \
                       rpmtests -C $PWD "$@"
+        clean_up
     ;;
     reset)
         rm -rf "$SANDBOX_DIR"
