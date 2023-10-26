@@ -12,5 +12,5 @@ jobs:
         run: sudo ./mktree.docker build
         working-directory: ./tests
       - name: Run the test suite
-        run: sudo ./mktree.docker check --interactive=false -j$(nproc)
+        run: sudo ./mktree.docker check --unattended -j$(nproc)
         working-directory: ./tests

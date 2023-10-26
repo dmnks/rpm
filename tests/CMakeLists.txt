@@ -100,7 +100,8 @@ else()
 		get_filename_component(PODMAN ${PODMAN} NAME)
 		add_custom_target(ci
 			COMMAND ./mktree.${PODMAN} build
-			COMMAND ./mktree.${PODMAN} check ${JOBS} $(TESTOPTS)
+			COMMAND ./mktree.${PODMAN} check --unattended
+				${JOBS} $(TESTOPTS)
 			WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 		)
 	endif()
