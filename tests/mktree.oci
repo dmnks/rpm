@@ -1,15 +1,6 @@
 #!/bin/bash
 #
-# Podman-based mktree backend using OCI images.
-#
-# If a Dockerfile matching the host distribution is found, it is built and then
-# combined with the local RPM build to produce the final image ("native" mode).
-# Otherwise, the default Dockerfile is used and RPM is built as part of the
-# image ("non-native" mode).
-#
-# This script can also be invoked directly from the source directory, in which
-# case it performs a non-native build (useful for CI purposes).  If invoked via
-# the mktree.docker symlink, docker is used instead of podman.
+# OCI-based mktree backend
 
 PROGRAM=$(basename $0)
 if [ "$PROGRAM" == "mktree" ]; then
@@ -19,7 +10,7 @@ if [ "$PROGRAM" == "mktree" ]; then
     NATIVE=@MKTREE_NATIVE@
 else
     # Running from source directory
-    PODMAN=$(echo $PROGRAM | cut -d'.' -f2)
+    PODMAN=${MKTREE_PODMAN:-podman}
     CONTEXT=..
     NATIVE=no
 fi
@@ -40,17 +31,22 @@ source mktree.common
 
 rpmtests()
 {
-    local vol opt
-    if [ "$1" == "--unattended" ]; then
-        vol="/srv"
-        opt=
-        shift
-        set -- --log "$@"
-    else
+    local args vol
+
+    # Pass select options to $PODMAN
+    case "$1" in
+        # Useful for CI environments without a tty
+        --interactive=*) args=$1; shift ;;
+    esac
+
+    # Mount a host directory to hold OverlayFS trees
+    if [ $NATIVE == yes ]; then
         vol="$PWD:/srv:z"
-        opt="-i"
+    else
+        vol="/srv"
     fi
-    $PODMAN run --privileged -t --rm --read-only $opt --tmpfs /tmp -v $vol \
+
+    $PODMAN run --privileged -it --rm --read-only --tmpfs /tmp -v $vol $args \
                 --workdir /srv -e ROOTLESS=$ROOTLESS $IMAGE rpmtests "$@"
 }
 

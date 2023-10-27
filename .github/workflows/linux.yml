@@ -9,8 +9,11 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Build the Fedora testing environment
-        run: sudo ./mktree.docker build
+        run: ./mktree.oci build
         working-directory: ./tests
       - name: Run the test suite
-        run: sudo ./mktree.docker check --unattended -j$(nproc)
+        run: ./mktree.oci check --interactive=false --log -j$(nproc)
         working-directory: ./tests
+
+    env:
+      MKTREE_PODMAN: docker
