@@ -1,14 +1,15 @@
 # Tests
 
-This test-suite exercises the local build of RPM installed into an OS file
-system tree with compatible runtime dependencies.  Currently, the following
-methods (*mktree backends*) of initializing the file system tree are supported:
+This test-suite exercises the local build of RPM against an OS filesystem tree
+with compatible runtime dependencies using rootless containers.  Currently, the
+following methods (*mktree backends*) of initializing the filesystem tree are
+supported:
 
-1. **OCI** - Uses an OCI image matching the running Linux distro.  This backend
+1. **OCI** - Uses an OCI image based on the running Linux distro.  This backend
    is suitable for native development on a Linux workstation and is selected by
    default (requires Podman).
 
-2. **Rootfs** - Uses the root file system itself and thus requires the runtime
+2. **Rootfs** - Uses the root filesystem itself and thus requires the runtime
    dependencies of RPM and root privileges.  This backend is suitable for use
    within a development container and can be selected with the CMake option
    `-DMKTREE_BACKEND=rootfs`.
@@ -16,11 +17,11 @@ methods (*mktree backends*) of initializing the file system tree are supported:
 > [!IMPORTANT]
 > Currently, the OCI backend only supports local build integration (*native*
 > mode) on **Fedora Linux** hosts, on other hosts a fresh build of RPM will be
-> done from the local sources as part of a Fedora based image (*standalone*
+> done from the local sources as part of a Fedora based image (*non-native*
 > mode).
 
 > [!NOTE]
-> When the OCI backend operates in standalone mode, Docker is also supported
+> When the OCI backend operates in non-native mode, Docker is also supported
 > and will be used if Podman isn't available.
 
 The backend in use is reported during CMake configuration in the following
@@ -93,55 +94,39 @@ To factory-reset the `$RPMTEST` container, run:
 
 The test-suite consists of a number of small shell scripts (*tests*) written in
 GNU Autotest that perform some kind of operation using `rpm(8)` (or one of the
-included binaries) within a shared Podman or Docker container and then compare
-the standard (error) output with the one expected, producing a failure if they
-don't match.
+included binaries) in a container and then compare the output and error code
+with the expected values.
 
-The image
+### Optimizations
 
+Since the test-suite consists of hundreds of tests and is meant to be executed
+repeatedly during development, it's optimized for speed.  Each test runs in a
+lightweight Bubblewrap container on top of an OverlayFS snapshot created from
+the shared OS filesystem tree.
 
+There are two kinds of snapshots:
 
+1. **Immutable** - This is a read-only snapshot created (and destroyed) once
+   per test-suite run and is shared among all the tests that don't need write
+   access to the root filesystem (e.g. those testing `rpm --eval`).
 
-### Container image (WIP)
+2. **Mutable** - This is writable a snapshot created (and destroyed) once per
+   each test that needs write access to the root filesystem (e.g. those testing
+   `rpm --install` or `rpm --erase`).
 
-1. **Native** - Exercises the local build of RPM against a minimal image of the
-   Linux distribution running on the host.  Currently, only Fedora Linux is
-   supported.  This mode is optimized for local RPM development and requires
-   Podman.
+Snapshots allow the tests to run in parallel and ensure that each one operates
+on a pristine filesystem, without the risk of interfering with any other test.
 
-1. **Standalone** - Exercises a custom, fresh build of RPM (including cmake
-   configuration) against a Fedora-based image.  This mode is optimized for
-   portability (CI environment) and works with both Podman and Docker.
+As a further optimization, the test-suite process assumes its root directory is
+set to the immutable snapshot, which serves two purposes:
 
-The mode is selected automatically during cmake configuration based on the host
-distribution and the container engine installed, with native mode being
-preferred whenever possible, and is reported in the cmake output as follows:
+1. Only one container is needed for all the read-only tests
 
-    -- Using mktree backend: oci (native: <yes|no>)
+2. No misbehaving test can accidentally write to the host filesystem
 
-### Test isolation
+This is why the OCI backend wraps the test-suite script itself in a container.
 
-There are two categories of tests:
-
-1. **Immutable** - These tests typically perform a read-only operation that
-   doesn't involve writing to the root filesystem (with the exception of the
-   `$PWD`, `/build` and `/tmp` directories), such as `rpm --eval`, and thus can
-   be executed "natively" within the Podman/Docker container without any kind
-   of additional isolation to prevent them from interfering with each other.
-   To ensure no accidental writes occur, the container's filesystem is mounted
-   as read-only.
-
-2. **Mutable** - These tests perform an action that alters the root filesystem,
-   such as installing or removing packages.  To ensure they always run against
-   the original, pristine filesystem and to allow for parallel execution, each
-   of these tests gets a writable, throwaway snapshot of the root filesystem
-   and runs in a nested, lightweight container on top of that.  This container
-   is built using a combination of Bubblewrap and OverlayFS so that the
-   overhead of a full-blown OCI container is avoided, making the whole
-   test-suite comprising of several hundreds of tests run significantly faster.
-
-
-
+### Layout
 
 The test-suite is written in
 [GNU Autotest](https://www.gnu.org/savannah-checkouts/gnu/autoconf/manual/autoconf-2.71/html_node/Using-Autotest.html)
