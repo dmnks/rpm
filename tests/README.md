@@ -1,20 +1,40 @@
 # Tests
 
-To run these tests, you need one of the following:
+This test-suite exercises the local build of RPM installed into an OS file
+system tree with compatible runtime dependencies.  Currently, the following
+methods (*mktree backends*) of initializing the file system tree are supported:
 
-1. [Podman](https://github.com/containers/podman/)
-2. [Docker](https://github.com/docker/)
+1. **OCI** - Uses an OCI image matching the running Linux distro.  This backend
+   is suitable for native development on a Linux workstation and is selected by
+   default (requires Podman).
 
-Then run the command
-
-    make check
+2. **Rootfs** - Uses the root file system itself and thus requires the runtime
+   dependencies of RPM and root privileges.  This backend is suitable for use
+   within a development container and can be selected with the CMake option
+   `-DMKTREE_BACKEND=rootfs`.
 
 > [!IMPORTANT]
-> Whether the native build of RPM will be tested or a separate, fresh build
-> (including CMake configuration) will be done for the purposes of the
-> test-suite depends on the host OS and the availability of Podman.  Currently,
-> native build integration is only supported on Fedora Linux with Podman, any
-> other combination will trigger a custom build against a Fedora based image.
+> Currently, the OCI backend only supports local build integration (*native*
+> mode) on **Fedora Linux** hosts, on other hosts a fresh build of RPM will be
+> done from the local sources as part of a Fedora based image (*standalone*
+> mode).
+
+> [!NOTE]
+> When the OCI backend operates in standalone mode, Docker is also supported
+> and will be used if Podman isn't available.
+
+The backend in use is reported during CMake configuration in the following
+message:
+
+    -- Using mktree backend: <name>
+
+For the `oci` backend, native mode (`yes` or `no`) is also reported.
+
+## Running tests
+
+To run the test-suite, issue this command:
+
+    make check
 
 The number of tests performed depends on features enabled at configure time,
 at least `--with-`/`--without-lua` and `--enable-`/`--disable-python`.
@@ -76,6 +96,11 @@ GNU Autotest that perform some kind of operation using `rpm(8)` (or one of the
 included binaries) within a shared Podman or Docker container and then compare
 the standard (error) output with the one expected, producing a failure if they
 don't match.
+
+The image
+
+
+
 
 ### Container image (WIP)
 
