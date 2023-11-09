@@ -126,18 +126,11 @@ Snapshots ensure that:
    (e.g. a test breaking the installation of some system utility, intentionally
    or not, that's later used to verify the fact)
 
-As a further optimization, the test-suite script itself runs in a container on
-top of the immutable snapshot.  This serves two purposes:
-
-1. Only this one container is needed for all read-only tests
-
-2. No misbehaving test can accidentally modify the host filesystem
-
+CONTINUE HERE
 > [!NOTE]
-> The OCI backend runs the test-suite script in a read-only Podman or Docker
-> container which then serves as the immutable snapshot.
+> Currently, the test-suite script is run in a container ...
 
-### Layout (CONTINUE HERE)
+### Layout
 
 The test-suite is written in
 [GNU Autotest](https://www.gnu.org/savannah-checkouts/gnu/autoconf/manual/autoconf-2.71/html_node/Using-Autotest.html)
