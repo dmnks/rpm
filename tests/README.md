@@ -1,11 +1,11 @@
 # Tests
 
 This test-suite exercises a distribution of RPM made by installing the local
-build into a minimal OS filesystem tree containing the runtime dependencies.
-Each test is a small shell script written in [GNU
+build into a minimal OS filesystem tree with the runtime dependencies.  Each
+test is a small shell script written in [GNU
 Autotest](https://www.gnu.org/savannah-checkouts/gnu/autoconf/manual/autoconf-2.71/html_node/Using-Autotest.html)
-that runs RPM in a disposable container on top of this tree to test a certain
-piece of CLI or API functionality.
+that performs some kind of use case with RPM by running it in a container on
+top of this tree and observing the results.
 
 Currently, the following methods (*mktree backends*) are available for
 constructing the tree:
@@ -67,7 +67,7 @@ By default, tests are executed in parallel using all available cores, pass
 a specific -jN value to limit.
 
 Lastly, if the OCI backend is configured in native mode, you may want to try it
-in standalone mode before submitting a pull requrest since that's how our CI is
+in standalone mode before submitting a pull request since that's how our CI is
 set up.  You can do that with:
 
     make ci
@@ -95,16 +95,17 @@ To factory-reset the `$RPMTEST` container, run:
 
     make reset
 
-## Optimizations
+## Understanding the tests
+
+### Optimizations
 
 Since the test-suite consists of several hundreds of tests and is meant to be
-executed repeatedly during development, it's optimized for speed.
-
-Each test gets a *snapshot* of the [shared](#Tests) OS filesystem tree using
+executed repeatedly during development, it's optimized for speed.  Each test
+gets a *snapshot* of the [shared](#Tests) OS filesystem tree using
 [OverlayFS](https://docs.kernel.org/filesystems/overlayfs.html) and runs
 `rpm(8)` (or one of the included binaries) in a
 [Bubblewrap](https://github.com/containers/bubblewrap/) container with that
-snapshot as the root directory.  There are two kinds of snapshots:
+snapshot mounted as the root directory.  There are two kinds of snapshots:
 
 1. **Immutable** - This is a read-only snapshot created (and destroyed) once
    per test-suite run and is shared among all the tests that don't need write
@@ -114,15 +115,26 @@ snapshot as the root directory.  There are two kinds of snapshots:
    each test that needs write access to the root filesystem (e.g. those testing
    `rpm --install` or `rpm --erase`).
 
-Snapshots allow the tests to run in parallel and ensure that each one operates
-on a pristine filesystem, without the risk of interfering with any other test.
+Snapshots ensure that:
 
-As a further optimization, the test-suite process itself runs in a container on
+1. Each test operates on a pristine filesystem
+
+2. Individual tests can run in parallel
+
+3. The logic *observing* the results of a test is not affected by those results
+   (e.g. a test breaking the installation of some system utility, intentionally
+   or not, that's later used to verify the fact)
+
+As a further optimization, the test-suite script itself runs in a container on
 top of the immutable snapshot.  This serves two purposes:
 
-1. Read-only tests can be run directly, without additional containers
+1. Only one container is needed for all read-only tests
 
 2. No misbehaving test can accidentally modify the host filesystem
+
+> [!NOTE]
+> The OCI backend runs the test-suite script in a read-only Podman or Docker
+> container which then serves as the immutable snapshot.
 
 ### Layout
 
