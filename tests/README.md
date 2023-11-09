@@ -1,8 +1,8 @@
 # Tests
 
 This test-suite exercises a distribution of RPM made by installing the local
-build into a minimal OS filesystem tree with the runtime dependencies.  Each
-test is a small shell script written in [GNU
+build into a minimal OS filesystem tree containing the runtime dependencies.
+Each test is a small shell script written in [GNU
 Autotest](https://www.gnu.org/savannah-checkouts/gnu/autoconf/manual/autoconf-2.71/html_node/Using-Autotest.html)
 that performs some kind of use case with RPM by running it in a container on
 top of this tree and observing the results.
@@ -113,7 +113,8 @@ snapshot mounted as the root directory.  There are two kinds of snapshots:
 
 2. **Mutable** - This is a read/write snapshot created (and destroyed) once per
    each test that needs write access to the root filesystem (e.g. those testing
-   `rpm --install` or `rpm --erase`).
+   `rpm --install` or `rpm --erase`).  This snapshot contains a freshly
+   initialized (empty) RPMDB.
 
 Snapshots ensure that:
 
@@ -128,7 +129,7 @@ Snapshots ensure that:
 As a further optimization, the test-suite script itself runs in a container on
 top of the immutable snapshot.  This serves two purposes:
 
-1. Only one container is needed for all read-only tests
+1. Only this one container is needed for all read-only tests
 
 2. No misbehaving test can accidentally modify the host filesystem
 
@@ -136,7 +137,7 @@ top of the immutable snapshot.  This serves two purposes:
 > The OCI backend runs the test-suite script in a read-only Podman or Docker
 > container which then serves as the immutable snapshot.
 
-### Layout
+### Layout (CONTINUE HERE)
 
 The test-suite is written in
 [GNU Autotest](https://www.gnu.org/savannah-checkouts/gnu/autoconf/manual/autoconf-2.71/html_node/Using-Autotest.html)
@@ -159,18 +160,4 @@ and comprises of the following files:
 ├── rpmtests.sh         wrapper around rpmtests script with extra CLI switches
 ```
 
-
-
-
-
-
-
-### Structure of rpmtests.at
-
-This file contains a list `m4_include()` macros, one for each sub test-suite,
-and is used to produce the standalone test-suite executable.  It is built using
-`autom4te(1)` and the `local.at` file.
-
-An individual test consist of a set of m4 macros as described in Autotest's
-[user guide](https://www.gnu.org/savannah-checkouts/gnu/autoconf/manual/autoconf-2.71/html_node/Writing-Testsuites.html)
-and can
+## Writing tests (TBD)
