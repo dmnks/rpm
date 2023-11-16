@@ -128,19 +128,20 @@ the former (immutable) one.
 Furthermore, mutable snapshots ensure that:
 
 1. Each test operates on a pristine filesystem
-
 2. Individual tests can run in parallel without affecting each other
-
 3. Test logic isn't affected by the (side) effects of a test (e.g. the removal
    of a system utility that's later used to verify the results)
 
-> [!NOTE]
-> The OCI backend wraps the test-suite script itself in a read-only Podman
-> container and uses its filesystem as the immutable snapshot.  This simplifies
-> the backend (as it already uses Podman to build the image) and also ensures
-> full isolation from the host (to prevent a misbehaving test from affecting
-> it).  This container runs in `--privileged` mode so that mutable snapshots
-> and Bubblewrap containers (i.e. nested namespaces) can still be created.
+Lastly, the OCI backend wraps the test-suite script itself in a read-only
+Podman container and uses its root filesystem as the immutable snapshot.  This
+has the following benefits:
+
+1. Simplifies the backend (it already uses Podman to build the image)
+2. Fully isolates the test-suite from the host (to prevent a misbehaving test
+   from affecting it)
+
+This Podman container runs in `--privileged` mode so that mutable snapshots and
+Bubblewrap containers (i.e. nested namespaces) can still be created.
 
 ### Layout
 
