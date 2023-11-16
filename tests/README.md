@@ -139,8 +139,8 @@ Furthermore, mutable snapshots ensure that:
 > container and uses its filesystem as the immutable snapshot.  This simplifies
 > the backend (as it already uses Podman to build the image) and also ensures
 > full isolation from the host (to prevent a misbehaving test from affecting
-> it).  This container runs in `--privileged` mode so that nested namespaces
-> (Bubblewrap containers) can be created.
+> it).  This container runs in `--privileged` mode so that mutable snapshots
+> and Bubblewrap containers (i.e. nested namespaces) can still be created.
 
 ### Layout
 
