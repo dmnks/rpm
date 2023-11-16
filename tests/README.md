@@ -12,8 +12,8 @@ the test logic itself, those that need to *write* to the root filesystem (such
 as to install packages) do so through a container with a copy-on-write snapshot
 mounted as the root directory.
 [Bubblewrap](https://github.com/containers/bubblewrap/) and
-[OverlayFS](https://docs.kernel.org/filesystems/overlayfs.html) are used here,
-respectively.
+[OverlayFS](https://docs.kernel.org/filesystems/overlayfs.html), respectively,
+are used for that purpose.
 
 ### Backends
 
@@ -128,6 +128,7 @@ The goals of the test-suite are:
 
 
 
+CONTINUE HERE
 ### Optimizations
 
 The test-suite is meant to be run repeatedly during local development and is
