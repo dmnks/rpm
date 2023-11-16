@@ -121,7 +121,11 @@ There are two kinds of snapshots:
    those tests that alter the root filesystem (e.g. `rpm --install` or `rpm
    --erase`).  This snapshot gets a freshly initialized (empty) rpmdb.
 
-Snapshots ensure that:
+This separation reduces the number of snapshots that need to be created and
+destroyed per test-suite run since a large portion of the tests only requires
+the former (immutable) one.
+
+Furthermore, mutable snapshots ensure that:
 
 1. Each test operates on a pristine filesystem
 
@@ -131,11 +135,12 @@ Snapshots ensure that:
    of a system utility that's later used to verify the results)
 
 > [!NOTE]
-> The OCI backend wraps the test-suite script itself in a read-only
-> Podman/Docker container and uses its filesystem as the immutable snapshot.
-> This simplifies the backend (as it already uses Podman/Docker to build the
-> image) and also ensures full isolation from the host (to prevent a
-> misbehaving test from affecting it).
+> The OCI backend wraps the test-suite script itself in a read-only Podman
+> container and uses its filesystem as the immutable snapshot.  This simplifies
+> the backend (as it already uses Podman to build the image) and also ensures
+> full isolation from the host (to prevent a misbehaving test from affecting
+> it).  This container runs in `--privileged` mode so that nested namespaces
+> (mutable snapshots and Bubblewrap containers) can be created.
 
 ### Layout
 
