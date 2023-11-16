@@ -1,27 +1,26 @@
 # Tests
 
-This test-suite exercises a distribution of RPM made by installing the local
-build into a minimal OS filesystem tree containing the runtime dependencies.
-Each test is a small shell script written in [GNU
-Autotest](https://www.gnu.org/savannah-checkouts/gnu/autoconf/manual/autoconf-2.71/html_node/Using-Autotest.html)
-that performs some kind of use case with RPM by running it in a container on
-top of this tree and observing the results.
+This test-suite exercises the local build of RPM installed into a minimal OS
+filesystem tree with matching runtime dependencies.  Each test is a simple
+shell script that gets a (mutable) container based on this tree, runs RPM in it
+to perform some kind of operation and verifies the results, such as the output,
+exit code and/or any changes made in the container's filesystem.
 
 Currently, the following methods (*mktree backends*) are available for
 constructing the tree:
 
-1. **OCI** - Uses an OCI image based on the Linux distribution running on the
-   host.  This backend is suitable for native development of RPM, requires
+1. **OCI** - Uses an OCI image matching the host OS.  This backend is suitable
+   for native development of RPM, requires
    [Podman](https://github.com/containers/podman/) and is selected by default.
 
-1. **Rootfs** - Uses the root filesystem itself.  This backend is suitable for
+2. **Rootfs** - Uses the root filesystem itself.  This backend is suitable for
    use within a development container with the runtime dependencies installed
    and can be selected with the CMake option `-DMKTREE_BACKEND=rootfs`.
 
 > [!IMPORTANT]
 > Currently, local build integration (*native* mode) in the OCI backend is only
-> supported on Fedora Linux hosts, on other hosts a fresh build of RPM will be
-> done from the local sources as part of a Fedora-based image (*standalone*
+> supported on **Fedora Linux** hosts, on other hosts a fresh build of RPM will
+> be done from the local sources as part of a Fedora-based image (*standalone*
 > mode).
 
 > [!NOTE]
