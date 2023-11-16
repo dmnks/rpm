@@ -130,8 +130,8 @@ Furthermore, mutable snapshots ensure that:
 
 1. Each test operates on a pristine filesystem
 2. Individual tests can run in parallel without affecting each other
-3. Test logic isn't affected by the (side) effects of a test (e.g. the removal
-   of a system utility that's later used to verify the results)
+3. Test logic isn't affected by a (misbehaving) test (e.g. the removal of a
+   system utility used to verify the results)
 
 Lastly, depending on the mktree backend, the test-suite script itself may be
 wrapped in a container with the immutable snapshot as its root directory, which
