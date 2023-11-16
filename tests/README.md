@@ -9,9 +9,10 @@ exit code and/or any changes made in the container's filesystem.
 Currently, the following methods (*mktree backends*) are available for
 constructing the tree:
 
-1. **OCI** - Uses an OCI image matching the host OS.  This backend is suitable
-   for native development of RPM, requires
-   [Podman](https://github.com/containers/podman/) and is selected by default.
+1. **OCI** - Uses an [OCI image](https://github.com/opencontainers/image-spec/)
+   matching the host OS.  This backend is suitable for native development of
+   RPM, requires [Podman](https://github.com/containers/podman/) and is
+   selected by default.
 
 2. **Rootfs** - Uses the root filesystem itself.  This backend is suitable for
    use within a development container with the runtime dependencies installed
