@@ -3,7 +3,8 @@
 This test-suite bootstraps a minimal, self-contained OS filesystem tree with an
 installation of RPM (done with `make install`) and runs a series of small shell
 scripts, each operating on a container based on this tree.  The main, top-level
-script (called `rpmtests` when compiled) is written in GNU Autotest.
+script (called `rpmtests` when compiled) is written in [GNU
+Autotest](https://www.gnu.org/software/autoconf/manual/autoconf-2.68/html_node/Using-Autotest.html#Using-Autotest).
 
 Each test covers a specific piece of functionality by running an RPM binary (or
 a program/script using the API) in the container and verifying the changes made
@@ -102,7 +103,7 @@ To factory-reset the `$RPMTEST` container, run:
 
 ### Optimizations
 
-The test-suite is designed to be run repeatedly during local development and is
+The test-suite is meant to be run repeatedly during local development and is
 therefore optimized for speed.
 
 
