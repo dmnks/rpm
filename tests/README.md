@@ -81,14 +81,15 @@ This target accepts the same `TESTOPTS` variable as `make check`.
 
 ### Interactive testing
 
-To drop into an Autotest-like shell, run:
+To drop into a GNU Autotest like shell, run:
 
     make atshell
 
 This is like a singular, empty `RPMTEST_CHECK()` with a shell running in it and
 a writable tree available at the path stored in `$RPMTEST`.  From this shell,
 you can run the same commands as a normal test would, such as `runroot rpm`.
-This can be used to quickly prototype (or debug) a test.
+This can be used to quickly prototype (or debug) a test.  See TODO for details
+on how the tests are structured.
 
 You can also drop straight into the `$RPMTEST` container like so:
 
@@ -133,11 +134,11 @@ Furthermore, mutable snapshots ensure that:
    of a system utility that's later used to verify the results)
 
 Lastly, depending on the mktree backend, the test-suite script itself may be
-wrapped in a container based on the immutable snapshot, which has the following
-benefits:
+wrapped in a container with the immutable snapshot as its root directory, which
+has the following benefits:
 
 1. Only this one container is needed for all immutable tests, with RPM executed
-   directly
+   directly in it
 2. Full isolation of the test-suite from the host (to prevent a misbehaving
    test from affecting it)
 
