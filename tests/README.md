@@ -6,9 +6,10 @@ scripts, each operating on a container based on this tree.  The main, top-level
 script (called `rpmtests` when compiled) is written in [GNU
 Autotest](https://www.gnu.org/software/autoconf/manual/autoconf-2.68/html_node/Using-Autotest.html#Using-Autotest).
 
-Each test covers a specific piece of functionality by running an RPM binary (or
-a program/script using the API) in the container and verifying the changes made
-in the container's filesystem as well as the command output and/or exit code.
+Each test covers a specific piece of functionality by running the `rpm` binary
+(or one of the other included binaries) in the container and verifying the
+changes made in the container's filesystem as well as the command output and/or
+exit code.
 
 Currently, the following methods (*mktree backends*) are available for
 bootstrapping the tree:
