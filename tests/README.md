@@ -18,7 +18,7 @@ are used for that purpose.
 ### Backends
 
 Currently, there are two ways (*mktree backends*) in which the OS filesystem
-tree (image) is constructed and tested: OCI and Rootfs.
+tree (image) is constructed and tested: *OCI* and *Rootfs*.
 
 The backend in use is reported during CMake configuration in the following
 message:
