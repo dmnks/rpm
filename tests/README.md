@@ -4,8 +4,8 @@
 
 This test-suite exercises RPM by installing it natively with `make install` (or
 emulating such a system using containers) and running a series of simple shell
-scripts, each representing a single use case that calls one of the RPM binaries
-(or a program using the API) and verifies the results.
+scripts written in GNU Autotest, each representing a single use case that calls
+one of the RPM binaries (or a program using the API) and verifies the results.
 
 In order to prevent individual tests from interfering with each other or with
 the test logic itself, those that need to *write* to the root filesystem (such
