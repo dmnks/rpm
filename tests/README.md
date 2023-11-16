@@ -16,7 +16,8 @@ mounted as the root directory.
 are used for that purpose.
 
 The top-level script is written in GNU Autotest and compiled into a standalone
-`rpmtests` binary.
+`rpmtests` binary which is then executed either natively or through a wrapping
+container (see below).
 
 ### Backends
 
