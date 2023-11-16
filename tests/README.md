@@ -4,8 +4,8 @@
 
 This test-suite exercises RPM by installing it natively with `make install` (or
 emulating such a system using containers) and running a series of simple shell
-scripts written in GNU Autotest, each representing a single use case that calls
-one of the RPM binaries (or a program using the API) and verifies the results.
+scripts, each representing a single use case that calls one of the RPM binaries
+(or a program using the API) and verifies the results.
 
 In order to prevent individual tests from interfering with each other or with
 the test logic itself, those that need to *write* to the root filesystem (such
@@ -14,6 +14,9 @@ mounted as the root directory.
 [Bubblewrap](https://github.com/containers/bubblewrap/) and
 [OverlayFS](https://docs.kernel.org/filesystems/overlayfs.html), respectively,
 are used for that purpose.
+
+The top-level script is written in GNU Autotest and compiled into a standalone
+`rpmtests` binary.
 
 ### Backends
 
@@ -28,9 +31,13 @@ message:
 #### OCI
 
 This backend pulls an [OCI](https://opencontainers.org/) image matching the
-host OS and layers RPM on top to produce the final image.  Its purpose is to
-allow for testing the native build of RPM on a developer's workstation with a
-simple `make check`, without having to manage containers or images by hand.
+host OS and layers RPM on top to produce the final image.  Then, it runs the
+`rpmtests` script in a read-only OCI container with the privileges needed to
+create nested namespaces (for Bubblewrap and OverlayFS).
+
+Its purpose is to allow for testing the native build of RPM on a developer's
+workstation with a simple `make check`, without having to manage containers or
+images by hand.
 
 This backend is selected automatically and requires
 [Podman](https://github.com/containers/podman/).
@@ -48,9 +55,9 @@ During CMake configuration, native mode (`yes` or `no`) is also reported.
 
 #### Rootfs
 
-This backend installs and runs RPM natively from within the root filesystem.
-Its suitable for use within development containers that already have RPM's
-runtime dependencies preinstalled.
+This backend installs RPM into the root filesystem and runs the `rpmtests`
+script natively.  Its suitable for use within development containers that
+already have RPM's runtime dependencies preinstalled.
 
 To select this backend, use the CMake option `-DMKTREE_BACKEND=rootfs`.
 
