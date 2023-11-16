@@ -108,8 +108,8 @@ To factory-reset the `$RPMTEST` container, run:
 The test-suite is meant to be run repeatedly during local development and is
 therefore optimized for speed.  Each test gets a *snapshot* of the shared tree
 using [OverlayFS](https://docs.kernel.org/filesystems/overlayfs.html) and runs
-lightweight [Bubblewrap](https://github.com/containers/bubblewrap/) containers
-with that snapshot mounted as the root directory.
+RPM in lightweight [Bubblewrap](https://github.com/containers/bubblewrap/)
+containers with that snapshot mounted as the root directory.
 
 There are two kinds of snapshots:
 
