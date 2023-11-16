@@ -1,45 +1,59 @@
 # Tests
 
-This test-suite bootstraps a minimal, self-contained OS filesystem tree with an
-installation of RPM (done with `make install`) and runs a series of small shell
-scripts, each operating on a container based on this tree.  The main, top-level
-script (called `rpmtests` when compiled) is written in [GNU
-Autotest](https://www.gnu.org/software/autoconf/manual/autoconf-2.68/html_node/Using-Autotest.html#Using-Autotest).
+## Overview
 
-Each test covers a specific piece of functionality by running an RPM command
-(or a program/script using the API) in the container and verifying the changes
-made in the container's filesystem as well as the standard/error output and/or
-exit code.
+This test-suite exercises RPM by installing it natively with `make install` (or
+emulating such a system using containers) and running a series of simple shell
+scripts, each representing a single use case that calls one of the RPM binaries
+(or a program using the API) and verifies the results.
 
-Currently, the following methods (*mktree backends*) are available for
-bootstrapping the tree:
+In order to prevent individual tests from interfering with each other or with
+the test logic itself, those that need to *write* to the root filesystem (such
+as to install packages) do so through a container with a copy-on-write snapshot
+mounted as the root directory.
 
-1. **OCI** - Pulls a prebuilt [OCI](https://opencontainers.org/) image matching
-   the host OS and layers RPM on top to produce the final image.  This backend
-   is suitable for native development of RPM, requires
-   [Podman](https://github.com/containers/podman/) and is selected by default.
+### Backends
 
-2. **Rootfs** - Installs RPM into the root filesystem.  This backend is
-   suitable for use within a development container that has the runtime
-   dependencies installed and can be selected with the CMake option
-   `-DMKTREE_BACKEND=rootfs`.
-
-> [!IMPORTANT]
-> Currently, local build integration (*native* mode) in the OCI backend is only
-> supported on **Fedora Linux** hosts, on other hosts a fresh build will be
-> done and tested in a Fedora container (*non-native mode*).
-
-> [!NOTE]
-> When the OCI backend operates in non-native mode,
-> [Docker](https://github.com/docker/) is also supported and will be used if
-> Podman isn't available.
+Currently, there are two ways (*mktree backends*) in which the OS filesystem
+tree (image) is constructed and tested: OCI and Rootfs.
 
 The backend in use is reported during CMake configuration in the following
 message:
 
     -- Using mktree backend: <name>
 
-For the OCI backend, native mode (`yes` or `no`) is also reported.
+#### OCI
+
+This backend pulls an [OCI](https://opencontainers.org/) image matching the
+host OS and layers RPM on top to produce the final image.  Its purpose is to
+allow for testing the native build of RPM on a developer's workstation with a
+simple `make check`, without having to manage containers or images by hand.
+
+This backend is selected automatically and requires
+[Podman](https://github.com/containers/podman/).
+
+> [!IMPORTANT]
+> Native build integration is currently only supported on **Fedora Linux**
+> hosts, on other hosts a fresh build is done and tested in a Fedora container
+> ("non-native" mode).
+
+> [!NOTE]
+> In non-native mode, [Docker](https://github.com/docker/) is also supported
+> and will be used if Podman isn't available.
+
+During CMake configuration, native mode (`yes` or `no`) is also reported.
+
+#### Rootfs
+
+This backend installs RPM natively and uses the root filesystem for testing.
+Its suitable for use within development containers that already have RPM's
+runtime dependencies preinstalled.
+
+To select this backend, use the CMake option `-DMKTREE_BACKEND=rootfs`.
+
+> [!WARNING]
+> It is *not* recommended to use this backend on a production system since it
+> requires root privileges and may delete files in case of a broken test.
 
 ## Running tests
 
@@ -103,6 +117,14 @@ To factory-reset the `$RPMTEST` container, run:
 
 ## Understanding the tests
 
+The goals of the test-suite are:
+
+1. Install the RPM build natively, or emulate such a system using containers
+2. Separate the test logic from *that* system so that the latter can be broken
+   (intentionally or not) without affecting the test results
+
+
+
 ### Optimizations
 
 The test-suite is meant to be run repeatedly during local development and is
@@ -128,10 +150,9 @@ the former (immutable) one.
 
 Furthermore, snapshots ensure that:
 
-1. Each test operates on a pristine filesystem
-2. Individual tests can run in parallel without affecting each other
-3. Test logic isn't affected by a (misbehaving) test (e.g. the removal of a
-   system utility used to verify the results)
+1. Each test operates *in* a pristine filesystem (the test logic isn't affected
+2. Each test operates *on* a pristine filesystem
+3. Individual tests can run in parallel without affecting each other
 
 Lastly, depending on the mktree backend, the test-suite script itself may be
 wrapped in a container with the immutable snapshot as its root directory, which
