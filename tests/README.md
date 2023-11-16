@@ -131,10 +131,11 @@ Snapshots ensure that:
    of a system utility that's later used to verify the results)
 
 > [!NOTE]
-> The OCI backend wraps the test-suite script itself in an OCI container.  This
-> ensures full isolation from the host (preventing a misbehaving test from
-> affecting it) and also makes the backend simpler as it already uses Podman or
-> Docker to build the image in the first place.
+> The OCI backend wraps the test-suite script itself in an OCI container which
+> then also serves as the immutable snapshot.  This ensures full isolation from
+> the host (preventing a misbehaving test from affecting it) and also makes the
+> backend simpler as it already uses Podman or Docker to build the image in the
+> first place.
 
 ### Layout
 
