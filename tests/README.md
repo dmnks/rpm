@@ -45,7 +45,7 @@ During CMake configuration, native mode (`yes` or `no`) is also reported.
 
 #### Rootfs
 
-This backend installs RPM natively and uses the root filesystem as the image.
+This backend installs and runs RPM natively from within the root filesystem.
 Its suitable for use within development containers that already have RPM's
 runtime dependencies preinstalled.
 
