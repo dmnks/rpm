@@ -126,7 +126,7 @@ This separation reduces the number of snapshots that need to be created and
 destroyed per test-suite run since a large portion of the tests only requires
 the former (immutable) one.
 
-Furthermore, mutable snapshots ensure that:
+Furthermore, snapshots ensure that:
 
 1. Each test operates on a pristine filesystem
 2. Individual tests can run in parallel without affecting each other
