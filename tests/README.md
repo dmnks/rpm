@@ -35,7 +35,7 @@ This backend is selected automatically and requires
 > [!IMPORTANT]
 > Native build integration is currently only supported on **Fedora Linux**
 > hosts, on other hosts a fresh build is done and tested in a Fedora container
-> ("non-native" mode).
+> (*non-native* mode).
 
 > [!NOTE]
 > In non-native mode, [Docker](https://github.com/docker/) is also supported
