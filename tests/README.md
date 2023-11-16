@@ -1,15 +1,16 @@
 # Tests
 
-This test-suite, written in [GNU
-Autotest](https://www.gnu.org/savannah-checkouts/gnu/autoconf/manual/autoconf-2.71/html_node/Using-Autotest.html),
-exercises the local build of RPM installed into a minimal OS filesystem tree
-with matching runtime dependencies.  Each test gets a container based on this
-tree, runs one of the RPM binaries (or a custom program using the API) in it to
-perform some kind of operation, and verifies the results, such as the output,
-exit code and/or any changes made in the container's filesystem.
+This test-suite bootstraps a minimal, self-contained OS filesystem tree with an
+installation of RPM (done with `make install`) and runs a series of shell
+scripts (written in GNU Autotest), each operating on a container based on this
+tree.
+
+Each test covers a specific piece of functionality by running an RPM binary (or
+a program/script using the API) in the container and verifying the changes made
+in the container's filesystem as well as the command output and/or exit code.
 
 Currently, the following methods (*mktree backends*) are available for
-constructing the tree:
+bootstrapping the tree:
 
 1. **OCI** - Uses a prebuilt [OCI](https://opencontainers.org/) image matching
    the host OS as the base.  This backend is suitable for native development of
