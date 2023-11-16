@@ -1,9 +1,9 @@
 # Tests
 
 This test-suite bootstraps a minimal, self-contained OS filesystem tree with an
-installation of RPM (done with `make install`) and runs a series of shell
-scripts (written in GNU Autotest), each operating on a container based on this
-tree.
+installation of RPM (done with `make install`) and runs a series of small shell
+scripts, each operating on a container based on this tree.  The main, top-level
+script (called `rpmtests` when compiled) is written in GNU Autotest.
 
 Each test covers a specific piece of functionality by running an RPM binary (or
 a program/script using the API) in the container and verifying the changes made
@@ -17,20 +17,18 @@ bootstrapping the tree:
    RPM, requires [Podman](https://github.com/containers/podman/) and is
    selected by default.
 
+> [!IMPORTANT]
+> Currently, local build integration (*native* mode) is only supported on
+> **Fedora Linux** hosts, on other hosts a fresh build will be done and tested
+> in a Fedora container (*non-native mode*).
+
+> [!NOTE]
+> In non-native mode, [Docker](https://github.com/docker/) is also supported
+> and will be used if Podman isn't available.
+
 2. **Rootfs** - Uses the root filesystem itself.  This backend is suitable for
    use within a development container with the runtime dependencies installed
    and can be selected with the CMake option `-DMKTREE_BACKEND=rootfs`.
-
-> [!IMPORTANT]
-> Currently, local build integration (*native* mode) in the OCI backend is only
-> supported on **Fedora Linux** hosts, on other hosts a fresh build of RPM will
-> be done from the local sources as part of a Fedora-based image (*standalone*
-> mode).
-
-> [!NOTE]
-> When the OCI backend operates in standalone mode,
-> [Docker](https://github.com/docker/) is also supported and will be used if
-> Podman isn't available.
 
 The backend in use is reported during CMake configuration in the following
 message:
@@ -100,18 +98,22 @@ To factory-reset the `$RPMTEST` container, run:
 
 ## Understanding the tests
 
-The basic structure of a single test is as follows:
-
-1. Obtain a mutable 
-
-
-
 ### Optimizations
+
+The test-suite is designed to be run repeatedly during local development and is
+therefore optimized for speed.
+
+
 
 Since the test-suite consists of several hundreds of tests and is meant to be
 run repeatedly during development, it's optimized for speed.  Each test gets a
-*snapshot* of the [shared](#Tests) OS filesystem tree using
-[OverlayFS](https://docs.kernel.org/filesystems/overlayfs.html) and runs
+*snapshot* of the shared OS filesystem tree using
+[OverlayFS](https://docs.kernel.org/filesystems/overlayfs.html)
+
+
+
+
+and runs
 `rpm(8)` (or one of the included binaries) in a
 [Bubblewrap](https://github.com/containers/bubblewrap/) container with that
 snapshot mounted as the root directory.  There are two kinds of snapshots:
