@@ -132,16 +132,19 @@ Furthermore, mutable snapshots ensure that:
 3. Test logic isn't affected by the (side) effects of a test (e.g. the removal
    of a system utility that's later used to verify the results)
 
-Lastly, the OCI backend runs the test-suite script itself in a read-only Podman
-container and uses its root filesystem as the immutable snapshot.  This has the
-following benefits:
+Lastly, depending on the mktree backend, the test-suite script itself may be
+wrapped in a container based on the immutable snapshot, which has the following
+benefits:
 
-1. Simplifies the backend (it already uses Podman to build the image)
-2. Fully isolates the test-suite from the host (to prevent a misbehaving test
-   from affecting it)
+1. Only this one container is needed for all immutable tests, with RPM executed
+   directly
+2. Full isolation of the test-suite from the host (to prevent a misbehaving
+   test from affecting it)
 
-This Podman container runs in `--privileged` mode so that mutable snapshots and
-Bubblewrap containers (i.e. nested namespaces) can still be created.
+> [!NOTE]
+> The OCI backend does this by running the test-suite in a privileged,
+> read-only Podman container.  This also simplifies the backend as Podman is
+> already used to build the image.
 
 ### Layout
 
