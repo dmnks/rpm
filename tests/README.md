@@ -105,45 +105,35 @@ To factory-reset the `$RPMTEST` container, run:
 ### Optimizations
 
 The test-suite is meant to be run repeatedly during local development and is
-therefore optimized for speed.
+therefore optimized for speed.  Each test gets a *snapshot* of the shared tree
+using [OverlayFS](https://docs.kernel.org/filesystems/overlayfs.html) and runs
+lightweight [Bubblewrap](https://github.com/containers/bubblewrap/) containers
+with that snapshot mounted as the root directory.
 
+There are two kinds of snapshots:
 
+1. **Immutable** - A read-only snapshot created at the beginning of the
+   test-suite and destroyed afterwards.  Used by those tests that don't need
+   write access to the root filesystem (e.g. those testing `rpm --eval`).
 
-Since the test-suite consists of several hundreds of tests and is meant to be
-run repeatedly during development, it's optimized for speed.  Each test gets a
-*snapshot* of the shared OS filesystem tree using
-[OverlayFS](https://docs.kernel.org/filesystems/overlayfs.html)
-
-
-
-
-and runs
-`rpm(8)` (or one of the included binaries) in a
-[Bubblewrap](https://github.com/containers/bubblewrap/) container with that
-snapshot mounted as the root directory.  There are two kinds of snapshots:
-
-1. **Immutable** - This is a read-only snapshot created (and destroyed) once
-   per test-suite run and is shared among all the tests that don't need write
-   access to the root filesystem (e.g. those testing `rpm --eval`).
-
-2. **Mutable** - This is a read/write snapshot created (and destroyed) once per
-   each test that needs write access to the root filesystem (e.g. those testing
-   `rpm --install` or `rpm --erase`).  This snapshot contains a freshly
-   initialized (empty) RPMDB.
+2. **Mutable** - A read/write snapshot created on demand, typically at the
+   beginning of a single test or test group and destroyed afterwards.  Used by
+   those tests that alter the root filesystem (e.g. `rpm --install` or `rpm
+   --erase`).  This snapshot gets a freshly initialized (empty) rpmdb.
 
 Snapshots ensure that:
 
 1. Each test operates on a pristine filesystem
 
-2. Individual tests can run in parallel
+2. Individual tests can run in parallel without affecting each other
 
-3. The logic *observing* the results of a test is not affected by those results
-   (e.g. a test breaking the installation of some system utility, intentionally
-   or not, that's later used to verify the fact)
+3. A test script's root filesystem isn't affected by a (misbehaving) test
 
-CONTINUE HERE
 > [!NOTE]
-> Currently, the test-suite script is run in a container ...
+> The OCI backend wraps the test-suite script itself in an OCI container.  This
+> ensures full isolation from the host (preventing a misbehaving test from
+> affecting it) and also makes the backend simpler as it already uses Podman or
+> Docker to build the image in the first place.
 
 ### Layout
 
