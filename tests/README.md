@@ -11,6 +11,9 @@ In order to prevent individual tests from interfering with each other or with
 the test logic itself, those that need to *write* to the root filesystem (such
 as to install packages) do so through a container with a copy-on-write snapshot
 mounted as the root directory.
+[Bubblewrap](https://github.com/containers/bubblewrap/) and
+[OverlayFS](https://docs.kernel.org/filesystems/overlayfs.html) are used here,
+respectively.
 
 ### Backends
 
@@ -129,8 +132,8 @@ The goals of the test-suite are:
 
 The test-suite is meant to be run repeatedly during local development and is
 therefore optimized for speed.  Each test gets a *snapshot* of the shared tree
-using [OverlayFS](https://docs.kernel.org/filesystems/overlayfs.html) and runs
-RPM in lightweight [Bubblewrap](https://github.com/containers/bubblewrap/)
+using and runs
+RPM in lightweight 
 containers with that snapshot mounted as the root directory.
 
 There are two kinds of snapshots:
