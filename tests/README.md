@@ -12,14 +12,15 @@ in the container's filesystem as well as the command output and/or exit code.
 Currently, the following methods (*mktree backends*) are available for
 bootstrapping the tree:
 
-1. **OCI** - Uses a prebuilt [OCI](https://opencontainers.org/) image matching
-   the host OS as the base.  This backend is suitable for native development of
-   RPM, requires [Podman](https://github.com/containers/podman/) and is
-   selected by default.
+1. **OCI** - Pulls a prebuilt [OCI](https://opencontainers.org/) image matching
+   the host OS and layers RPM on top to produce the final image.  This backend
+   is suitable for native development of RPM, requires
+   [Podman](https://github.com/containers/podman/) and is selected by default.
 
-2. **Rootfs** - Uses the root filesystem itself.  This backend is suitable for
-   use within a development container with the runtime dependencies installed
-   and can be selected with the CMake option `-DMKTREE_BACKEND=rootfs`.
+2. **Rootfs** - Installs RPM into the root filesystem.  This backend is
+   suitable for use within a development container with the runtime
+   dependencies installed and can be selected with the CMake option
+   `-DMKTREE_BACKEND=rootfs`.
 
 > [!IMPORTANT]
 > Currently, local build integration (*native* mode) in the OCI backend is only
