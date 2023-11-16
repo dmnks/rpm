@@ -127,7 +127,8 @@ Snapshots ensure that:
 
 2. Individual tests can run in parallel without affecting each other
 
-3. A test script's root filesystem isn't affected by a (misbehaving) test
+3. Test logic isn't affected by the (side) effects of a test (e.g. the removal
+   of a system utility that's later used to verify the results)
 
 > [!NOTE]
 > The OCI backend wraps the test-suite script itself in an OCI container.  This
