@@ -1,16 +1,18 @@
 # Tests
 
-This test-suite exercises the local build of RPM installed into a minimal OS
-filesystem tree with matching runtime dependencies.  Each test is a simple
-shell script that gets a (mutable) container based on this tree, runs RPM in it
-to perform some kind of operation and verifies the results, such as the output,
+This test-suite, written in [GNU
+Autotest](https://www.gnu.org/savannah-checkouts/gnu/autoconf/manual/autoconf-2.71/html_node/Using-Autotest.html),
+exercises the local build of RPM installed into a minimal OS filesystem tree
+with matching runtime dependencies.  Each test gets a container based on this
+tree, runs one of the RPM binaries (or a custom program using the API) in it to
+perform some kind of operation, and verifies the results, such as the output,
 exit code and/or any changes made in the container's filesystem.
 
 Currently, the following methods (*mktree backends*) are available for
 constructing the tree:
 
-1. **OCI** - Uses an [OCI image](https://github.com/opencontainers/image-spec/)
-   matching the host OS.  This backend is suitable for native development of
+1. **OCI** - Uses a prebuilt [OCI](https://opencontainers.org/) image matching
+   the host OS as the base.  This backend is suitable for native development of
    RPM, requires [Podman](https://github.com/containers/podman/) and is
    selected by default.
 
@@ -97,11 +99,17 @@ To factory-reset the `$RPMTEST` container, run:
 
 ## Understanding the tests
 
+The basic structure of a single test is as follows:
+
+1. Obtain a mutable 
+
+
+
 ### Optimizations
 
 Since the test-suite consists of several hundreds of tests and is meant to be
-executed repeatedly during development, it's optimized for speed.  Each test
-gets a *snapshot* of the [shared](#Tests) OS filesystem tree using
+run repeatedly during development, it's optimized for speed.  Each test gets a
+*snapshot* of the [shared](#Tests) OS filesystem tree using
 [OverlayFS](https://docs.kernel.org/filesystems/overlayfs.html) and runs
 `rpm(8)` (or one of the included binaries) in a
 [Bubblewrap](https://github.com/containers/bubblewrap/) container with that
