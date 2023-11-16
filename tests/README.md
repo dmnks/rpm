@@ -17,18 +17,19 @@ bootstrapping the tree:
    RPM, requires [Podman](https://github.com/containers/podman/) and is
    selected by default.
 
-> [!IMPORTANT]
-> Currently, local build integration (*native* mode) is only supported on
-> **Fedora Linux** hosts, on other hosts a fresh build will be done and tested
-> in a Fedora container (*non-native mode*).
-
-> [!NOTE]
-> In non-native mode, [Docker](https://github.com/docker/) is also supported
-> and will be used if Podman isn't available.
-
 2. **Rootfs** - Uses the root filesystem itself.  This backend is suitable for
    use within a development container with the runtime dependencies installed
    and can be selected with the CMake option `-DMKTREE_BACKEND=rootfs`.
+
+> [!IMPORTANT]
+> Currently, local build integration (*native* mode) in the OCI backend is only
+> supported on **Fedora Linux** hosts, on other hosts a fresh build will be
+> done and tested in a Fedora container (*non-native mode*).
+
+> [!NOTE]
+> When the OCI backend operates in non-native mode,
+> [Docker](https://github.com/docker/) is also supported and will be used if
+> Podman isn't available.
 
 The backend in use is reported during CMake configuration in the following
 message:
