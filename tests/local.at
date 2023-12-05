@@ -44,6 +44,17 @@ snapshot umount
 AT_CLEANUP
 ])
 
+m4_define([RPMTEST_CHECK_STATIC],[
+RPMDB_INIT
+RPMTEST_CHECK_UNQUOTED(
+[source /static/$1.sh],
+[0],
+[$(cat /static/$1.txt)
+],
+)
+RPMTEST_CLEANUP
+])
+
 m4_define([RPMPY_CHECK],[
 AT_SKIP_IF([$PYTHON_DISABLED])
 RPMTEST_CHECK([RPMPY_RUN([$1])], [], [$2], [$3])

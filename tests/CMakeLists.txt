@@ -61,6 +61,8 @@ foreach(prg ${TESTPROGS})
 endforeach()
 string(REPLACE ";" " " TESTPROG_NAMES "${TESTPROGS}")
 
+set(STATIC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/static)
+
 include(ProcessorCount)
 ProcessorCount(nproc)
 if (nproc GREATER 1)
@@ -124,6 +126,14 @@ endif()
 
 add_custom_target(atshell
 	COMMAND ./mktree atshell ||:
+	DEPENDS tree
+)
+
+add_custom_target(static
+	COMMAND ./mktree atshell /static/update static
+	COMMAND cp static/*.txt ${STATIC_DIR}/
+	COMMAND git add ${STATIC_DIR}/*.txt
+	COMMAND git diff --staged ${STATIC_DIR}/*.txt
 	DEPENDS tree
 )
 

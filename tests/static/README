@@ -1,0 +1,18 @@
+STATIC TESTS
+------------
+
+This directory contains tests whose expected output needs to be "pinned" to a
+certain commit.  Specifically, this includes tests that depend on the RPM
+project and/or library versions, such as those that compare package digests or
+RPM sonames against the expected values which change whenever those versions
+are bumped.
+
+The tests are used via the m4 macro RPMTEST_CHECK_STATIC([<name>]) where <name>
+is the respective filename (without an extension) found in this directory.  The
+macro then sources the script <name>.sh and compares its standard output with
+the contents of <name>.txt.
+
+To pin the *.txt files to the current commit, run "make static" from the build
+directory.  This will run all the *.sh tests, capture their output and store it
+in the corresponding *.txt files in your source directory, then automatically
+git-stage the changes and print the diff (if any).

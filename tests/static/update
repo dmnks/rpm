@@ -1,0 +1,10 @@
+#!/bin/bash
+
+SCRIPT_DIR="$(dirname $0)"
+OUTPUT_DIR=$1
+mkdir -p $OUTPUT_DIR
+
+for script in $SCRIPT_DIR/*.sh; do
+    name=$(basename $script)
+    $script > $OUTPUT_DIR/${name%.sh}.txt
+done
