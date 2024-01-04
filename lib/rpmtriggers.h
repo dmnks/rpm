@@ -8,6 +8,7 @@ struct triggerInfo_s {
     unsigned int hdrNum;
     unsigned int tix;
     unsigned int priority;
+    unsigned int num;
 };
 
 typedef struct rpmtriggers_s {
@@ -76,7 +77,7 @@ rpmRC runFileTriggers(rpmts ts, rpmte te, rpmsenseFlags sense,
  */
 RPM_GNUC_INTERNAL
 rpmRC runImmedFileTriggers(rpmts ts, rpmte te, rpmsenseFlags sense,
-			    rpmscriptTriggerModes tm, int priorityClass);
+			    rpmscriptTriggerModes tm, int priorityClass, int countCorrection);
 #ifdef __cplusplus
 }
 #endif

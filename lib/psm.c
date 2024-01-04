@@ -889,7 +889,7 @@ static rpmRC rpmPackageInstall(rpmts ts, rpmpsm psm)
 
 	    /* Run file triggers in this package other package(s) set off. */
 	    rc = runImmedFileTriggers(psm->ts, psm->te, RPMSENSE_TRIGGERIN,
-				    RPMSCRIPT_FILETRIGGER, 1);
+				    RPMSCRIPT_FILETRIGGER, 1, 0);
 	    if (rc) break;
 	}
 
@@ -915,7 +915,7 @@ static rpmRC rpmPackageInstall(rpmts ts, rpmpsm psm)
 
 	    /* Run file triggers in this package other package(s) set off. */
 	    rc = runImmedFileTriggers(psm->ts, psm->te, RPMSENSE_TRIGGERIN,
-				    RPMSCRIPT_FILETRIGGER, 2);
+				    RPMSCRIPT_FILETRIGGER, 2, 0);
 	    if (rc) break;
 	}
 
@@ -938,7 +938,7 @@ static rpmRC rpmPackageErase(rpmts ts, rpmpsm psm)
 	if (!(rpmtsFlags(ts) & RPMTRANS_FLAG_NOTRIGGERUN)) {
 	    /* Run file triggers in this package other package(s) set off. */
 	    rc = runImmedFileTriggers(psm->ts, psm->te, RPMSENSE_TRIGGERUN,
-				    RPMSCRIPT_FILETRIGGER, 1);
+				    RPMSCRIPT_FILETRIGGER, 1, 0);
 	    if (rc) break;
 
 	    /* Run file triggers in other package(s) this package sets off. */
@@ -963,7 +963,7 @@ static rpmRC rpmPackageErase(rpmts ts, rpmpsm psm)
 	if (!(rpmtsFlags(ts) & RPMTRANS_FLAG_NOTRIGGERUN)) {
 	    /* Run file triggers in this package other package(s) set off. */
 	    rc = runImmedFileTriggers(psm->ts, psm->te, RPMSENSE_TRIGGERUN,
-				    RPMSCRIPT_FILETRIGGER, 2);
+				    RPMSCRIPT_FILETRIGGER, 2, 0);
 	    if (rc) break;
 
 	    /* Run file triggers in other package(s) this package sets off. */
@@ -1082,11 +1082,11 @@ static rpmRC runGoal(rpmpsm psm, pkgGoal goal)
 	break;
     case PKG_TRANSFILETRIGGERIN:
 	rc = runImmedFileTriggers(psm->ts, psm->te, RPMSENSE_TRIGGERIN,
-				    RPMSCRIPT_TRANSFILETRIGGER, 0);
+				    RPMSCRIPT_TRANSFILETRIGGER, 0, 0);
 	break;
     case PKG_TRANSFILETRIGGERUN:
 	rc = runImmedFileTriggers(psm->ts, psm->te, RPMSENSE_TRIGGERUN,
-				    RPMSCRIPT_TRANSFILETRIGGER, 0);
+				    RPMSCRIPT_TRANSFILETRIGGER, 0, 0);
 	break;
     default:
 	break;
