@@ -74,20 +74,27 @@ set(MKTREE_BACKEND oci CACHE STRING "Mktree backend to use")
 set(MKTREE_MODE native CACHE STRING "Mktree mode to set")
 set(DOCKERFILE ${CMAKE_CURRENT_SOURCE_DIR}/Dockerfile.${OS_NAME})
 if (MKTREE_BACKEND STREQUAL oci)
-	find_program(PODMAN podman)
-	find_program(DOCKER docker)
-	mark_as_advanced(PODMAN DOCKER)
+	if (NOT MKTREE_MODE STREQUAL toolbox)
+		if (EXISTS /run/.toolboxenv)
+			message(STATUS "Toolbox container detected, you may "
+				       "want MKTREE_MODE=toolbox")
+		endif()
 
-	# Fall back to standalone mode if necessary
-	if (NOT (PODMAN AND EXISTS ${DOCKERFILE}))
-		set(MKTREE_MODE standalone)
-	endif()
+		find_program(PODMAN podman)
+		find_program(DOCKER docker)
+		mark_as_advanced(PODMAN DOCKER)
 
-	find_program(PODMAN NAMES podman docker)
-	if (NOT PODMAN)
-		message(WARNING "Test-suite requires Podman or Docker but "
-				"neither was found, disabling.")
-		return()
+		# Fall back to standalone mode if necessary
+		if (NOT (PODMAN AND EXISTS ${DOCKERFILE}))
+			set(MKTREE_MODE standalone)
+		endif()
+
+		find_program(PODMAN NAMES podman docker)
+		if (NOT PODMAN)
+			message(WARNING "Test-suite requires Podman or Docker but "
+					"neither was found, disabling.")
+			return()
+		endif()
 	endif()
 
 	if (MKTREE_MODE STREQUAL standalone)

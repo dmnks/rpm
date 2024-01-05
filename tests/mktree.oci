@@ -25,6 +25,10 @@ else
     FROM="--from @OS_NAME@:@OS_VERSION@"
 fi
 
+if [ $MODE == toolbox ]; then
+    PODMAN="flatpak-spawn --host podman"
+fi
+
 IMAGE=rpm
 ARGS="-f Dockerfile $FROM $CONTEXT"
 ROOTLESS=$([ $(id -u) == 0 ] && echo 0 || echo 1)
@@ -79,6 +83,13 @@ case $CMD in
             standalone)
                 # Standalone build
                 $PODMAN build --target full -t $IMAGE $ARGS
+            ;;
+            toolbox)
+                # Reuse this toolbox container
+                id=$(sh -c 'source /run/.containerenv; echo $id')
+                $PODMAN exec --workdir "$PWD" $id \
+                        @CMAKE_SOURCE_DIR@/tests/mktree.rootfs build
+                $PODMAN commit -q $id $IMAGE
             ;;
         esac
     ;;
