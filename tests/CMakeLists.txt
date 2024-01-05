@@ -78,11 +78,13 @@ endif()
 set(MKTREE_BACKEND oci CACHE STRING "Mktree backend to use")
 include(mktree.${MKTREE_BACKEND}.cmake)
 message(STATUS "Using mktree backend: ${MKTREE_BACKEND} "
-	       "(native: ${MKTREE_NATIVE})")
+	       "(mode: ${MKTREE_MODE})")
 configure_file(mktree.common mktree.common @ONLY)
 configure_file(mktree.${MKTREE_BACKEND} mktree @ONLY)
 
-if (MKTREE_NATIVE)
+if (MKTREE_MODE STREQUAL standalone)
+	add_custom_target(tree COMMAND ./mktree build)
+else()
 	find_program(AUTOM4TE autom4te REQUIRED)
 	mark_as_advanced(AUTOM4TE)
 	set(AUTOTEST ${AUTOM4TE} --language=autotest)
@@ -103,8 +105,6 @@ if (MKTREE_NATIVE)
 		DEPENDS ${TESTPROGS}
 		DEPENDS ${TOOLPROGS}
 	)
-else()
-	add_custom_target(tree COMMAND ./mktree build)
 endif()
 
 add_custom_target(atshell
