@@ -71,13 +71,13 @@ endif()
 
 # Set up mktree
 set(MKTREE_BACKEND oci CACHE STRING "Mktree backend to use")
+set(MKTREE_MODE native CACHE STRING "Mktree mode to set")
 set(DOCKERFILE ${CMAKE_CURRENT_SOURCE_DIR}/Dockerfile.${OS_NAME})
 if (MKTREE_BACKEND STREQUAL oci)
 	find_program(PODMAN podman)
 	find_program(DOCKER docker)
 	mark_as_advanced(PODMAN DOCKER)
-	if (PODMAN AND EXISTS ${DOCKERFILE})
-		set(MKTREE_MODE native)
+	if (MKTREE_MODE STREQUAL native AND PODMAN AND EXISTS ${DOCKERFILE})
 		configure_file(${DOCKERFILE} Dockerfile COPYONLY)
 		add_custom_target(ci
 			COMMAND ./mktree.oci build
