@@ -5,7 +5,7 @@ find_program(DOCKER docker)
 mark_as_advanced(PODMAN DOCKER)
 
 if (PODMAN AND EXISTS ${DOCKERFILE})
-	set(MKTREE_NATIVE yes)
+	set(MKTREE_MODE native)
 	configure_file(${DOCKERFILE} Dockerfile COPYONLY)
 	add_custom_target(ci
 		COMMAND ./mktree.oci build
@@ -14,7 +14,7 @@ if (PODMAN AND EXISTS ${DOCKERFILE})
 		WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 	)
 else()
-	set(MKTREE_NATIVE no)
+	set(MKTREE_MODE standalone)
 	configure_file(Dockerfile Dockerfile COPYONLY)
 endif()
 
