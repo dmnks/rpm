@@ -648,8 +648,8 @@ rpmRC runImmedFileTriggers(rpmts ts, rpmte te, rpmsenseFlags sense,
 
 	nerrors += runHandleTriggersInPkg(ts, te, trigH, sense, tm, 2,
 					    triggers->triggerInfo[i].tix,
-					    triggers->triggerInfo[i].num,
-					    numPackage);
+					    numPackage,
+					    triggers->triggerInfo[i].num);
     }
     rpmtriggersFree(triggers);
     headerFree(trigH);
