@@ -19,10 +19,10 @@ else
     CONTEXT=..
 fi
 
-if [ $MODE == native ]; then
-    FROM="--from @OS_NAME@:@OS_VERSION@"
-else
+if [ $MODE == standalone ]; then
     FROM=
+else
+    FROM="--from @OS_NAME@:@OS_VERSION@"
 fi
 
 IMAGE=rpm
