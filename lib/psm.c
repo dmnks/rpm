@@ -884,7 +884,7 @@ static rpmRC rpmPackageInstall(rpmts ts, rpmpsm psm)
 	    /* Run upper file triggers i. e. with higher priorities */
 	    /* Run file triggers in other package(s) this package sets off. */
 	    rc = runFileTriggers(psm->ts, psm->te, RPMSENSE_TRIGGERIN,
-				RPMSCRIPT_FILETRIGGER, 1);
+				RPMSCRIPT_FILETRIGGER, 1, psm->countCorrection);
 	    if (rc) break;
 
 	    /* Run file triggers in this package other package(s) set off. */
@@ -910,7 +910,7 @@ static rpmRC rpmPackageInstall(rpmts ts, rpmpsm psm)
 	    /* Run lower file triggers i. e. with lower priorities */
 	    /* Run file triggers in other package(s) this package sets off. */
 	    rc = runFileTriggers(psm->ts, psm->te, RPMSENSE_TRIGGERIN,
-				RPMSCRIPT_FILETRIGGER, 2);
+				RPMSCRIPT_FILETRIGGER, 2, psm->countCorrection);
 	    if (rc) break;
 
 	    /* Run file triggers in this package other package(s) set off. */
@@ -943,7 +943,7 @@ static rpmRC rpmPackageErase(rpmts ts, rpmpsm psm)
 
 	    /* Run file triggers in other package(s) this package sets off. */
 	    rc = runFileTriggers(psm->ts, psm->te, RPMSENSE_TRIGGERUN,
-				RPMSCRIPT_FILETRIGGER, 1);
+				RPMSCRIPT_FILETRIGGER, 1, psm->countCorrection);
 	    if (rc) break;
 
 	    /* Run triggers in this package other package(s) set off. */
@@ -968,7 +968,7 @@ static rpmRC rpmPackageErase(rpmts ts, rpmpsm psm)
 
 	    /* Run file triggers in other package(s) this package sets off. */
 	    rc = runFileTriggers(psm->ts, psm->te, RPMSENSE_TRIGGERUN,
-				RPMSCRIPT_FILETRIGGER, 2);
+				RPMSCRIPT_FILETRIGGER, 2, psm->countCorrection);
 	    if (rc) break;
 	}
 
@@ -981,7 +981,7 @@ static rpmRC rpmPackageErase(rpmts ts, rpmpsm psm)
 	/* Run file triggers in other package(s) this package sets off. */
 	if (!(rpmtsFlags(ts) & RPMTRANS_FLAG_NOTRIGGERPOSTUN)) {
 	    rc = runFileTriggers(psm->ts, psm->te, RPMSENSE_TRIGGERPOSTUN,
-				RPMSCRIPT_FILETRIGGER, 1);
+				RPMSCRIPT_FILETRIGGER, 1, psm->countCorrection);
 	}
 
 	if (!(rpmtsFlags(ts) & RPMTRANS_FLAG_NOPOSTUN)) {
@@ -996,7 +996,7 @@ static rpmRC rpmPackageErase(rpmts ts, rpmpsm psm)
 
 	    /* Run file triggers in other package(s) this package sets off. */
 	    rc = runFileTriggers(psm->ts, psm->te, RPMSENSE_TRIGGERPOSTUN,
-				RPMSCRIPT_FILETRIGGER, 2);
+				RPMSCRIPT_FILETRIGGER, 2, psm->countCorrection);
 	}
 	if (rc) break;
 

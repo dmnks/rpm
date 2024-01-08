@@ -61,7 +61,8 @@ int runPostUnTransFileTrigs(rpmts ts);
  */
 RPM_GNUC_INTERNAL
 rpmRC runFileTriggers(rpmts ts, rpmte te, rpmsenseFlags sense,
-			rpmscriptTriggerModes tm, int priorityClass);
+			rpmscriptTriggerModes tm, int priorityClass,
+			int countCorrection);
 
 /* Run file triggers in this te other package(s) set off.
  * @param ts		transaction set
