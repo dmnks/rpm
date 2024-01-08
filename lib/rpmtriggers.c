@@ -35,7 +35,8 @@ rpmtriggers rpmtriggersFree(rpmtriggers triggers)
 }
 
 static void rpmtriggersAdd(rpmtriggers trigs, unsigned int hdrNum,
-			    unsigned int tix, unsigned int priority)
+			    unsigned int tix, unsigned int priority,
+			    unsigned int pkgCount)
 {
     if (trigs->count == trigs->alloced) {
 	trigs->alloced <<= 1;
@@ -46,6 +47,7 @@ static void rpmtriggersAdd(rpmtriggers trigs, unsigned int hdrNum,
     trigs->triggerInfo[trigs->count].hdrNum = hdrNum;
     trigs->triggerInfo[trigs->count].tix = tix;
     trigs->triggerInfo[trigs->count].priority = priority;
+    trigs->triggerInfo[trigs->count].pkgCount = pkgCount;
     trigs->count++;
 }
 
@@ -113,7 +115,7 @@ static void addTriggers(rpmts ts, Header trigH, rpmsenseFlags filter,
 			&priorities, HEADERGET_MINMEM)) {
 		rpmtdSetIndex(&priorities, tix);
 		rpmtriggersAdd(ts->trigs2run, headerGetInstance(trigH),
-				tix, *rpmtdGetUint32(&priorities));
+				tix, *rpmtdGetUint32(&priorities), 0);
 	    }
 	}
 	rpmdsFree(ds);
@@ -379,7 +381,7 @@ static matchFilesIter matchFilesIteratorFree(matchFilesIter mfi)
  */
 static int runHandleTriggersInPkg(rpmts ts, rpmte te, Header h,
 				rpmsenseFlags sense, rpmscriptTriggerModes tm,
-				int searchMode, int ti)
+				int searchMode, int ti, unsigned int pkgCount)
 {
     int nerrors = 0;
     rpmds rpmdsTriggers, rpmdsTrigger;
@@ -434,7 +436,7 @@ static int runHandleTriggersInPkg(rpmts ts, rpmte te, Header h,
 	    rpmScriptSetNextFileFunc(script, inputFunc, mfi);
 
 	    nerrors += runScript(ts, NULL, h, installPrefixes.data,
-				script, 0, -1);
+				script, pkgCount, -1);
 	    rpmtdFreeData(&installPrefixes);
 	    rpmScriptFree(script);
 	}
@@ -540,10 +542,14 @@ rpmRC runFileTriggers(rpmts ts, rpmte te, rpmsenseFlags sense,
 		priority_ptr = rpmtdGetUint32(&priorities);
 		if (priority_ptr)
 		    priority = *priority_ptr;
+
+		const char * triggerName = headerGetString(trigH, RPMTAG_NAME);
+		int count = rpmdbCountPackages(rpmtsGetRdb(ts), triggerName);
+
 		headerFree(trigH);
 
 		/* Store file trigger in array */
-		rpmtriggersAdd(triggers, offset, tix, priority);
+		rpmtriggersAdd(triggers, offset, tix, priority, count);
 	    }
 	}
 	free(pfx);
@@ -566,10 +572,12 @@ rpmRC runFileTriggers(rpmts ts, rpmte te, rpmsenseFlags sense,
 	trigH = rpmdbGetHeaderAt(rpmtsGetRdb(ts), triggers->triggerInfo[i].hdrNum);
 	if (tm == RPMSCRIPT_FILETRIGGER)
 	    nerrors += runHandleTriggersInPkg(ts, te, trigH, sense, tm, 0,
-						triggers->triggerInfo[i].tix);
+						triggers->triggerInfo[i].tix,
+						triggers->triggerInfo[i].pkgCount);
 	else
 	    nerrors += runHandleTriggersInPkg(ts, te, trigH, sense, tm, 1,
-						triggers->triggerInfo[i].tix);
+						triggers->triggerInfo[i].tix,
+						triggers->triggerInfo[i].pkgCount);
 	headerFree(trigH);
     }
     rpmtriggersFree(triggers);
@@ -600,7 +608,7 @@ rpmRC runImmedFileTriggers(rpmts ts, rpmte te, rpmsenseFlags sense,
     for (i = 0; i < triggersCount; i++) {
 	rpmtdSetIndex(&priorities, i);
 	/* Offset is not important, all triggers are from the same package */
-	rpmtriggersAdd(triggers, 0, i, *rpmtdGetUint32(&priorities));
+	rpmtriggersAdd(triggers, 0, i, *rpmtdGetUint32(&priorities), 0);
     }
 
     /* Sort triggers by priority, offset, trigger index */
@@ -616,7 +624,7 @@ rpmRC runImmedFileTriggers(rpmts ts, rpmte te, rpmsenseFlags sense,
 	}
 
 	nerrors += runHandleTriggersInPkg(ts, te, trigH, sense, tm, 2,
-					    triggers->triggerInfo[i].tix);
+					    triggers->triggerInfo[i].tix, 0);
     }
     rpmtriggersFree(triggers);
     headerFree(trigH);
