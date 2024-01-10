@@ -78,7 +78,8 @@ rpmRC runFileTriggers(rpmts ts, rpmte te, rpmsenseFlags sense,
  */
 RPM_GNUC_INTERNAL
 rpmRC runImmedFileTriggers(rpmts ts, rpmte te, rpmsenseFlags sense,
-			    rpmscriptTriggerModes tm, int priorityClass);
+			    rpmscriptTriggerModes tm, int priorityClass,
+			    int countCorrection);
 #ifdef __cplusplus
 }
 #endif

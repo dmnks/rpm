@@ -436,6 +436,8 @@ static int runHandleTriggersInPkg(rpmts ts, rpmte te, Header h,
 	    inputFunc = (nextfilefunc) matchFilesNext;
 	    rpmScriptSetNextFileFunc(script, inputFunc, mfi);
 
+	    if (numPackage == -1)
+		numPackage = rpmdbGetIteratorCount(mfi->pi);
 	    nerrors += runScript(ts, NULL, h, installPrefixes.data,
 				script, pkgCount, numPackage);
 	    rpmtdFreeData(&installPrefixes);
@@ -600,7 +602,8 @@ rpmRC runFileTriggers(rpmts ts, rpmte te, rpmsenseFlags sense,
 }
 
 rpmRC runImmedFileTriggers(rpmts ts, rpmte te, rpmsenseFlags sense,
-			    rpmscriptTriggerModes tm, int priorityClass)
+			    rpmscriptTriggerModes tm, int priorityClass,
+			    int countCorrection)
 {
     int nerrors = 0;
     int triggersCount, i;
@@ -608,6 +611,7 @@ rpmRC runImmedFileTriggers(rpmts ts, rpmte te, rpmsenseFlags sense,
     struct rpmtd_s priorities;
     rpmTagVal priorityTag;
     rpmtriggers triggers;
+    const char * triggerName = headerGetString(trigH, RPMTAG_NAME);
 
     if (tm == RPMSCRIPT_FILETRIGGER) {
 	priorityTag = RPMTAG_FILETRIGGERPRIORITIES;
@@ -637,8 +641,12 @@ rpmRC runImmedFileTriggers(rpmts ts, rpmte te, rpmsenseFlags sense,
 		continue;
 	}
 
+	int arg1 = rpmdbCountPackages(rpmtsGetRdb(ts), triggerName);
+	arg1 += countCorrection;
+
 	nerrors += runHandleTriggersInPkg(ts, te, trigH, sense, tm, 2,
-					    triggers->triggerInfo[i].tix, 0, 0);
+					    triggers->triggerInfo[i].tix,
+					    arg1, -1);
     }
     rpmtriggersFree(triggers);
     headerFree(trigH);
