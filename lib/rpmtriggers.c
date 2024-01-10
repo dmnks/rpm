@@ -285,7 +285,7 @@ static matchFilesIter matchDBFilesIterator(rpmds trigger, rpmts ts,
     return mfi;
 }
 
-static const char *matchFilesNext(matchFilesIter mfi)
+static const char *matchFilesNext2(matchFilesIter mfi, Header *h)
 {
     const char *matchFile = NULL;
     int fx = 0;
@@ -317,8 +317,13 @@ static const char *matchFilesNext(matchFilesIter mfi)
 		if (RPMFILE_IS_INSTALLED(rpmfiFState(mfi->fi)))
 		    matchFile = rpmfiFN(mfi->fi);
 	    }
-	    if (matchFile)
+	    if (matchFile) {
+		if (h) {
+		    rpmdbSetIteratorIndex(mfi->pi, 0);
+		    *h = rpmdbNextIterator(mfi->pi);
+		}
 		break;
+	    }
 
 	    /* If we are done with current mfi->fi, create mfi->fi for next package */
 	    rpmfilesFree(mfi->files);
@@ -345,12 +350,17 @@ static const char *matchFilesNext(matchFilesIter mfi)
     return matchFile;
 }
 
-static int matchFilesEmpty(matchFilesIter mfi)
+static const char *matchFilesNext(matchFilesIter mfi)
+{
+    return matchFilesNext2(mfi, NULL);
+}
+
+static int matchFilesEmpty(matchFilesIter mfi, Header *h)
 {
     const char *matchFile;
 
     /* Try to get the first file */
-    matchFile = matchFilesNext(mfi);
+    matchFile = matchFilesNext2(mfi, h);
 
     /* Rewind back this file */
     rpmfiInit(mfi->fi, 0);
@@ -418,7 +428,8 @@ static int runHandleTriggersInPkg(rpmts ts, rpmte te, Header h,
 	}
 
 	/* If this trigger matches any file then run trigger script */
-	if (!matchFilesEmpty(mfi)) {
+	Header h2 = NULL;
+	if (!matchFilesEmpty(mfi, &h2)) {
 	    script = rpmScriptFromTriggerTag(h, triggertag(sense), tm, ti);
 
 	    headerGet(h, RPMTAG_INSTPREFIXES, &installPrefixes,
