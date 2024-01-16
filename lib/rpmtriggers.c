@@ -382,7 +382,7 @@ static matchFilesIter matchFilesIteratorFree(matchFilesIter mfi)
 static int runHandleTriggersInPkg(rpmts ts, rpmte te, Header h,
 				rpmsenseFlags sense, rpmscriptTriggerModes tm,
 				int searchMode, int ti, unsigned int pkgCount,
-				unsigned int numPackage)
+				int numPackage)
 {
     int nerrors = 0;
     rpmds rpmdsTriggers, rpmdsTrigger;
