@@ -436,8 +436,10 @@ static int runHandleTriggersInPkg(rpmts ts, rpmte te, Header h,
 	    inputFunc = (nextfilefunc) matchFilesNext;
 	    rpmScriptSetNextFileFunc(script, inputFunc, mfi);
 
+	    /* if (tm == RPMSCRIPT_FILETRIGGER && numPackage == -1) */
 	    if (numPackage == -1)
 		numPackage = rpmdbGetIteratorCount(mfi->pi);
+
 	    nerrors += runScript(ts, NULL, h, installPrefixes.data,
 				script, pkgCount, numPackage);
 	    rpmtdFreeData(&installPrefixes);
@@ -505,13 +507,15 @@ rpmRC runFileTriggers(rpmts ts, rpmte te, rpmsenseFlags sense,
 
     int numPackage = -1;
     const char * N = NULL;
-    if (te) 	/* XXX can't happen */
-	N = rpmteN(te);
-    if (N) 		/* XXX can't happen */
-	numPackage = rpmdbCountPackages(rpmtsGetRdb(ts), N)
-				+ countCorrection;
-    if (numPackage < 0)
-	return RPMRC_NOTFOUND;
+    if (tm == RPMSCRIPT_FILETRIGGER) {
+	if (te) 	/* XXX can't happen */
+	    N = rpmteN(te);
+	if (N) 		/* XXX can't happen */
+	    numPackage = rpmdbCountPackages(rpmtsGetRdb(ts), N)
+				    + countCorrection;
+	if (numPackage < 0)
+	    return RPMRC_NOTFOUND;
+    }
 
     /* Decide if we match triggers against files in te or in whole ts */
     if (tm == RPMSCRIPT_FILETRIGGER) {
