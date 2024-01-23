@@ -385,7 +385,7 @@ static matchFilesIter matchFilesIteratorFree(matchFilesIter mfi)
  */
 static int runHandleTriggersInPkg(rpmts ts, rpmte te, Header h,
 				rpmsenseFlags sense, rpmscriptTriggerModes tm,
-				int searchMode, int ti, int arg1)
+				int searchMode, int ti, int arg1, int arg2)
 {
     int nerrors = 0;
     rpmds rpmdsTriggers, rpmdsTrigger;
@@ -439,8 +439,12 @@ static int runHandleTriggersInPkg(rpmts ts, rpmte te, Header h,
 	    inputFunc = (nextfilefunc) matchFilesNext;
 	    rpmScriptSetNextFileFunc(script, inputFunc, mfi);
 
+	    /* Compute our own arg2 if asked */
+	    if (arg2 == -2)
+		arg2 = rpmdbGetIteratorCount(mfi->pi);
+
 	    nerrors += runScript(ts, NULL, h, installPrefixes.data,
-				script, arg1, -1);
+				script, arg1, arg2);
 	    rpmtdFreeData(&installPrefixes);
 	    rpmScriptFree(script);
 	}
@@ -490,7 +494,7 @@ static int matchFilesInTran(rpmts ts, rpmte te, const char *pfx,
     return rc;
 }
 
-rpmRC runFileTriggers(rpmts ts, rpmte te, rpmsenseFlags sense,
+rpmRC runFileTriggers(rpmts ts, rpmte te, int arg2, rpmsenseFlags sense,
 			rpmscriptTriggerModes tm, int priorityClass)
 {
     int nerrors = 0, i;
@@ -578,11 +582,11 @@ rpmRC runFileTriggers(rpmts ts, rpmte te, rpmsenseFlags sense,
 	if (tm == RPMSCRIPT_FILETRIGGER)
 	    nerrors += runHandleTriggersInPkg(ts, te, trigH, sense, tm, 0,
 						triggers->triggerInfo[i].tix,
-						arg1);
+						arg1, arg2);
 	else
 	    nerrors += runHandleTriggersInPkg(ts, te, trigH, sense, tm, 1,
 						triggers->triggerInfo[i].tix,
-						arg1);
+						arg1, arg2);
 	headerFree(trigH);
     }
     rpmtriggersFree(triggers);
@@ -595,6 +599,7 @@ rpmRC runImmedFileTriggers(rpmts ts, rpmte te, int arg1, rpmsenseFlags sense,
 {
     int nerrors = 0;
     int triggersCount, i;
+    int arg2;
     Header trigH = rpmteHeader(te);
     struct rpmtd_s priorities;
     rpmTagVal priorityTag;
@@ -602,8 +607,12 @@ rpmRC runImmedFileTriggers(rpmts ts, rpmte te, int arg1, rpmsenseFlags sense,
 
     if (tm == RPMSCRIPT_FILETRIGGER) {
 	priorityTag = RPMTAG_FILETRIGGERPRIORITIES;
+	/* Request an aggregate package count as arg2 */
+	arg2 = -2;
     } else {
 	priorityTag = RPMTAG_TRANSFILETRIGGERPRIORITIES;
+	/* Disable arg2 */
+	arg2 = -1;
     }
     headerGet(trigH, priorityTag, &priorities, HEADERGET_MINMEM);
 
@@ -630,7 +639,7 @@ rpmRC runImmedFileTriggers(rpmts ts, rpmte te, int arg1, rpmsenseFlags sense,
 
 	nerrors += runHandleTriggersInPkg(ts, te, trigH, sense, tm, 2,
 					    triggers->triggerInfo[i].tix,
-					    arg1);
+					    arg1, arg2);
     }
     rpmtriggersFree(triggers);
     headerFree(trigH);
