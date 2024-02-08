@@ -1,0 +1,18 @@
+FROM registry.fedoraproject.org/fedora:39
+
+RUN dnf install -y \
+    cargo \
+    clang \
+    git \
+    nettle-devel \
+    pkg-config \
+    rustc
+
+RUN mkdir /sequoia
+RUN git clone https://github.com/rpm-software-management/rpm-sequoia.git /sequoia
+RUN cd /sequoia && \
+    PREFIX=/usr LIBDIR="\${prefix}/lib64" \
+    cargo build --release && cargo test --release
+
+ENV PKG_CONFIG_PATH=/sequoia/target/release
+ENV LD_LIBRARY_PATH=/sequoia/target/release

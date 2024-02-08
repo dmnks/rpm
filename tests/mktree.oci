@@ -64,9 +64,9 @@ unshared()
 case $CMD in
     build) unshared
         # Build base image
-        if [ $MODE != hybrid ]; then
-            $PODMAN build --target base -t $IMAGE/base $ARGS
-        fi
+        # if [ $MODE != hybrid ]; then
+        #     $PODMAN build --target base -t $IMAGE/base $ARGS
+        # fi
 
         # Add RPM install on top
         [ -n "$($PODMAN images -q $IMAGE)" ] && $PODMAN rmi $IMAGE
