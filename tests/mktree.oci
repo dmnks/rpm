@@ -33,6 +33,25 @@ CMD=$1; shift
 export ROOTLESS
 source mktree.common
 
+cmd_build()
+{
+    # Build base image
+    $PODMAN build --target base -t $IMAGE/base $ARGS
+
+    # Add RPM install on top
+    [ -n "$($PODMAN images -q $IMAGE)" ] && $PODMAN rmi $IMAGE
+    if [ $NATIVE == yes ]; then
+        # Native build
+        id=$($PODMAN create $IMAGE/base)
+        trap "$PODMAN rm $id >/dev/null" EXIT
+        make_install $($PODMAN mount $id)
+        $PODMAN commit -q $id $IMAGE
+    else
+        # Standalone build
+        $PODMAN build --target full -t $IMAGE $ARGS
+    fi
+}
+
 rpmtests()
 {
     local opts
@@ -62,33 +81,9 @@ unshared()
 }
 
 case $CMD in
-    build) unshared
-        # Build base image
-        $PODMAN build --target base -t $IMAGE/base $ARGS
-
-        # Add RPM install on top
-        [ -n "$($PODMAN images -q $IMAGE)" ] && $PODMAN rmi $IMAGE
-        if [ $NATIVE == yes ]; then
-            # Native build
-            id=$($PODMAN create $IMAGE/base)
-            trap "$PODMAN rm $id >/dev/null" EXIT
-            make_install $($PODMAN mount $id)
-            $PODMAN commit -q $id $IMAGE
-        else
-            # Standalone build
-            $PODMAN build --target full -t $IMAGE $ARGS
-        fi
-    ;;
-    check)
-        rpmtests "$@"
-    ;;
-    atshell)
-        rpmtests --shell "$@"
-    ;;
-    shell)
-        rpmtests --shell snapshot shell
-    ;;
-    reset)
-        rpmtests --reset
-    ;;
+    build)      unshared; cmd_build "$@" ;;
+    check)      rpmtests "$@" ;;
+    atshell)    rpmtests --shell "$@" ;;
+    shell)      rpmtests --shell snapshot shell ;;
+    reset)      rpmtests --reset ;;
 esac
