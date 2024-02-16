@@ -16,6 +16,10 @@ case $CMD in
         make_install /
     ;;
     shell)
+        if [ -z "$(findmnt -n -O ro /)" ]; then
+            echo "Error: Root filesystem is not read-only." >&2
+            exit 1
+        fi
         "$@"
     ;;
 esac
