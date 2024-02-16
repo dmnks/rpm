@@ -8,7 +8,7 @@ PROGRAM=$(basename $0)
 if [ "$PROGRAM" == "mktree" ]; then
     # Running from build directory
     MODE=@MKTREE_MODE@
-    PODMAN=@PODMAN@
+    PODMAN="@PODMAN@"
     CONTEXT=@CMAKE_SOURCE_DIR@
 else
     # Running from source directory
@@ -34,7 +34,9 @@ source mktree.common
 cmd_build()
 {
     # Build base image
-    $PODMAN build --target base -t $IMAGE/base $ARGS
+    if [ $MODE != isolated ]; then
+        $PODMAN build --target base -t $IMAGE/base $ARGS
+    fi
 
     # Add RPM install on top
     [ -n "$($PODMAN images -q $IMAGE)" ] && $PODMAN rmi $IMAGE
@@ -44,6 +46,12 @@ cmd_build()
             id=$($PODMAN create $IMAGE/base)
             trap "$PODMAN rm $id >/dev/null" EXIT
             make_install $($PODMAN mount $id)
+            $PODMAN commit -q $id $IMAGE
+        ;;
+        isolated)
+            # Containerized build
+            id=$(sh -c '. @CONTAINERENV@; echo $id')
+            $PODMAN exec --workdir "$PWD" $id ./mktree.rootfs build
             $PODMAN commit -q $id $IMAGE
         ;;
         standalone)
