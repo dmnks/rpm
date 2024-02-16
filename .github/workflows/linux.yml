@@ -12,7 +12,7 @@ jobs:
         run: ./mktree.oci build
         working-directory: ./tests
       - name: Run the test suite
-        run: ./mktree.oci check --interactive=false -j$(nproc)
+        run: ./mktree.oci shell --interactive=false rpmtests -j$(nproc)
         working-directory: ./tests
 
     env:

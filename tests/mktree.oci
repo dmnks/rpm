@@ -7,13 +7,11 @@ set -e
 PROGRAM=$(basename $0)
 if [ "$PROGRAM" == "mktree" ]; then
     # Running from build directory
-    CMAKE=yes
     NATIVE=@MKTREE_NATIVE@
     PODMAN=@PODMAN@
     CONTEXT=@CMAKE_SOURCE_DIR@
 else
     # Running from source directory
-    CMAKE=no
     NATIVE=no
     PODMAN=${MKTREE_ENGINE:-podman}
     CONTEXT=..
@@ -52,25 +50,23 @@ cmd_build()
     fi
 }
 
-rpmtests()
+cmd_shell()
 {
-    local opts
+    local opts=
     local vol="$PWD:/srv:z"
 
-    # Pass select options to $PODMAN
-    case "$1" in
-        # Useful for CI environments without a tty
-        --interactive=*) opts=$1; shift ;;
-    esac
-
-    # Don't keep the test artifacts around in non-cmake mode
-    if [ $CMAKE == no ]; then
-        set -- --log "$@"
-        vol=/srv
-    fi
+    while [ $# != 0 ]; do
+        case $1 in
+            # Useful for CI environments without a tty
+            --interactive=*)    opts=$1 ;;
+            --volatile)         vol=/srv ;;
+            *)                  break ;;
+        esac
+        shift
+    done
 
     $PODMAN run --privileged -it --rm --read-only --tmpfs /tmp -v $vol \
-                --workdir /srv -e ROOTLESS=$ROOTLESS $opts $IMAGE rpmtests "$@"
+                --workdir /srv -e ROOTLESS=$ROOTLESS $opts $IMAGE "$@"
 }
 
 unshared()
@@ -82,8 +78,5 @@ unshared()
 
 case $CMD in
     build)      unshared; cmd_build "$@" ;;
-    check)      rpmtests "$@" ;;
-    atshell)    rpmtests --shell "$@" ;;
-    shell)      rpmtests --shell snapshot shell ;;
-    reset)      rpmtests --reset ;;
+    shell)      cmd_shell "$@" ;;
 esac

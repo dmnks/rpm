@@ -86,7 +86,8 @@ if (MKTREE_BACKEND STREQUAL oci)
 		configure_file(${DOCKERFILE} Dockerfile COPYONLY)
 		add_custom_target(ci
 			COMMAND ./mktree.oci build
-			COMMAND ./mktree.oci check ${JOBS} $(TESTOPTS)
+			COMMAND ./mktree.oci shell --volatile
+				rpmtests --log ${JOBS} $(TESTOPTS)
 			WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 		)
 	else()
@@ -129,13 +130,15 @@ else()
 	add_custom_target(tree COMMAND ./mktree build)
 endif()
 
+set(RPMTESTS ./mktree shell rpmtests)
+
 add_custom_target(atshell
-	COMMAND ./mktree atshell ||:
+	COMMAND ${RPMTESTS} --shell ||:
 	DEPENDS tree
 )
 
 add_custom_target(pinned
-	COMMAND ./mktree atshell /pinned/update
+	COMMAND ${RPMTESTS} --shell /pinned/update
 	COMMAND cp pinned/*.txt ${PINNED_DIR}/
 	COMMAND git add ${PINNED_DIR}/*.txt
 	COMMAND git diff --staged ${PINNED_DIR}/*.txt
@@ -143,15 +146,15 @@ add_custom_target(pinned
 )
 
 add_custom_target(shell
-	COMMAND ./mktree shell ||:
+	COMMAND ${RPMTESTS} --shell snapshot shell ||:
 	DEPENDS tree
 )
 
 add_custom_target(check
-	COMMAND ./mktree check ${JOBS} $(TESTOPTS)
+	COMMAND ${RPMTESTS} ${JOBS} $(TESTOPTS)
 	DEPENDS tree
 )
 
 add_custom_target(reset
-	COMMAND ./mktree reset
+	COMMAND ${RPMTESTS} --reset
 )

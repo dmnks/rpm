@@ -15,11 +15,7 @@ case $CMD in
         source ./mktree.common
         make_install /
     ;;
-    check)
-        ./rpmtests "$@"
-    ;;
-    *)
-        echo "Unsupported command." >&2
-        exit 1
+    shell)
+        "$@"
     ;;
 esac
