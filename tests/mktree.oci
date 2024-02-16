@@ -69,7 +69,7 @@ cmd_shell()
                 --workdir /srv -e ROOTLESS=$ROOTLESS $opts $IMAGE "$@"
 }
 
-unshared()
+unshare()
 {
     [ $(id -u) != 0 ] && [ $NATIVE == yes ] || return 0
     $PODMAN unshare $0 $CMD "$@"
@@ -77,6 +77,6 @@ unshared()
 }
 
 case $CMD in
-    build)      unshared; cmd_build "$@" ;;
+    build)      unshare; cmd_build "$@" ;;
     shell)      cmd_shell "$@" ;;
 esac
