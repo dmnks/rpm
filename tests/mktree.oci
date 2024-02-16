@@ -73,7 +73,7 @@ rpmtests()
                 --workdir /srv -e ROOTLESS=$ROOTLESS $opts $IMAGE rpmtests "$@"
 }
 
-unshared()
+unshare()
 {
     [ $(id -u) != 0 ] && [ $NATIVE == yes ] || return 0
     $PODMAN unshare $0 $CMD "$@"
@@ -81,7 +81,7 @@ unshared()
 }
 
 case $CMD in
-    build)      unshared; cmd_build "$@" ;;
+    build)      unshare; cmd_build "$@" ;;
     check)      rpmtests "$@" ;;
     atshell)    rpmtests --shell "$@" ;;
     shell)      rpmtests --shell snapshot shell ;;
