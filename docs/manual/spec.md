@@ -653,6 +653,28 @@ More information is available in [trigger chapter](triggers.md).
 
 More information is available in [file trigger chapter](file_triggers.md).
 
+### Implicit arguments
+
+When runtime scriptlets are called, they will be supplied with an argument.
+This argument, accessed via `$1` (for shell scripts), is the number of packages
+of this name which will be left on the system when the operation (the
+installation or erasure of the package) has completed.
+
+This can be used by the scriptlets to distinguish the initial installation or
+the final removal of the package, by observing whether the argument equals 1 or
+0, respectively, in order to perform a specific action in either case, such as
+(un)configure the packaged software or the running system.
+
+If the package is not multilib or specifically designed to be co-installable
+(such as the Linux kernel), when the argument equals 2, the scriptlets may
+assume that the package is being upgraded.  This is because an upgrade consists
+of two sequential operations; the installation of the new version followed by
+the erasure of the old version of the package.
+
+TODO mention second argument
+TODO add table
+
+
 ## %files section
 
 ### Permissions and ownership
