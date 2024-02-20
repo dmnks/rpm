@@ -615,6 +615,19 @@ should be executed.
 
 ## Runtime scriptlets
 
+These scriptlets are executed before or after an operation
+
+
+when the package is installed or erased from the
+system.  There are multiple slots in which these scriptlets are called,
+namely:
+
+ * Before the installation or erasure
+ * After the installation or erasure
+
+
+
+
 Runtime scriptlets are executed at the time of install and erase of the
 package. By default, scriptlets are executed with `/bin/sh` shell, but
 this can be overridden with `-p <path>` as an argument to the scriptlet
@@ -657,21 +670,32 @@ More information is available in [file trigger chapter](file_triggers.md).
 
 When runtime scriptlets are called, they will be supplied with an argument.
 This argument, accessed via `$1` (for shell scripts), is the number of packages
-of this name which will be left on the system when the operation (the
-installation or erasure of the package) has completed.
+of this name which will be left on the system when the operation has completed.
+In this context, the operation simply is an installation or erasure of the
+package that the scriptlet belongs to.
 
-This can be used by the scriptlets to distinguish the initial installation or
-the final removal of the package, by observing whether the argument equals 1 or
-0, respectively, in order to perform a specific action in either case, such as
-(un)configure the packaged software or the running system.
+This argument can be used by the scriptlets to distinguish the initial
+installation or the final removal of the package, by observing whether the
+argument equals 1 or 0, respectively, in order to perform a specific action in
+either case, such as (un)configure the packaged software or the running system.
 
-If the package is not multilib or specifically designed to be co-installable
-(such as the Linux kernel), when the argument equals 2, the scriptlets may
-assume that the package is being upgraded.  This is because an upgrade consists
-of two sequential operations; the installation of the new version followed by
-the erasure of the old version of the package.
+Additionally, if the package is not multilib or specifically designed to be
+co-installable (such as the Linux kernel), when the argument equals 2, the
+scriptlets may assume that the package is being upgraded.  This is because an
+upgrade consists of two consecutive operations; the installation of the new
+version followed by the erasure of the old version of the package.
 
-TODO mention second argument
+In the case of (file) triggers, a second argument is also supplied.  This
+argument, accessed via `$2` (for shell scripts), is the number of *triggering*
+packages (i.e. those firing the trigger, also called *target* packages) of this
+name which will be left on the system when the operation (the installation or
+erasure of the package) has completed.  Note that the first argument, similarly
+to regular scriptlets, refers to the package containing the trigger, i.e. the
+*triggered* package.
+
+
+
+TODO clear up "operation"
 TODO add table
 
 
