@@ -34,7 +34,9 @@ source mktree.common
 cmd_build()
 {
     # Build base image
-    $PODMAN build --target base -t $IMAGE/base $ARGS
+    if [ $MODE != isolated ]; then
+        $PODMAN build --target base -t $IMAGE/base $ARGS
+    fi
 
     # Add RPM install on top
     [ -n "$($PODMAN images -q $IMAGE)" ] && $PODMAN rmi $IMAGE
@@ -45,6 +47,12 @@ cmd_build()
             trap "$PODMAN rm $id >/dev/null" EXIT
             make_install $($PODMAN mount $id)
             $PODMAN commit -q $id $IMAGE
+        ;;
+        isolated)
+            # Containerized build
+            $PODMAN exec --workdir "$PWD" @MKTREE_CONTAINER@ \
+                         ./mktree.rootfs build
+            $PODMAN commit -q @MKTREE_CONTAINER@ $IMAGE
         ;;
         standalone)
             # Standalone build
