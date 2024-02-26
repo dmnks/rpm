@@ -615,24 +615,29 @@ should be executed.
 
 ## Runtime scriptlets
 
-These scriptlets are executed before or after an operation
+These scriptlets are executed at various stages during the transaction where
+the *target* package is either installed or erased (referred to as an
+*operation* further in this section).  Specifically, there's a pair of *pre* &
+*post* scriptlets for either operation as well as for the transaction itself.
 
+Depending on the target package, there are three kinds of scriptlets:
 
-when the package is installed or erased from the
-system.  There are multiple slots in which these scriptlets are called,
-namely:
+1. *Basic scriptlets*.  These target the package they're defined in.
+2. *Triggers*.  These target the package(s) listed as positional arguments.
+3. *File triggers*.  These target the package(s) owning the filename(s) listed
+   as positional arguments.
 
- * Before the installation or erasure
- * After the installation or erasure
+Note that an *upgrade* is not an operation in this context.  Instead, it is a
+composition of two operations; the installation of the new version followed by
+the erasure of the old version of a package.  Therefore, there's no dedicated
+scriptlet for it, however it is still possible to detect an upgrade in the
+existing scriptlets, see the [Implicit arguments](#implicit-arguments) section
+for details.
 
-
-
-
-Runtime scriptlets are executed at the time of install and erase of the
-package. By default, scriptlets are executed with `/bin/sh` shell, but
-this can be overridden with `-p <path>` as an argument to the scriptlet
-for each scriptlet individually. Other supported operations include
-[scriptlet expansion](scriptlet_expansion.md).
+By default, scriptlets are executed by the `/bin/sh` shell.  This can be
+overridden with the `-p <path>` argument to the scriptlet for each scriptlet
+individually.  Other supported operations include [scriptlet
+expansion](scriptlet_expansion.md).
 
 ### Basic scriptlets
 
@@ -653,9 +658,9 @@ for each scriptlet individually. Other supported operations include
  * `%triggerun`
  * `%triggerpostun`
 
-More information is available in [trigger chapter](triggers.md).
+More information is available in the [Triggers chapter](triggers.md).
 
-### File triggers (since rpm >= 4.13)
+### File triggers
 
  * `%filetriggerin`
  * `%filetriggerun`
@@ -664,40 +669,37 @@ More information is available in [trigger chapter](triggers.md).
  * `%transfiletriggerun`
  * `%transfiletriggerpostun`
 
-More information is available in [file trigger chapter](file_triggers.md).
+More information is available in the [File triggers chapter](file_triggers.md).
+
+**Note:** File triggers are only available in RPM 4.13 and later.
 
 ### Implicit arguments
 
-When runtime scriptlets are called, they will be supplied with an argument.
-This argument, accessed via `$1` (for shell scripts), is the number of packages
-of this name which will be left on the system when the operation has completed.
-In this context, the operation simply is an installation or erasure of the
-package that the scriptlet is shipped with.
+When basic scriptlets are called, they will be supplied with an argument.  This
+argument, accessed via `$1` (for shell scripts), is the number of packages of
+this name which will be left on the system when the operation has completed.
 
-This argument can be used by the scriptlets to distinguish the initial
-installation or the final removal of the package, by observing whether the
+This argument can be used by the scriptlets to distinguish the *initial*
+installation and the *final* removal of the package, by observing whether the
 argument equals 1 or 0, respectively, in order to perform a specific action in
 either case, such as (un)configure the packaged software or the running system.
 
-Additionally, if the package is not multilib or specifically designed to be
+Consequentially, if the package is not multilib or specifically designed to be
 co-installable (such as the Linux kernel), when the argument equals 2, the
-scriptlets may assume that the package is being upgraded.  This is because an
-upgrade consists of two consecutive operations; the installation of the new
-version followed by the erasure of the old version of the package.
+scriptlets may assume that the package is being upgraded.
 
-In the case of (file) triggers, a second argument is also supplied.  This
-argument, accessed via `$2` (for shell scripts), is the number of *triggering*
-packages (i.e. those firing the trigger, also called *target* packages) of this
-name which will be left on the system when the operation (the installation or
-erasure of the package) has completed.  Note that the first argument, similarly
-to regular scriptlets, refers to the package containing the trigger, i.e. the
-*triggered* package.
+For (file) triggers, two arguments, accessed via `$1` and `$2` (for shell
+scripts), will be supplied.  These refer to the number of *triggered* packages
+(i.e. the ones defining the trigger) and *triggering* packages (i.e. the ones
+firing the trigger) of this name to be left on the system after the operation
+has completed, respectively.
 
+A summary of all triggers and their arguments follows below.
 
-
-TODO clear up "operation"
-TODO add table
-
+Scriptlet       | Install       | Upgrade       | Erase
+----------------|---------------|---------------|------
+`%pretrans`     | `$1 == 1`     | `$1 == 2`     | N/A
+`%triggerin`    | `$1 == 1` `$2 == 1`     | `$1 == 2`     | N/A
 
 ## %files section
 
