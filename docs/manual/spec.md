@@ -672,7 +672,7 @@ When runtime scriptlets are called, they will be supplied with an argument.
 This argument, accessed via `$1` (for shell scripts), is the number of packages
 of this name which will be left on the system when the operation has completed.
 In this context, the operation simply is an installation or erasure of the
-package that the scriptlet belongs to.
+package that the scriptlet is shipped with.
 
 This argument can be used by the scriptlets to distinguish the initial
 installation or the final removal of the package, by observing whether the
