@@ -615,24 +615,86 @@ should be executed.
 
 ## Runtime scriptlets
 
-These scriptlets are executed at various stages during the transaction where
-the *target* package is either installed or erased (referred to as an
-*operation* further in this section).  Specifically, there's a pair of *pre* &
-*post* scriptlets for either operation as well as for the transaction itself.
+These scriptlets are executed at various stages during the transaction in which
+a specific package is installed or erased.  This package, referred to as the
+*target* package, 
 
-Depending on the target package, there are three kinds of scriptlets:
+In this context, the package that contains (or *defines*) the scriptlet will be
+called the *source* package and the package that causes (or *triggers*) the
+scriptlet to run will be called the *target* package.  The installation or
+erasure of a target package within a transaction will be called an *operation*.
+Lastly, an *upgrade* of a package is not an operation in this context; it is
+merely a composition of two consecutive operations; the installation of the new
+version followed by the erasure of the old version.
 
-1. *Basic scriptlets*.  These target the package they're defined in.
-2. *Triggers*.  These target the package(s) listed as positional arguments.
-3. *File triggers*.  These target the package(s) owning the filename(s) listed
-   as positional arguments.
+Depending on the target package, there are three types of scriptlets:
 
-Note that an *upgrade* is not an operation in this context.  Instead, it is a
-composition of two operations; the installation of the new version followed by
-the erasure of the old version of a package.  Therefore, there's no dedicated
-scriptlet for it, however it is still possible to detect an upgrade in the
-existing scriptlets, see the [Implicit arguments](#implicit-arguments) section
-for details.
+| Type                      | Target                                | Condition |
+| ------------------------- | ------------------------------------- | --------- |
+| Basic                     | Source package                        | 
+| Trigger                   | Package(s) with given name(s)         |
+| File trigger              | Package(s) owning file(s) with given prefi(s)x |
+
+| Scriptlet                 | Executes              | Operation     |
+| ------------------------- | --------------------- | ------------- |
+| `%pre`                    | Before operation      | Install       |
+| `%post`                   | After operation       | Install       |
+| `%preun`                  | Before operation      | Erase         |
+| `%postun`                 | After operation       | Erase         |
+| `%pretrans`               | Before transaction    | Install       |
+| `%posttrans`              | After transaction     | Install       |
+| `%preuntrans`             | Before transaction    | Erase         |
+| `%postuntrans`            | After transaction     | Erase         |
+
+| Scriptlet                 | Executes              | Operation     |
+| ------------------------- | --------------------- | ------------- |
+| `%triggerprein`           | Before operation      | Install       |
+| `%triggerin`              | After operation       | Install       |
+| `%triggerun`              | Before operation      | Erase         |
+| `%triggerpostun`          | After operation       | Erase         |
+
+| Scriptlet                 | Executes              | Operation     |
+| ------------------------- | --------------------- | ------------- |
+| `%filetriggerin`          | After operation       | Install       |
+| `%filetriggerun`          | Before operation      | Erase         |
+| `%filetriggerpostun`      | After operation       | Erase         |
+| `%transfiletriggerin`     | After transaction     | Install       |
+| `%transfiletriggerun`     | Before transaction    | Erase         |
+| `%transfiletriggerpostun` | After transaction     | Erase         |
+
+
+
+
+
+
+
+
+
+
+Depending on the operation, scriptlets can further be divided into the
+following three categories:
+
+| Scriptlet type        | Operation | 
+| --------------------- | ------------------------------------- |
+|                  | Source package                        |
+| Trigger               | Given package name(s)                 |
+| File trigger          | Package(s) owning given filename(s)   |
+
+
+
+
+
+Each scriptlet type has a number of variants, depending on when exactly it is
+called; before or after the operation or transaction, and which operation
+(installation or erasure).
+
+Depending on the operation, each scriptlet type has two variants:
+
+| Scriptlet type        | Operation                             |
+| --------------------- | ------------------------------------- |
+|                  | Source package                        |
+| Trigger               | Given package name(s)                 |
+| File trigger          | Package(s) owning given filename(s)   |
 
 By default, scriptlets are executed by the `/bin/sh` shell.  This can be
 overridden with the `-p <path>` argument to the scriptlet for each scriptlet
@@ -673,7 +735,7 @@ More information is available in the [File triggers chapter](file_triggers.md).
 
 **Note:** File triggers are only available in RPM 4.13 and later.
 
-### Implicit arguments
+### Positional arguments
 
 When basic scriptlets are called, they will be supplied with an argument.  This
 argument, accessed via `$1` (for shell scripts), is the number of packages of
@@ -686,20 +748,68 @@ either case, such as (un)configure the packaged software or the running system.
 
 Consequentially, if the package is not multilib or specifically designed to be
 co-installable (such as the Linux kernel), when the argument equals 2, the
-scriptlets may assume that the package is being upgraded.
+scriptlets may assume that the package is being *upgraded*.
 
 For (file) triggers, two arguments, accessed via `$1` and `$2` (for shell
 scripts), will be supplied.  These refer to the number of *triggered* packages
-(i.e. the ones defining the trigger) and *triggering* packages (i.e. the ones
-firing the trigger) of this name to be left on the system after the operation
-has completed, respectively.
+(i.e. the ones containing the trigger) and *triggering* packages (i.e. the ones
+firing the trigger) of this name, respectively, to be left on the system after
+the operation has completed.
 
-A summary of all triggers and their arguments follows below.
+### Execution flow
 
-Scriptlet       | Install       | Upgrade       | Erase
-----------------|---------------|---------------|------
-`%pretrans`     | `$1 == 1`     | `$1 == 2`     | N/A
-`%triggerin`    | `$1 == 1` `$2 == 1`     | `$1 == 2`     | N/A
+This section demonstrates when and how scriptlets are called and what arguments
+they receive during three separate transactions where the target package
+(`foo-1.0` here) is installed, upgraded and erased.
+
+The format of each line in the below examples is:
+
+```
+%scriptlet(name-version) -- $*
+```
+
+where `scriptlet` is the name of the scriptlet executing, `name-version` is the
+target package's name and version, respectively, and `$*` is the list of
+positional arguments passed to the scriptlet.  The order of lines (top to
+bottom) represents the order of execution.
+
+#### Basic scriptlets
+
+##### Installation
+
+```
+%pretrans       (foo-1.0)   -- 1
+%pre            (foo-1.0)   -- 1
+--- install foo-1.0 ---
+%post           (foo-1.0)   -- 1
+%posttrans      (foo-1.0)   -- 1
+```
+
+##### Upgrade
+
+```
+%pretrans       (foo-2.0)   -- 2
+%pre            (foo-2.0)   -- 2
+--- install foo-2.0 ---
+%post           (foo-2.0)   -- 2
+%preun          (foo-1.0)   -- 1
+--- erase foo-2.0 ---
+%postun         (foo-1.0)   -- 1
+%posttrans      (foo-1.0)   -- 1
+```
+
+##### Erase
+
+```
+%preuntrans     (foo-2.0)   -- 0
+%preun          (foo-2.0)   -- 0
+--- erase foo-2.0 ---
+%post           (foo-2.0)   -- 0
+%posttrans      (foo-2.0)   -- 0
+```
+
+#### Triggers
+#### File triggers
 
 ## %files section
 
