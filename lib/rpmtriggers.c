@@ -191,8 +191,8 @@ int runPostUnTransFileTrigs(rpmts ts)
 	trigName = headerGetString(trigH, RPMTAG_NAME);
 	arg1 = rpmdbCountPackages(rpmtsGetRdb(ts), trigName);
 
-	nerrors += runScript(ts, NULL, trigH, installPrefixes.data, script,
-			     arg1, -1);
+	rpmScriptArgsAddNum(script, arg1);
+	nerrors += runScript(ts, NULL, trigH, installPrefixes.data, script);
 	rpmtdFreeData(&installPrefixes);
 	rpmScriptFree(script);
 	headerFree(trigH);
@@ -445,8 +445,11 @@ static int runHandleTriggersInPkg(rpmts ts, rpmte te, Header h,
 	    if (arg2 < 0 && tm == RPMSCRIPT_FILETRIGGER && mfi->pkgname)
 		arg2 = rpmdbCountPackages(rpmtsGetRdb(ts), mfi->pkgname);
 
-	    nerrors += runScript(ts, NULL, h, installPrefixes.data,
-				script, arg1, arg2);
+	    rpmScriptArgsAddNum(script, arg1);
+	    if (arg2 > -1)
+		rpmScriptArgsAddNum(script, arg2);
+
+	    nerrors += runScript(ts, NULL, h, installPrefixes.data, script);
 	    rpmtdFreeData(&installPrefixes);
 	    rpmScriptFree(script);
 	}

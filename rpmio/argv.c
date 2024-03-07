@@ -248,4 +248,3 @@ char *argvJoin(ARGV_const_t argv, const char *sep)
 
     return dest;
 }
-    
