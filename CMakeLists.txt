@@ -64,6 +64,9 @@ include(CheckSymbolExists)
 add_compile_definitions(_GNU_SOURCE)
 add_definitions(-D_FILE_OFFSET_BITS=64)
 
+# Find a (system) utility in canonical FHS paths, excluding $PATH.  Useful for
+# when the path is to be used at RPM runtime, such as in the macro files.  If
+# REQUIRED is supplied as a third argument, fail if the program is not found.
 function(findutil UTIL TRY)
 	list(GET TRY 0 util)
 	find_program(${UTIL}
@@ -74,6 +77,9 @@ function(findutil UTIL TRY)
 		NO_DEFAULT_PATH
 	)
 	if (NOT ${UTIL})
+		if (ARGV2 STREQUAL REQUIRED)
+			message(FATAL_ERROR "${util} required but not found")
+		endif()
 		list(GET TRY 0 util)
 		message(DEBUG "${util} not found, assuming /usr/bin/${util}")
 		set(${UTIL} /usr/bin/${util} PARENT_SCOPE)
@@ -140,7 +146,8 @@ function(makemacros)
 	findutil(__OBJDUMP objdump)
 	findutil(__STRIP strip)
 	findutil(__SYSTEMD_SYSUSERS systemd-sysusers)
-	findutil(__AWK awk)
+	findutil(__FIND_DEBUGINFO find-debuginfo)
+	findutil(__AWK awk REQUIRED)	# Required also at build time
 	findutil(__AR ar)
 	findutil(__AS as)
 	findutil(__CPP cpp)
@@ -178,6 +185,8 @@ function(makemacros)
 		WORKING_DIRECTORY ${CMAKE_BINARY_DIR})"
 	)
 endfunction()
+
+makemacros()
 
 include(CheckLibraryExists)
 include(CheckFunctionExists)
@@ -302,9 +311,6 @@ if (WITH_IMAEVM)
 	target_include_directories(IMA::IMA INTERFACE "${IMA_INCLUDE_DIR}")
 endif()
 
-find_program(__FIND_DEBUGINFO find-debuginfo)
-mark_as_advanced(__FIND_DEBUGINFO)
-
 function(chkdef func req)
 	string(TOUPPER ${func} FUNC)
 	set(HAVENAME HAVE_${FUNC})
@@ -341,7 +347,7 @@ foreach(f ${OPTINCS})
 endforeach()
 
 function(id0name var file)
-	execute_process(COMMAND awk -F: "$3==0 {print $1;exit}" ${file}
+	execute_process(COMMAND ${__AWK} -F: "$3==0 {print $1;exit}" ${file}
 			OUTPUT_STRIP_TRAILING_WHITESPACE
 			OUTPUT_VARIABLE name)
 	if ("${name}" STREQUAL "")
@@ -446,7 +452,6 @@ endif()
 add_subdirectory(fileattrs)
 add_subdirectory(scripts)
 
-makemacros()
 foreach(f macros rpmrc rpmpopt-${PROJECT_VERSION})
 	install(FILES ${CMAKE_BINARY_DIR}/${f} DESTINATION ${RPM_CONFIGDIR})
 endforeach()
