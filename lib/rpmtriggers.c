@@ -446,8 +446,7 @@ static int runHandleTriggersInPkg(rpmts ts, rpmte te, Header h,
 		arg2 = rpmdbCountPackages(rpmtsGetRdb(ts), mfi->pkgname);
 
 	    rpmScriptArgsAddNum(script, arg1);
-	    if (arg2 > -1)
-		rpmScriptArgsAddNum(script, arg2);
+	    rpmScriptArgsAddNum(script, arg2);
 
 	    nerrors += runScript(ts, NULL, h, installPrefixes.data, script);
 	    rpmtdFreeData(&installPrefixes);
