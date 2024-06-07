@@ -67,7 +67,8 @@ case $CMD in
         $PODMAN build --target base -t $IMAGE/base $ARGS
 
         # Add RPM install on top
-        [ -n "$($PODMAN images -q $IMAGE)" ] && $PODMAN rmi $IMAGE
+        [ -n "$($PODMAN images -q $IMAGE)" ] && \
+            $PODMAN rmi --no-prune $IMAGE 2>/dev/null ||:
         if [ $NATIVE == yes ]; then
             # Native build
             id=$($PODMAN create $IMAGE/base)
