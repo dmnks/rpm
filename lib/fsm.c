@@ -9,6 +9,7 @@
 #include <utime.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <libgen.h>
 #ifdef WITH_CAP
 #include <sys/capability.h>
 #endif
@@ -78,7 +79,7 @@ static int fsmClose(int *wfdp);
 static char * fsmFsPath(rpmfi fi, const char * suffix)
 {
     const char *bn = rpmfiBN(fi);
-    return rstrscat(NULL, *bn ? bn : "/", suffix ? suffix : "", NULL);
+    return rstrscat(NULL, *bn ? bn : ".", suffix ? suffix : "", NULL);
 }
 
 static int fsmLink(int odirfd, const char *opath, int dirfd, const char *path)
@@ -276,6 +277,7 @@ static int fsmStat(int dirfd, const char *path, int dolstat, struct stat *sb)
 static int fsmRmdir(int dirfd, const char *path)
 {
     int rc = unlinkat(dirfd, path, AT_REMOVEDIR);
+
     if (_fsm_debug)
 	rpmlog(RPMLOG_DEBUG, " %8s (%d %s) %s\n", __func__,
 	       dirfd, path, (rc < 0 ? strerror(errno) : ""));
@@ -542,7 +544,7 @@ static int fsmRename(int odirfd, const char *opath, int dirfd, const char *path)
     return rc;
 }
 
-static int fsmRemove(int dirfd, const char *path, mode_t mode)
+static int fsmRemove(int dirfd, rpmfi fi, const char *path, mode_t mode)
 {
     return S_ISDIR(mode) ? fsmRmdir(dirfd, path) : fsmUnlink(dirfd, path);
 }
@@ -1093,7 +1095,7 @@ setmeta:
 		continue;
 
 	    if (fp->stage > FILE_NONE && !fp->skip) {
-		(void) fsmRemove(di.dirfd, fp->fpath, fp->sb.st_mode);
+		(void) fsmRemove(di.dirfd, fi, fp->fpath, fp->sb.st_mode);
 	    }
 	}
     }
@@ -1127,19 +1129,47 @@ int rpmPackageFilesRemove(rpmts ts, rpmte te, rpmfiles files,
 
     while (!rc && (fx = rpmfiNext(fi)) >= 0) {
 	struct filedata_s *fp = &fdata[fx];
+
 	fp->action = rpmfsGetAction(fs, rpmfiFX(fi));
 
 	if (XFA_SKIPPING(fp->action))
 	    continue;
 
+	char *dpath = xstrdup(rpmfiDN(fi));
 	fp->fpath = fsmFsPath(fi, NULL);
+
+	/*
+	 * Don't even attempt to unlink "/" itself (in case this package owns
+	 * it), with the exception of this being a relocatable package that's
+	 * installed in a custom prefix (which we do want to clean up).
+	 */
+	if (rstreq(fp->fpath, ".")) {
+	    if (rstreq(dpath, "/"))
+		continue;
+	    /* 
+	     * Custom prefix, stop the traversal at the parent directory so
+	     * that we can unlink the prefix itself (calling unlinkat(2) on "."
+	     * with AT_REMOVEDIR would yield EINVAL).
+	     */
+	    char *bname = xstrdup(rpmfiDN(fi));
+	    char *dn = xstrdup(dirname(dpath));
+	    char *bn = xstrdup(basename(bname));
+	    free(dpath);
+	    free(bname);
+	    dpath = dn;
+	    fp->fpath = bn;
+	    di = { -1, -1 };
+	}
+
 	/* If the directory doesn't exist there's nothing to clean up */
-	if (ensureDir(NULL, rpmfiDN(fi), 0, 0, 1, &di.dirfd))
+	if (ensureDir(NULL, dpath, 0, 0, 1, &di.dirfd)) {
+	    free(dpath);
 	    continue;
+	}
 
 	rc = fsmStat(di.dirfd, fp->fpath, 1, &fp->sb);
 
-	fsmDebug(rpmfiDN(fi), fp->fpath, fp->action, &fp->sb);
+	fsmDebug(dpath, fp->fpath, fp->action, &fp->sb);
 
 	/* Run fsm file pre hook for all plugins */
 	rc = rpmpluginsCallFsmFilePre(plugins, fi, fp->fpath,
@@ -1151,7 +1181,8 @@ int rpmPackageFilesRemove(rpmts ts, rpmte te, rpmfiles files,
         if (fp->action == FA_ERASE) {
 	    int missingok = (rpmfiFFlags(fi) & (RPMFILE_MISSINGOK | RPMFILE_GHOST));
 
-	    rc = fsmRemove(di.dirfd, fp->fpath, fp->sb.st_mode);
+	    /* printf(">>> %s%s\n", rpmfiDN(fi), fp->fpath); */
+	    rc = fsmRemove(di.dirfd, fi, fp->fpath, fp->sb.st_mode);
 
 	    /*
 	     * Missing %ghost or %missingok entries are not errors.
@@ -1177,7 +1208,7 @@ int rpmPackageFilesRemove(rpmts ts, rpmte te, rpmfiles files,
 		int lvl = strict_erasures ? RPMLOG_ERR : RPMLOG_WARNING;
 		rpmlog(lvl, _("%s %s%s: remove failed: %s\n"),
 			S_ISDIR(fp->sb.st_mode) ? _("directory") : _("file"),
-			rpmfiDN(fi), fp->fpath, strerror(errno));
+			dpath, fp->fpath, strerror(errno));
             }
         }
 
@@ -1189,7 +1220,7 @@ int rpmPackageFilesRemove(rpmts ts, rpmte te, rpmfiles files,
         if (!strict_erasures) rc = 0;
 
 	if (rc)
-	    *failedFile = rstrscat(NULL, rpmfiDN(fi), fp->fpath, NULL);
+	    *failedFile = rstrscat(NULL, dpath, fp->fpath, NULL);
 
 	if (rc == 0) {
 	    /* Notify on success. */
@@ -1197,6 +1228,8 @@ int rpmPackageFilesRemove(rpmts ts, rpmte te, rpmfiles files,
 	    rpm_loff_t amount = rpmfiFC(fi) - rpmfiFX(fi);
 	    rpmpsmNotify(psm, RPMCALLBACK_UNINST_PROGRESS, amount);
 	}
+
+	free(dpath);
     }
 
     for (int i = 0; i < fc; i++)
