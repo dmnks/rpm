@@ -353,6 +353,7 @@ rpmRC rpmpluginsCallFsmFilePre(rpmPlugins plugins, rpmfi fi, const char *path,
     plugin_fsm_file_pre_func hookFunc;
     rpmRC rc = RPMRC_OK;
     char *apath = abspath(fi, path);
+    /* printf(">>> PLUGIN: %s\n", apath); */
 
     for (auto & plugin : plugins->plugins) {
 	RPMPLUGINS_SET_HOOK_FUNC(fsm_file_pre);
