@@ -78,7 +78,7 @@ static int fsmClose(int *wfdp);
 static char * fsmFsPath(rpmfi fi, const char * suffix)
 {
     const char *bn = rpmfiBN(fi);
-    return rstrscat(NULL, *bn ? bn : "/", suffix ? suffix : "", NULL);
+    return rstrscat(NULL, *bn ? bn : ".", suffix ? suffix : "", NULL);
 }
 
 static int fsmLink(int odirfd, const char *opath, int dirfd, const char *path)
@@ -373,7 +373,7 @@ static int fsmDoMkDir(rpmPlugins plugins, int dirfd, const char *dn,
 }
 
 static int ensureDir(rpmPlugins plugins, const char *p, int owned, int create,
-		    int quiet, int *dirfdp)
+		    int quiet, int *dirfdp, char **dirfnp)
 {
     char *sp = NULL, *bn;
     char *apath = NULL;
@@ -390,6 +390,12 @@ static int ensureDir(rpmPlugins plugins, const char *p, int owned, int create,
     char *dp = path;
 
     while ((bn = strtok_r(dp, "/", &sp)) != NULL) {
+	/* stop at parent dir if requested (and return its name) */
+	if (dirfnp && !(*sp)) {
+	    *dirfnp = xstrdup(bn);
+	    break;
+	}
+
 	fd = fsmOpenat(dirfd, bn, oflags, 1);
 	/* assemble absolute path for plugins benefit, sigh */
 	apath = rstrscat(&apath, "/", bn, NULL);
@@ -417,6 +423,8 @@ static int ensureDir(rpmPlugins plugins, const char *p, int owned, int create,
     if (rc) {
 	fsmClose(&fd);
 	fsmClose(&dirfd);
+	if (dirfnp)
+	    free(*dirfnp);
     } else {
 	rc = 0;
     }
@@ -945,7 +953,7 @@ int rpmPackageFilesInstall(rpmts ts, rpmte te, rpmfiles files,
 	    int mayopen = 0;
 	    int fd = -1;
 	    rc = ensureDir(plugins, rpmfiDN(fi), 0,
-			    (fp->action == FA_CREATE), 0, &di.dirfd);
+			    (fp->action == FA_CREATE), 0, &di.dirfd, NULL);
 
 	    /* Directories replacing something need early backup */
 	    if (!rc && !fp->suffix && fp != firstlink) {
@@ -1061,7 +1069,7 @@ setmeta:
 
 	if (!fp->skip) {
 	    if (!rc)
-		rc = ensureDir(NULL, rpmfiDN(fi), 0, 0, 0, &di.dirfd);
+		rc = ensureDir(NULL, rpmfiDN(fi), 0, 0, 0, &di.dirfd, NULL);
 
 	    /* Backup file if needed. Directories are handled earlier */
 	    if (!rc && fp->suffix)
@@ -1089,7 +1097,7 @@ setmeta:
 	    struct filedata_s *fp = &fdata[fx];
 
 	    /* If the directory doesn't exist there's nothing to clean up */
-	    if (ensureDir(NULL, rpmfiDN(fi), 0, 0, 1, &di.dirfd))
+	    if (ensureDir(NULL, rpmfiDN(fi), 0, 0, 1, &di.dirfd, NULL))
 		continue;
 
 	    if (fp->stage > FILE_NONE && !fp->skip) {
@@ -1124,6 +1132,8 @@ int rpmPackageFilesRemove(rpmts ts, rpmte te, rpmfiles files,
     int fx = -1;
     struct filedata_s *fdata = (struct filedata_s *)xcalloc(fc, sizeof(*fdata));
     int rc = 0;
+    int isRoot = 0;
+    char *dirfn = NULL;
 
     while (!rc && (fx = rpmfiNext(fi)) >= 0) {
 	struct filedata_s *fp = &fdata[fx];
@@ -1133,8 +1143,21 @@ int rpmPackageFilesRemove(rpmts ts, rpmte te, rpmfiles files,
 	    continue;
 
 	fp->fpath = fsmFsPath(fi, NULL);
+
+	/* Handle the case where this file is the root directory itself */
+	isRoot = rstreq(fp->fpath, ".");
+	if (isRoot) {
+	    /* Don't attempt to remove the real root */
+	    if (rstreq(rpmfiDN(fi), "/"))
+		continue;
+	    /* Relocated root, signal directory change so that we can get dirfd
+	     * of the parent (as we can't unlinkat(2) the "." path) */
+	    onChdir(fi, &di.dirfd);
+	}
+
 	/* If the directory doesn't exist there's nothing to clean up */
-	if (ensureDir(NULL, rpmfiDN(fi), 0, 0, 1, &di.dirfd))
+	if (ensureDir(NULL, rpmfiDN(fi), 0, 0, 1, &di.dirfd,
+		      (isRoot ? &dirfn : NULL)))
 	    continue;
 
 	rc = fsmStat(di.dirfd, fp->fpath, 1, &fp->sb);
@@ -1145,13 +1168,14 @@ int rpmPackageFilesRemove(rpmts ts, rpmte te, rpmfiles files,
 	rc = rpmpluginsCallFsmFilePre(plugins, fi, fp->fpath,
 				      fp->sb.st_mode, fp->action);
 
-	rc = fsmBackup(di.dirfd, fi, fp->action);
+	if (!isRoot)
+	    rc = fsmBackup(di.dirfd, fi, fp->action);
 
         /* Remove erased files. */
         if (fp->action == FA_ERASE) {
 	    int missingok = (rpmfiFFlags(fi) & (RPMFILE_MISSINGOK | RPMFILE_GHOST));
 
-	    rc = fsmRemove(di.dirfd, fp->fpath, fp->sb.st_mode);
+	    rc = fsmRemove(di.dirfd, (isRoot ? dirfn : fp->fpath), fp->sb.st_mode);
 
 	    /*
 	     * Missing %ghost or %missingok entries are not errors.
@@ -1197,6 +1221,9 @@ int rpmPackageFilesRemove(rpmts ts, rpmte te, rpmfiles files,
 	    rpm_loff_t amount = rpmfiFC(fi) - rpmfiFX(fi);
 	    rpmpsmNotify(psm, RPMCALLBACK_UNINST_PROGRESS, amount);
 	}
+
+	free(dirfn);
+	dirfn = NULL;
     }
 
     for (int i = 0; i < fc; i++)
