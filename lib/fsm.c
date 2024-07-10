@@ -60,6 +60,13 @@ struct filedata_s {
     struct stat sb;
 };
 
+struct diriter_s {
+    char *dirfn;
+    int dirfd;
+    int parentdir;
+    int firstdir;
+};
+
 /* 
  * XXX Forward declarations for previously exported functions to avoid moving 
  * things around needlessly 
@@ -373,17 +380,19 @@ static int fsmDoMkDir(rpmPlugins plugins, int dirfd, const char *dn,
 }
 
 static int ensureDir(rpmPlugins plugins, const char *p, int owned, int create,
-		    int quiet, int *dirfdp)
+		    int quiet, struct diriter_s *di)
 {
     char *sp = NULL, *bn;
     char *apath = NULL;
     int oflags = O_RDONLY;
     int rc = 0;
 
-    if (*dirfdp >= 0)
+    if (di->dirfd >= 0)
 	return rc;
 
     int dirfd = fsmOpenat(-1, "/", oflags, 1);
+    char *dirfn = xstrdup("/");
+    int parentdir = -1;
     int fd = dirfd; /* special case of "/" */
 
     char *path = xstrdup(p);
@@ -399,9 +408,12 @@ static int ensureDir(rpmPlugins plugins, const char *p, int owned, int create,
 	    rc = fsmDoMkDir(plugins, dirfd, bn, apath, owned, mode, &fd);
 	}
 
-	fsmClose(&dirfd);
+	fsmClose(&parentdir);
 	if (fd >= 0) {
+	    parentdir = dirfd;
 	    dirfd = fd;
+	    free(dirfn);
+	    dirfn = xstrdup(bn);
 	} else {
 	    if (!quiet) {
 		rpmlog(RPMLOG_ERR, _("failed to open dir %s of %s: %s\n"),
@@ -417,10 +429,15 @@ static int ensureDir(rpmPlugins plugins, const char *p, int owned, int create,
     if (rc) {
 	fsmClose(&fd);
 	fsmClose(&dirfd);
+	fsmClose(&parentdir);
+	free(dirfn);
+	dirfn = NULL;
     } else {
 	rc = 0;
     }
-    *dirfdp = dirfd;
+    di->dirfn = dirfn;
+    di->dirfd = dirfd;
+    di->parentdir = parentdir;
 
     if (_fsm_debug) {
 	rpmlog(RPMLOG_DEBUG, " %8s (%s: %d) %s\n", __func__,
@@ -837,16 +854,14 @@ static void setFileState(rpmfs fs, int i)
     }
 }
 
-struct diriter_s {
-    int dirfd;
-    int firstdir;
-};
-
 static int onChdir(rpmfi fi, void *data)
 {
     struct diriter_s *di = (struct diriter_s *)data;
 
     fsmClose(&(di->dirfd));
+    fsmClose(&(di->parentdir));
+    free(di->dirfn);
+    di->dirfn = NULL;
     return 0;
 }
 
@@ -866,6 +881,9 @@ static rpmfi fsmIterFini(rpmfi fi, struct diriter_s *di)
 {
     fsmClose(&(di->dirfd));
     fsmClose(&(di->firstdir));
+    fsmClose(&(di->parentdir));
+    free(di->dirfn);
+    di->dirfn = NULL;
     return rpmfiFree(fi);
 }
 
@@ -885,7 +903,7 @@ int rpmPackageFilesInstall(rpmts ts, rpmte te, rpmfiles files,
     char *tid = NULL;
     struct filedata_s *fdata = (struct filedata_s *)xcalloc(fc, sizeof(*fdata));
     struct filedata_s *firstlink = NULL;
-    struct diriter_s di = { -1, -1 };
+    struct diriter_s di = { NULL, -1, -1, -1 };
 
     /* transaction id used for temporary path suffix while installing */
     rasprintf(&tid, ";%08x", (unsigned)rpmtsGetTid(ts));
@@ -945,7 +963,7 @@ int rpmPackageFilesInstall(rpmts ts, rpmte te, rpmfiles files,
 	    int mayopen = 0;
 	    int fd = -1;
 	    rc = ensureDir(plugins, rpmfiDN(fi), 0,
-			    (fp->action == FA_CREATE), 0, &di.dirfd);
+			    (fp->action == FA_CREATE), 0, &di);
 
 	    /* Directories replacing something need early backup */
 	    if (!rc && !fp->suffix && fp != firstlink) {
@@ -1061,7 +1079,7 @@ setmeta:
 
 	if (!fp->skip) {
 	    if (!rc)
-		rc = ensureDir(NULL, rpmfiDN(fi), 0, 0, 0, &di.dirfd);
+		rc = ensureDir(NULL, rpmfiDN(fi), 0, 0, 0, &di);
 
 	    /* Backup file if needed. Directories are handled earlier */
 	    if (!rc && fp->suffix)
@@ -1089,7 +1107,7 @@ setmeta:
 	    struct filedata_s *fp = &fdata[fx];
 
 	    /* If the directory doesn't exist there's nothing to clean up */
-	    if (ensureDir(NULL, rpmfiDN(fi), 0, 0, 1, &di.dirfd))
+	    if (ensureDir(NULL, rpmfiDN(fi), 0, 0, 1, &di))
 		continue;
 
 	    if (fp->stage > FILE_NONE && !fp->skip) {
@@ -1116,7 +1134,7 @@ exit:
 int rpmPackageFilesRemove(rpmts ts, rpmte te, rpmfiles files,
               rpmpsm psm, char ** failedFile)
 {
-    struct diriter_s di = { -1, -1 };
+    struct diriter_s di = { NULL, -1, -1, -1 };
     rpmfi fi = fsmIter(NULL, files, RPMFI_ITER_BACK, &di);
     rpmfs fs = rpmteGetFileStates(te);
     rpmPlugins plugins = rpmtsPlugins(ts);
@@ -1134,7 +1152,7 @@ int rpmPackageFilesRemove(rpmts ts, rpmte te, rpmfiles files,
 
 	fp->fpath = fsmFsPath(fi, NULL);
 	/* If the directory doesn't exist there's nothing to clean up */
-	if (ensureDir(NULL, rpmfiDN(fi), 0, 0, 1, &di.dirfd))
+	if (ensureDir(NULL, rpmfiDN(fi), 0, 0, 1, &di))
 	    continue;
 
 	rc = fsmStat(di.dirfd, fp->fpath, 1, &fp->sb);
