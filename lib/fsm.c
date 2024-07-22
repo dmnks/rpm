@@ -86,7 +86,7 @@ static int fsmClose(int *wfdp);
 static char * fsmFsPath(rpmfi fi, const char * suffix)
 {
     const char *bn = rpmfiBN(fi);
-    return rstrscat(NULL, *bn ? bn : "/", suffix ? suffix : "", NULL);
+    return rstrscat(NULL, *bn ? bn : ".", suffix ? suffix : "", NULL);
 }
 
 static int fsmLink(int odirfd, const char *opath, int dirfd, const char *path)
@@ -281,12 +281,18 @@ static int fsmStat(int dirfd, const char *path, int dolstat, struct stat *sb)
     return rc;
 }
 
-static int fsmRmdir(int dirfd, const char *path)
+static int fsmRmdir(struct diriter_s di, const char *path)
 {
-    int rc = unlinkat(dirfd, path, AT_REMOVEDIR);
+    int rc = 0;
+    if (di.self) {
+	if (di.root)
+	    return rc;
+	path = di.name;
+    }
+    rc = unlinkat(di.dirfd, path, AT_REMOVEDIR);
     if (_fsm_debug)
 	rpmlog(RPMLOG_DEBUG, " %8s (%d %s) %s\n", __func__,
-	       dirfd, path, (rc < 0 ? strerror(errno) : ""));
+	       di.dirfd, path, (rc < 0 ? strerror(errno) : ""));
     if (rc < 0)
 	switch (errno) {
 	case ENOENT:        rc = RPMERR_ENOENT;    break;
@@ -563,9 +569,9 @@ static int fsmRename(int odirfd, const char *opath, int dirfd, const char *path)
     return rc;
 }
 
-static int fsmRemove(int dirfd, const char *path, mode_t mode)
+static int fsmRemove(struct diriter_s di, const char *path, mode_t mode)
 {
-    return S_ISDIR(mode) ? fsmRmdir(dirfd, path) : fsmUnlink(dirfd, path);
+    return S_ISDIR(mode) ? fsmRmdir(di, path) : fsmUnlink(di.dirfd, path);
 }
 
 static int fsmChown(int fd, int dirfd, const char *path, mode_t mode, uid_t uid, gid_t gid)
@@ -1113,7 +1119,7 @@ setmeta:
 		continue;
 
 	    if (fp->stage > FILE_NONE && !fp->skip) {
-		(void) fsmRemove(di.dirfd, fp->fpath, fp->sb.st_mode);
+		(void) fsmRemove(di, fp->fpath, fp->sb.st_mode);
 	    }
 	}
     }
@@ -1174,7 +1180,7 @@ int rpmPackageFilesRemove(rpmts ts, rpmte te, rpmfiles files,
         if (fp->action == FA_ERASE) {
 	    int missingok = (rpmfiFFlags(fi) & (RPMFILE_MISSINGOK | RPMFILE_GHOST));
 
-	    rc = fsmRemove(di.dirfd, fp->fpath, fp->sb.st_mode);
+	    rc = fsmRemove(di, fp->fpath, fp->sb.st_mode);
 
 	    /*
 	     * Missing %ghost or %missingok entries are not errors.
