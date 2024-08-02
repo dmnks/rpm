@@ -25,7 +25,6 @@ else
     FROM=
 fi
 
-IMAGE=rpm
 ARGS="-f Dockerfile $FROM $CONTEXT"
 ROOTLESS=$([ $(id -u) == 0 ] && echo 0 || echo 1)
 CMD=$1; shift
@@ -33,12 +32,34 @@ CMD=$1; shift
 export ROOTLESS
 source mktree.common
 
+podman()
+{
+    local cmdline=
+    local token=
+    mkdir -p tags
+    while [ $# != 0 ]; do
+        token=$1; shift
+        case $token in
+            --tag)
+                token="--iidfile tags/$1"
+                shift
+            ;;
+            --image)
+                token="$(cat tags/$1)"
+                shift
+            ;;
+        esac
+        cmdline="$cmdline $token"
+    done
+    echo $PODMAN $cmdline
+}
+
 rpmtests()
 {
     local opts
     local vol="$PWD:/srv:z"
 
-    # Pass select options to $PODMAN
+    # Pass select options to podman
     case "$1" in
         # Useful for CI environments without a tty
         --interactive=*) opts=$1; shift ;;
@@ -50,33 +71,37 @@ rpmtests()
         vol=/srv
     fi
 
-    $PODMAN run --privileged -it --rm --read-only --tmpfs /tmp -v $vol \
-                --workdir /srv -e ROOTLESS=$ROOTLESS $opts $IMAGE rpmtests "$@"
+    podman run --privileged -it --rm --read-only --tmpfs /tmp -v $vol \
+               --workdir /srv -e ROOTLESS=$ROOTLESS $opts --image full \
+               rpmtests "$@"
+    podman rmi --no-prune --image full
 }
 
 unshared()
 {
     [ $(id -u) != 0 ] && [ $NATIVE == yes ] || return 0
-    $PODMAN unshare $0 $CMD "$@"
+    podman unshare $0 $CMD "$@"
     exit
 }
 
 case $CMD in
     build) unshared
         # Build base image
-        $PODMAN build --target base -t $IMAGE/base $ARGS
+        podman build --tag base --target base $ARGS
 
         # Add RPM install on top
-        [ -n "$($PODMAN images -q $IMAGE)" ] && $PODMAN rmi $IMAGE
+        if [ -n "$(podman images -q --image full)" ]; then
+            podman rmi --no-prune --image full
+        fi
         if [ $NATIVE == yes ]; then
             # Native build
-            id=$($PODMAN create $IMAGE/base)
-            trap "$PODMAN rm $id >/dev/null" EXIT
-            make_install $($PODMAN mount $id)
-            $PODMAN commit -q $id $IMAGE
+            id=$(podman create --image base)
+            trap "podman rm $id >/dev/null" EXIT
+            make_install $(podman mount $id)
+            podman commit --tag full -q $id
         else
             # Standalone build
-            $PODMAN build --target full -t $IMAGE $ARGS
+            podman build --tag full --target full $ARGS
         fi
     ;;
     check)
