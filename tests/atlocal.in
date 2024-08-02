@@ -11,13 +11,13 @@ RPMDATA="/data/"
 
 RPM_CONFIGDIR_PATH="@RPM_CONFIGDIR@"
 
-DBFORMAT=$(awk '/^%_db_backend/{print $2}' \
-           "${RPM_CONFIGDIR_PATH}/macros" 2>/dev/null)
-export DBFORMAT
+# DBFORMAT=$(awk '/^%_db_backend/{print $2}' \
+#            "${RPM_CONFIGDIR_PATH}/macros" 2>/dev/null ||:)
+export DBFORMAT=sqlite
 
 # this works for gcc, dunno about clang
-ASANLIB=$(ldd "${RPM_CONFIGDIR_PATH}/rpmdeps"|awk '/libasan/{print $3'})
-export ASANLIB
+# ASANLIB=$(ldd "${RPM_CONFIGDIR_PATH}/rpmdeps"|awk '/libasan/{print $3'})
+# export ASANLIB
 
 TZ=UTC
 export TZ
@@ -140,4 +140,4 @@ runroot_other()
     snapshot exec "$@"
 }
 
-snapshot prune rpmtests.dir/*/tree
+# snapshot prune rpmtests.dir/*/tree

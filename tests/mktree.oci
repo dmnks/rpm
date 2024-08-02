@@ -50,8 +50,17 @@ rpmtests()
         vol=/srv
     fi
 
-    $PODMAN run --privileged -it --rm --read-only --tmpfs /tmp -v $vol \
-                --workdir /srv -e ROOTLESS=$ROOTLESS $opts $IMAGE rpmtests "$@"
+    # $PODMAN run --privileged -it --rm --read-only --tmpfs /tmp -v $vol \
+    #             --workdir /srv -e ROOTLESS=$ROOTLESS $opts $IMAGE rpmtests "$@"
+    source atlocal
+    RPMTREE=$($PODMAN image mount rpm)
+    RPMTEST=$PWD/blah/tree
+    echo $RPMTREE
+    snapshot mount $PWD/blah
+    snapshot exec --bind /home/mdomonko/.local/share/containers/storage/ \
+                         /home/mdomonko/.local/share/containers/storage/ \
+                  --bind $PWD /srv /bin/bash
+    snapshot umount
 }
 
 unshared()
@@ -85,7 +94,7 @@ case $CMD in
     atshell)
         rpmtests --shell "$@"
     ;;
-    shell)
+    shell) unshared
         rpmtests --shell snapshot shell
     ;;
     reset)
