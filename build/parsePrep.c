@@ -386,11 +386,12 @@ exit:
  * @param line		current line from spec file
  * @return		RPMRC_OK on success
  */
-static rpmRC doPatchMacro(rpmSpec spec, const char *line)
+static rpmRC doPatchMacro(rpmSpec spec, const char *line, int *patch0, int *patchN)
 {
     char *opt_b, *opt_d, *opt_o;
     char *buf = NULL;
     int opt_p, opt_R, opt_E, opt_F, opt_Z;
+    int opt_P = 0;
     int argc, c;
     const char **argv = NULL;
     ARGV_t patch, patchnums = NULL;
@@ -434,12 +435,15 @@ static rpmRC doPatchMacro(rpmSpec spec, const char *line)
 	    	argvAdd(&patchnums, arg);
 	    	free(arg);
 	    }
+	    opt_P = 1;
 	    break;
 	}
 	default:
 	    break;
 	}
     }
+    if (!opt_P)
+	*patchN = 1;
 
     if (c < -1) {
 	rpmlog(RPMLOG_ERR, "%s: %s: %s\n", poptStrerror(c),
@@ -464,6 +468,8 @@ static rpmRC doPatchMacro(rpmSpec spec, const char *line)
 		     *patch, line);
 	    goto exit;
 	}
+	if (pnum == 0)
+	    *patch0 = 1;
 	s = doPatch(spec, pnum, opt_p, opt_b, opt_R, opt_E, opt_F, opt_d, opt_o, opt_Z);
 	if (s == NULL) {
 	    goto exit;
@@ -488,6 +494,8 @@ exit:
 int parsePrep(rpmSpec spec)
 {
     int rc, res = PART_ERROR;
+    int patch0 = 0;	/* is Patch0 applied explicitly? */
+    int patchN = 0;	/* is "%patch N" used? */
     ARGV_t saveLines = NULL;
 
     if (spec->prep != NULL) {
@@ -506,7 +514,7 @@ int parsePrep(rpmSpec spec)
 	if (rstreqn(*lines, "%setup", sizeof("%setup")-1)) {
 	    rc = doSetupMacro(spec, *lines);
 	} else if (rstreqn(*lines, "%patch", sizeof("%patch")-1)) {
-	    rc = doPatchMacro(spec, *lines);
+	    rc = doPatchMacro(spec, *lines, &patch0, &patchN);
 	} else {
 	    appendStringBuf(spec->prep, *lines);
 	}
@@ -514,6 +522,14 @@ int parsePrep(rpmSpec spec)
 	    res = PART_ERROR;
 	    goto exit;
 	}
+    }
+
+    /* Patch0 used to be implicitly applied by %patch without -P, abort in such
+     * a case to avoid silent breakage */
+    if (patchN && !patch0 && findSource(spec, 0, RPMBUILD_ISPATCH)) {
+	rpmlog(RPMLOG_ERR, _("Patch0 declared but not used\n"));
+	res = PART_ERROR;
+	goto exit;
     }
 
 exit:
