@@ -132,6 +132,9 @@ struct rpmSpec_s {
     int autonum_patch;
     int autonum_source;
 
+    int patch0_implicit;
+    int patch0_explicit;
+
     char * sourceRpmName;
     unsigned char * sourcePkgId;
     Package sourcePackage;

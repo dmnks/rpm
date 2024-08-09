@@ -232,6 +232,9 @@ rpmSpec newSpec(void)
     spec->autonum_patch = -1;
     spec->autonum_source = -1;
 
+    spec->patch0_implicit = 0;
+    spec->patch0_explicit = 0;
+
     spec->sourceRpmName = NULL;
     spec->sourcePkgId = NULL;
     spec->sourcePackage = NULL;

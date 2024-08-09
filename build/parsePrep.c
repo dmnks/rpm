@@ -418,6 +418,10 @@ static rpmRC doPatchMacro(rpmSpec spec, const char *line)
     /* Convert %patchN to %patch -PN to simplify further processing */
     if (! strchr(" \t\n", line[6])) {
 	rasprintf(&buf, "%%patch -P %s", line + 6);
+    } else {
+	/* %patch without a number used to refer to patch 0 */
+	if (strstr(line+6, " -P") == NULL)
+	    spec->patch0_implicit = 1;
     }
     poptParseArgvString(buf ? buf : line, &argc, &argv);
 
@@ -464,6 +468,8 @@ static rpmRC doPatchMacro(rpmSpec spec, const char *line)
 		     *patch, line);
 	    goto exit;
 	}
+	if (pnum == 0)
+	    spec->patch0_explicit = 1;
 	s = doPatch(spec, pnum, opt_p, opt_b, opt_R, opt_E, opt_F, opt_d, opt_o, opt_Z);
 	if (s == NULL) {
 	    goto exit;
@@ -514,6 +520,13 @@ int parsePrep(rpmSpec spec)
 	    res = PART_ERROR;
 	    goto exit;
 	}
+    }
+
+    if (spec->patch0_implicit && !spec->patch0_explicit &&
+	    findSource(spec, 0, RPMBUILD_ISPATCH)) {
+	rpmlog(RPMLOG_ERR, _("Patch0 declared but unused\n"));
+	res = PART_ERROR;
+	goto exit;
     }
 
 exit:
