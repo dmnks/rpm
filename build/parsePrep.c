@@ -384,9 +384,10 @@ exit:
  *
  * @param spec		build info
  * @param line		current line from spec file
+ * @retval patch0	Patch0 application (1 = implicit, 2 = explicit)
  * @return		RPMRC_OK on success
  */
-static rpmRC doPatchMacro(rpmSpec spec, const char *line)
+static rpmRC doPatchMacro(rpmSpec spec, const char *line, int *patch0)
 {
     char *opt_b, *opt_d, *opt_o;
     char *buf = NULL;
@@ -418,6 +419,10 @@ static rpmRC doPatchMacro(rpmSpec spec, const char *line)
     /* Convert %patchN to %patch -PN to simplify further processing */
     if (! strchr(" \t\n", line[6])) {
 	rasprintf(&buf, "%%patch -P %s", line + 6);
+    } else {
+	/* %patch without a number used to refer to patch 0 */
+	if (strstr(line+6, " -P") == NULL && *patch0 < 2)
+	    *patch0 = 1;
     }
     poptParseArgvString(buf ? buf : line, &argc, &argv);
 
@@ -464,6 +469,8 @@ static rpmRC doPatchMacro(rpmSpec spec, const char *line)
 		     *patch, line);
 	    goto exit;
 	}
+	if (pnum == 0)
+	    *patch0 = 2;
 	s = doPatch(spec, pnum, opt_p, opt_b, opt_R, opt_E, opt_F, opt_d, opt_o, opt_Z);
 	if (s == NULL) {
 	    goto exit;
@@ -488,6 +495,7 @@ exit:
 int parsePrep(rpmSpec spec)
 {
     int rc, res = PART_ERROR;
+    int patch0 = 0;
     ARGV_t saveLines = NULL;
 
     if (spec->prep != NULL) {
@@ -500,13 +508,13 @@ int parsePrep(rpmSpec spec)
     /* There are no options to %prep */
     if ((res = parseLines(spec, STRIP_NOTHING, &saveLines, NULL)) == PART_ERROR)
 	goto exit;
-    
+
     for (ARGV_const_t lines = saveLines; lines && *lines; lines++) {
 	rc = RPMRC_OK;
 	if (rstreqn(*lines, "%setup", sizeof("%setup")-1)) {
 	    rc = doSetupMacro(spec, *lines);
 	} else if (rstreqn(*lines, "%patch", sizeof("%patch")-1)) {
-	    rc = doPatchMacro(spec, *lines);
+	    rc = doPatchMacro(spec, *lines, &patch0);
 	} else {
 	    appendStringBuf(spec->prep, *lines);
 	}
@@ -514,6 +522,12 @@ int parsePrep(rpmSpec spec)
 	    res = PART_ERROR;
 	    goto exit;
 	}
+    }
+
+    if (patch0 == 1 && findSource(spec, 0, RPMBUILD_ISPATCH)) {
+	rpmlog(RPMLOG_ERR, _("Patch0 declared but unused\n"));
+	res = PART_ERROR;
+	goto exit;
     }
 
 exit:
