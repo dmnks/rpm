@@ -578,9 +578,7 @@ filetriggerun:
 filetriggerpostun:
 /usr/bin
 
-transfiletriggerpostun:
-/usr/bin
-
+transfiletriggerpostun(/usr/bin /foo /etc)
 ],
 [])
 
@@ -604,9 +602,7 @@ filetriggerun:
 filetriggerpostun:
 /foo
 
-transfiletriggerpostun:
-/foo
-
+transfiletriggerpostun(/usr/bin /foo /etc)
 ],
 [])
 
@@ -642,12 +638,7 @@ filetriggerun:
 filetriggerpostun:
 /usr/bin
 
-transfiletriggerpostun:
-/usr/bin
-
-transfiletriggerpostun:
-/foo
-
+transfiletriggerpostun(/usr/bin /foo /etc)
 ],
 [])
 
