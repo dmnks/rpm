@@ -50,25 +50,30 @@ rpmtests()
         vol=/srv
     fi
 
-    $PODMAN run --privileged -it --rm --read-only --tmpfs /tmp -v $vol \
+    $PODMAN run --root $PWD/podman --privileged -it --rm --read-only --tmpfs /tmp -v $vol \
                 --workdir /srv -e ROOTLESS=$ROOTLESS $opts $IMAGE rpmtests "$@"
 }
 
 unshared()
 {
     [ $(id -u) != 0 ] && [ $NATIVE == yes ] || return 0
+    export cachedir=$(python3 -c 'import dnf; print(dnf.conf.Conf().cachedir)')
     $PODMAN unshare $0 $CMD "$@"
     exit
 }
 
 case $CMD in
     build) unshared
+        $PODMAN image save @OS_NAME@:@OS_VERSION@ | podman --root $PWD/podman image load
+        export PODMAN="$PODMAN --root $PWD/podman"
+
         # Build base image
-        $PODMAN build --target base -t $IMAGE/base $ARGS
+        mkdir -p $PWD/haha
+        $PODMAN build -v $cachedir:/var/cache/dnf:z --target base -t $IMAGE/base $ARGS
 
         # Add RPM install on top
         [ -n "$($PODMAN images -q $IMAGE)" ] && $PODMAN rmi $IMAGE
-        if [ $NATIVE == yes ]; then
+        if [ $NATIVE == no ]; then
             # Native build
             id=$($PODMAN create $IMAGE/base)
             trap "$PODMAN rm $id >/dev/null" EXIT
@@ -76,7 +81,7 @@ case $CMD in
             $PODMAN commit -q $id $IMAGE
         else
             # Standalone build
-            $PODMAN build --target full -t $IMAGE $ARGS
+            $PODMAN build -v $PWD/haha:/srv/build:z --target full -t $IMAGE $ARGS
         fi
     ;;
     check)
