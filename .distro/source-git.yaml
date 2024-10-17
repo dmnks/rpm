@@ -1,0 +1,20 @@
+upstream_project_url: git@gitlab.cee.redhat.com:rpm-team/rpm.git
+upstream_ref: rpm-4.14.3-release
+downstream_package_name: rpm
+specfile_path: .distro/rpm.spec
+patch_generation_ignore_paths:
+- .distro
+patch_generation_patch_id_digits: 1
+sync_changelog: true
+files_to_sync:
+- src: .distro/
+  dest: .
+  delete: true
+  filters:
+  - protect .git*
+  - protect sources
+  - exclude source-git.yaml
+  - exclude .gitignore
+sources:
+- path: rpm-4.14.3.tar.bz2
+  url: https://pkgs.devel.redhat.com/repo/rpms/rpm/rpm-4.14.3.tar.bz2/sha512/b329629efbcfa5ae66d28a899d3ac65ad31c10881f679cdcfd56014d9857ceafee620753ebac78689d2197245fa42ad05fc107abd33072450a70d562e3f60383/rpm-4.14.3.tar.bz2
