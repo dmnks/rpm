@@ -13,7 +13,8 @@ snapshot()
                 mkdir -p $1/diff $1/work
                 opts="-o upperdir=$1/diff,workdir=$1/work"
             fi
-            [ ${ROOTLESS:-1} == 1 ] && opts+=" -o userxattr"
+            # [ ${ROOTLESS:-1} == 1 ] && opts+=" -o userxattr"
+            opts+=" -o userxattr"
             mkdir -p ${RPMTEST}
             mount -t overlay sandbox \
                   -o lowerdir="${RPMTREE}" \

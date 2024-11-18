@@ -2,8 +2,6 @@
 #
 # OCI-based mktree backend
 
-set -e
-
 PROGRAM=$(basename $0)
 if [ "$PROGRAM" == "mktree" ]; then
     # Running from build directory
@@ -27,16 +25,19 @@ fi
 
 IMAGE=rpm
 ARGS="-f Dockerfile $FROM $CONTEXT"
-ROOTLESS=$([ $(id -u) == 0 ] && echo 0 || echo 1)
 CMD=$1; shift
 
-export ROOTLESS
+if [ $(id -u) != 0 ]; then
+    $PODMAN unshare $0 $CMD "$@"
+    exit
+fi
+
 source mktree.common
 
 rpmtests()
 {
     local opts
-    local vol="$PWD:/srv:z"
+    local vol="$PWD:/srv"
 
     # Pass select options to $PODMAN
     case "$1" in
@@ -50,32 +51,31 @@ rpmtests()
         vol=/srv
     fi
 
-    $PODMAN run --privileged -it --rm --read-only --tmpfs /tmp -v $vol \
-                --workdir /srv -e ROOTLESS=$ROOTLESS $opts $IMAGE rpmtests "$@"
-}
-
-unshared()
-{
-    [ $(id -u) != 0 ] && [ $NATIVE == yes ] || return 0
-    $PODMAN unshare $0 $CMD "$@"
-    exit
+    source ./snapshot
+    mkdir -p $PWD/blah-img
+    chcon -Rt container_file_t $PWD
+    mount --bind $(podman image mount rpm/base) $PWD/blah-img
+    RPMTREE=$PWD/blah-rpm:$PWD/blah-img
+    RPMTEST=$PWD/blah-mnt
+    snapshot mount
+    $PODMAN run --privileged -it --read-only --tmpfs /tmp -v $vol \
+                --workdir /srv $opts -e RPMTREE=/srv/blah-rpm:/srv/blah-img --rootfs $RPMTEST rpmtests "$@"
+    snapshot umount
+    umount $PWD/blah-img
+    podman image umount rpm/base
 }
 
 case $CMD in
-    build) unshared
-        # Build base image
-        $PODMAN build --target base -t $IMAGE/base $ARGS
-
-        # Add RPM install on top
-        [ -n "$($PODMAN images -q $IMAGE)" ] && $PODMAN rmi $IMAGE
+    build)
         if [ $NATIVE == yes ]; then
             # Native build
-            id=$($PODMAN create $IMAGE/base)
-            trap "$PODMAN rm $id >/dev/null" EXIT
-            make_install $($PODMAN mount $id)
-            $PODMAN commit -q $id $IMAGE
+            $PODMAN build --target base -t rpm/base $ARGS
+            # chmod -Rf u+rwX $PWD/blah-img
+            rm -rf $PWD/blah-rpm
+            make_install $PWD/blah-rpm
         else
             # Standalone build
+            [ -n "$($PODMAN images -q $IMAGE)" ] && $PODMAN rmi $IMAGE
             $PODMAN build --target full -t $IMAGE $ARGS
         fi
     ;;

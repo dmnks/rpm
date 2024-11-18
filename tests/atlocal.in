@@ -5,7 +5,7 @@ HAVE_UNSHARE=@HAVE_UNSHARE@
 PYTHON=@PYTHON@
 PGP=@PGP@
 
-RPMTREE=${RPMTREE:-/}
+#RPMTREE=/srv/blah-rpm:/srv/blah-img
 RPMTEST=/
 RPMDATA="/data/"
 
