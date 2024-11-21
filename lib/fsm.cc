@@ -877,10 +877,10 @@ static rpmfi fsmIterFini(rpmfi fi, struct diriter_s *di)
 
 static rpmPlugins fsmPlugins(rpmts ts, rpmte te)
 {
-    if (headerIsSource(rpmteHeader(te)))
-	return NULL;
-    else
-	return rpmtsPlugins(ts);
+    Header h = rpmteHeader(te);
+    int isSource = headerIsSource(h);
+    headerFree(h);
+    return (isSource ? NULL : rpmtsPlugins(ts));
 }
 
 int rpmPackageFilesInstall(rpmts ts, rpmte te, rpmfiles files,
