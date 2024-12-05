@@ -130,7 +130,7 @@ rpmRC rpmpluginsCallScriptletPost(rpmPlugins plugins, const char *s_name, int ty
  * @return		RPMRC_OK on success, RPMRC_FAIL otherwise
  */
 RPM_GNUC_INTERNAL
-rpmRC rpmpluginsCallFsmFilePre(rpmPlugins plugins, rpmfi fi, const char* path,
+rpmRC rpmpluginsCallFsmFilePre(rpmPlugins plugins, rpmte te, rpmfi fi, const char* path,
                                 mode_t file_mode, rpmFsmOp op);
 
 /** \ingroup rpmplugins
@@ -144,7 +144,7 @@ rpmRC rpmpluginsCallFsmFilePre(rpmPlugins plugins, rpmfi fi, const char* path,
  * @return		RPMRC_OK on success, RPMRC_FAIL otherwise
  */
 RPM_GNUC_INTERNAL
-rpmRC rpmpluginsCallFsmFilePost(rpmPlugins plugins, rpmfi fi, const char* path,
+rpmRC rpmpluginsCallFsmFilePost(rpmPlugins plugins, rpmte te, rpmfi fi, const char* path,
                                 mode_t file_mode, rpmFsmOp op, int res);
 
 /** \ingroup rpmplugins
@@ -160,7 +160,7 @@ rpmRC rpmpluginsCallFsmFilePost(rpmPlugins plugins, rpmfi fi, const char* path,
  * @return		RPMRC_OK on success, RPMRC_FAIL otherwise
  */
 RPM_GNUC_INTERNAL
-rpmRC rpmpluginsCallFsmFilePrepare(rpmPlugins plugins, rpmfi fi,
+rpmRC rpmpluginsCallFsmFilePrepare(rpmPlugins plugins, rpmte te, rpmfi fi,
                                    int fd, const char *path, const char *dest,
                                    mode_t mode, rpmFsmOp op);
 

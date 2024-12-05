@@ -344,7 +344,7 @@ static int fsmOpenat(int *wfdp, int dirfd, const char *path, int flags, int dir)
     return rc;
 }
 
-static int fsmDoMkDir(rpmPlugins plugins, int dirfd, const char *dn,
+static int fsmDoMkDir(rpmPlugins plugins, rpmte te, int dirfd, const char *dn,
 			const char *apath,
 			int owned, mode_t mode, int *fdp)
 {
@@ -354,7 +354,7 @@ static int fsmDoMkDir(rpmPlugins plugins, int dirfd, const char *dn,
 	op |= FAF_UNOWNED;
 
     /* Run fsm file pre hook for all plugins */
-    rc = rpmpluginsCallFsmFilePre(plugins, NULL, apath, mode, op);
+    rc = rpmpluginsCallFsmFilePre(plugins, te, NULL, apath, mode, op);
 
     if (!rc)
 	rc = fsmMkdir(dirfd, dn, mode);
@@ -364,11 +364,11 @@ static int fsmDoMkDir(rpmPlugins plugins, int dirfd, const char *dn,
     }
 
     if (!rc) {
-	rc = rpmpluginsCallFsmFilePrepare(plugins, NULL, *fdp, apath, apath, mode, op);
+	rc = rpmpluginsCallFsmFilePrepare(plugins, te, NULL, *fdp, apath, apath, mode, op);
     }
 
     /* Run fsm file post hook for all plugins */
-    rpmpluginsCallFsmFilePost(plugins, NULL, apath, mode, op, rc);
+    rpmpluginsCallFsmFilePost(plugins, te, NULL, apath, mode, op, rc);
 
     if (!rc) {
 	rpmlog(RPMLOG_DEBUG,
@@ -379,7 +379,7 @@ static int fsmDoMkDir(rpmPlugins plugins, int dirfd, const char *dn,
     return rc;
 }
 
-static int ensureDir(rpmPlugins plugins, const char *p, int owned, int create,
+static int ensureDir(rpmPlugins plugins, rpmte te, const char *p, int owned, int create,
 		    int quiet, int *dirfdp)
 {
     char *sp = NULL, *bn;
@@ -403,7 +403,7 @@ static int ensureDir(rpmPlugins plugins, const char *p, int owned, int create,
 
 	if (rc && errno == ENOENT && create) {
 	    mode_t mode = S_IFDIR | (_dirPerms & 07777);
-	    rc = fsmDoMkDir(plugins, dirfd, bn, apath, owned, mode, &fd);
+	    rc = fsmDoMkDir(plugins, te, dirfd, bn, apath, owned, mode, &fd);
 	}
 
 	fsmClose(&dirfd);
@@ -737,7 +737,7 @@ static int fsmBackup(int dirfd, rpmfi fi, rpmFileAction action)
 }
 
 static int fsmSetmeta(int fd, int dirfd, const char *path,
-		      rpmfi fi, rpmPlugins plugins,
+		      rpmfi fi, rpmte te, rpmPlugins plugins,
 		      rpmFileAction action, const struct stat * st,
 		      int nofcaps)
 {
@@ -758,7 +758,7 @@ static int fsmSetmeta(int fd, int dirfd, const char *path,
 	rc = fsmUtime(fd, dirfd, path, st->st_mode, rpmfiFMtime(fi));
     }
     if (!rc) {
-	rc = rpmpluginsCallFsmFilePrepare(plugins, fi,
+	rc = rpmpluginsCallFsmFilePrepare(plugins, te, fi,
 					  fd, path, dest,
 					  st->st_mode, action);
     }
@@ -889,7 +889,7 @@ int rpmPackageFilesInstall(rpmts ts, rpmte te, rpmfiles files,
     FD_t payload = rpmtePayload(te);
     rpmfi fi = NULL;
     rpmfs fs = rpmteGetFileStates(te);
-    rpmPlugins plugins = fsmPlugins(ts, te);
+    rpmPlugins plugins = rpmtsPlugins(ts);
     int rc = 0;
     int fx = -1;
     int fc = rpmfilesFC(files);
@@ -958,7 +958,7 @@ int rpmPackageFilesInstall(rpmts ts, rpmte te, rpmfiles files,
         if (!fp->skip) {
 	    int mayopen = 0;
 	    int fd = -1;
-	    rc = ensureDir(plugins, rpmfiDN(fi), 0,
+	    rc = ensureDir(plugins, te, rpmfiDN(fi), 0,
 			    (fp->action == FA_CREATE), 0, &di.dirfd);
 
 	    /* Directories replacing something need early backup */
@@ -968,7 +968,7 @@ int rpmPackageFilesInstall(rpmts ts, rpmte te, rpmfiles files,
 
 	    /* Run fsm file pre hook for all plugins */
 	    if (!rc)
-		rc = rpmpluginsCallFsmFilePre(plugins, fi, fp->fpath,
+		rc = rpmpluginsCallFsmFilePre(plugins, te, fi, fp->fpath,
 					      fp->sb.st_mode, fp->action);
 	    if (rc)
 		goto setmeta; /* for error notification */
@@ -1046,7 +1046,7 @@ setmeta:
 
 	    if (!rc && fp->setmeta) {
 		rc = fsmSetmeta(fd, di.dirfd, fp->fpath,
-				fi, plugins, fp->action,
+				fi, te, plugins, fp->action,
 				&fp->sb, nofcaps);
 	    }
 
@@ -1073,7 +1073,7 @@ setmeta:
 
 	if (!fp->skip) {
 	    if (!rc)
-		rc = ensureDir(NULL, rpmfiDN(fi), 0, 0, 0, &di.dirfd);
+		rc = ensureDir(NULL, te, rpmfiDN(fi), 0, 0, 0, &di.dirfd);
 
 	    /* Backup file if needed. Directories are handled earlier */
 	    if (!rc && fp->suffix)
@@ -1088,7 +1088,7 @@ setmeta:
 		*failedFile = rstrscat(NULL, rpmfiDN(fi), fp->fpath, NULL);
 
 	    /* Run fsm file post hook for all plugins for all processed files */
-	    rpmpluginsCallFsmFilePost(plugins, fi, fp->fpath,
+	    rpmpluginsCallFsmFilePost(plugins, te, fi, fp->fpath,
 				      fp->sb.st_mode, fp->action, rc);
 	}
     }
@@ -1101,7 +1101,7 @@ setmeta:
 	    struct filedata_s *fp = &fdata[fx];
 
 	    /* If the directory doesn't exist there's nothing to clean up */
-	    if (ensureDir(NULL, rpmfiDN(fi), 0, 0, 1, &di.dirfd))
+	    if (ensureDir(NULL, te, rpmfiDN(fi), 0, 0, 1, &di.dirfd))
 		continue;
 
 	    if (fp->stage > FILE_NONE && !fp->skip && fp->action != FA_TOUCH) {
@@ -1131,7 +1131,7 @@ int rpmPackageFilesRemove(rpmts ts, rpmte te, rpmfiles files,
     struct diriter_s di = { -1, -1 };
     rpmfi fi = fsmIter(NULL, files, RPMFI_ITER_BACK, &di);
     rpmfs fs = rpmteGetFileStates(te);
-    rpmPlugins plugins = fsmPlugins(ts, te);
+    rpmPlugins plugins = rpmtsPlugins(ts);
     int fc = rpmfilesFC(files);
     int fx = -1;
     struct filedata_s *fdata = (struct filedata_s *)xcalloc(fc, sizeof(*fdata));
@@ -1146,7 +1146,7 @@ int rpmPackageFilesRemove(rpmts ts, rpmte te, rpmfiles files,
 
 	fp->fpath = fsmFsPath(fi, NULL);
 	/* If the directory doesn't exist there's nothing to clean up */
-	if (ensureDir(NULL, rpmfiDN(fi), 0, 0, 1, &di.dirfd))
+	if (ensureDir(NULL, te, rpmfiDN(fi), 0, 0, 1, &di.dirfd))
 	    continue;
 
 	rc = fsmStat(di.dirfd, fp->fpath, 1, &fp->sb);
@@ -1154,7 +1154,7 @@ int rpmPackageFilesRemove(rpmts ts, rpmte te, rpmfiles files,
 	fsmDebug(rpmfiDN(fi), fp->fpath, fp->action, &fp->sb);
 
 	/* Run fsm file pre hook for all plugins */
-	rc = rpmpluginsCallFsmFilePre(plugins, fi, fp->fpath,
+	rc = rpmpluginsCallFsmFilePre(plugins, te, fi, fp->fpath,
 				      fp->sb.st_mode, fp->action);
 
 	rc = fsmBackup(di.dirfd, fi, fp->action);
@@ -1194,7 +1194,7 @@ int rpmPackageFilesRemove(rpmts ts, rpmte te, rpmfiles files,
         }
 
 	/* Run fsm file post hook for all plugins */
-	rpmpluginsCallFsmFilePost(plugins, fi, fp->fpath,
+	rpmpluginsCallFsmFilePost(plugins, te, fi, fp->fpath,
 				  fp->sb.st_mode, fp->action, rc);
 
         /* XXX Failure to remove is not (yet) cause for failure. */
