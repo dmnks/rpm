@@ -120,39 +120,39 @@ if (MKTREE_NATIVE)
 			-o rpmtests rpmtests.at
 		DEPENDS ${TESTSUITE_AT} rpmtests.at
 		DEPENDS local.at
+		DEPENDS ${TESTPROGS}
+		DEPENDS ${TOOLPROGS}
 	)
 
 	add_custom_target(tree
 		COMMAND ./mktree build
 		DEPENDS rpmtests
-		DEPENDS ${TESTPROGS}
-		DEPENDS ${TOOLPROGS}
 	)
 else()
 	add_custom_target(tree COMMAND ./mktree build)
 endif()
 
 add_custom_target(atshell
-	COMMAND ./mktree atshell ||:
-	DEPENDS tree
+	COMMAND ./mktree --build atshell ||:
+	DEPENDS rpmtests
 )
 
 add_custom_target(pinned
-	COMMAND ./mktree atshell /pinned/update
+	COMMAND ./mktree --build atshell /pinned/update
 	COMMAND cp pinned/*.txt ${PINNED_DIR}/
 	COMMAND git add ${PINNED_DIR}/*.txt
 	COMMAND git diff --staged ${PINNED_DIR}/*.txt
-	DEPENDS tree
+	DEPENDS rpmtests
 )
 
 add_custom_target(shell
-	COMMAND ./mktree shell ||:
-	DEPENDS tree
+	COMMAND ./mktree --build shell ||:
+	DEPENDS rpmtests
 )
 
 add_custom_target(check
-	COMMAND ./mktree check ${JOBS} $(TESTOPTS)
-	DEPENDS tree
+	COMMAND ./mktree --build check ${JOBS} $(TESTOPTS)
+	DEPENDS rpmtests
 )
 
 add_custom_target(reset
