@@ -1,0 +1,21 @@
+name: Release tarball
+on:
+  release:
+    types: [published]
+jobs:
+  archive:
+    runs-on: ubuntu-24.04
+    # env:
+    #   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: rpm-4.20.x
+      - name: Build
+        run: |
+          mkdir _build
+          cd _build/
+          cmake -DWITH_DOXYGEN=ON ..
+          make dist
+          # gh release upload rpm-4.20.0-release rpm-4.20.0.tar.bz2
