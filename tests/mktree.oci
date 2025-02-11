@@ -14,12 +14,12 @@ if [ "$PROGRAM" == "mktree" ]; then
 else
     # Running from source directory
     CMAKE=no
-    NATIVE=no
+    NATIVE=OFF
     PODMAN=${MKTREE_ENGINE:-podman}
     CONTEXT=..
 fi
 
-if [ $NATIVE == yes ]; then
+if [ $NATIVE == ON ]; then
     FROM="--from @OS_NAME@:@OS_VERSION@"
 else
     FROM=
@@ -70,7 +70,7 @@ clean()
 
 unshared()
 {
-    [ $(id -u) != 0 ] && [ $NATIVE == yes ] || return 0
+    [ $(id -u) != 0 ] && [ $NATIVE == ON ] || return 0
     $PODMAN unshare $0 $CMD "$@"
     exit
 }
@@ -82,7 +82,7 @@ case $CMD in
 
         # Add RPM install on top
         clean
-        if [ $NATIVE == yes ]; then
+        if [ $NATIVE == ON ]; then
             # Native build
             id=$($PODMAN create -t $BASE_TAG)
             trap "$PODMAN kill $id >/dev/null; $PODMAN rm $id > /dev/null" EXIT
