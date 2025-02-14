@@ -19,6 +19,3 @@ jobs:
       - name: Run the test suite
         run: ./mktree.oci check --interactive=false -j$(nproc)
         working-directory: ./tests
-
-    env:
-      MKTREE_ENGINE: podman

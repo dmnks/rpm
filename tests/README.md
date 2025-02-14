@@ -9,10 +9,8 @@ interactive shell (via `make shell`).
 
 ## Prerequisites
 
-To use this test-suite, you need either of:
-
-1. [Podman](https://github.com/containers/podman/)
-2. [Docker](https://github.com/docker/)
+To use this test-suite, you'll need to have
+[Podman](https://github.com/containers/podman/) installed.
 
 > [!IMPORTANT]
 > CMake integration (*native* mode) is currently only available on **Fedora
