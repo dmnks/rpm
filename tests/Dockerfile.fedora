@@ -54,7 +54,8 @@ RUN dnf -y install \
   scdoc \
   sequoia-sq \
   libasan \
-  libubsan
+  libubsan \
+  flatpak-spawn
 # Incapacitate IMA, needed until #3234 lands in fedora
 RUN rm -f /usr/lib/rpm/macros.d/macros.transaction_ima
 # If updates to specific packages are needed, do it here

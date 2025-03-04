@@ -1180,7 +1180,7 @@ USERDIR=/tmp/mydir
 
 RPMTEST_CHECK([
 runroot_user \
-  rpm -U --prefix ${USERDIR}/root --dbpath ${USERDIR}/rpmdb \
+  rpm -U --noplugins --prefix ${USERDIR}/root --dbpath ${USERDIR}/rpmdb \
   /build/RPMS/noarch/rootfs-1.0-1.noarch.rpm
 ],
 [0],
@@ -1188,7 +1188,7 @@ runroot_user \
 [])
 
 RPMTEST_CHECK([
-runroot_user rpm -e --dbpath ${USERDIR}/rpmdb rootfs
+runroot_user rpm -e --noplugins --dbpath ${USERDIR}/rpmdb rootfs
 runroot_user test ! -d ${USERDIR}/root
 ],
 [0],

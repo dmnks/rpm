@@ -1,0 +1,54 @@
+#!/bin/bash
+#
+# Toolbox(1) based mktree backend
+
+set -e
+
+TOOLBOX=$(sh -c 'source /run/.containerenv; echo $id')
+# TOOLBOX=$(sh -c 'source /run/.containerenv; echo $imageid')
+IMAGE=rpm-toolbox/snapshot
+CMD=$1; shift
+
+podman()
+{
+    flatpak-spawn --host podman "$@"
+}
+
+rpmtests()
+{
+    podman run --privileged -it --rm --read-only --tmpfs /tmp -v $PWD:/srv:z \
+               --workdir /srv $IMAGE rpmtests "$@"
+}
+
+case $CMD in
+    build)
+        # TODO options:
+        # 1) copy the files
+        # 2) run setup.sh once
+
+        sudo sh -c 'source ./mktree.common; make_install /'
+        [ -n "$(podman images -q $IMAGE)" ] && podman rmi $IMAGE
+        podman commit -pq $TOOLBOX $IMAGE
+
+        # id=$(podman create -t $TOOLBOX)
+        # trap "podman kill $id >/dev/null; podman rm $id > /dev/null" EXIT
+        # podman start $id
+        # make_install $PWD/blah
+        # podman cp $PWD/blah/. $id:/
+        # podman exec $id /usr/share/mktree/setup.sh
+        # [ -n "$(podman images -q $IMAGE)" ] && podman rmi $IMAGE
+        # podman commit -q $id $IMAGE
+    ;;
+    check)
+        rpmtests "$@"
+    ;;
+    atshell)
+        rpmtests --shell
+    ;;
+    shell)
+        rpmtests --shell snapshot shell
+    ;;
+    reset)
+        rpmtests --reset
+    ;;
+esac
