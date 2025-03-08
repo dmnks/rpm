@@ -12,8 +12,7 @@ set -e
 CMD=$1; shift
 case $CMD in
     build)
-        source ./mktree.common
-        make_install /
+        ./install.sh /
         ./setup.sh /
     ;;
     check)

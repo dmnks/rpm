@@ -107,8 +107,8 @@ elseif (MKTREE_BACKEND STREQUAL rootfs)
 endif()
 message(STATUS "Using mktree backend: ${MKTREE_BACKEND} "
 	       "(native: ${MKTREE_NATIVE})")
-configure_file(mktree.common mktree.common @ONLY)
 configure_file(mktree.${MKTREE_BACKEND} mktree @ONLY)
+configure_file(install.sh install.sh @ONLY)
 configure_file(setup.sh setup.sh @ONLY)
 
 if (MKTREE_NATIVE)

@@ -34,7 +34,6 @@ ROOTLESS=$([ $(id -u) == 0 ] && echo 0 || echo 1)
 CMD=$1; shift
 
 export ROOTLESS
-source mktree.common
 
 mkdir -p $CACHE_DIR
 
@@ -78,7 +77,7 @@ case $CMD in
         if [ $NATIVE == yes ]; then
             # Native build
             rm -rf $PWD/destdir
-            make_install $PWD/destdir
+            ./install.sh $PWD/destdir
             $PODMAN build --target devel -v $PWD:/srv/build:ro,z \
                           --iidfile=$IID_FILE $ARGS
         else
