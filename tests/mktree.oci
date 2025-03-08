@@ -68,15 +68,8 @@ clean()
     $PODMAN rmi $IMAGE_ID >/dev/null
 }
 
-unshared()
-{
-    [ $(id -u) != 0 ] && [ $NATIVE == yes ] || return 0
-    $PODMAN unshare $0 $CMD "$@"
-    exit
-}
-
 case $CMD in
-    build) unshared
+    build)
         # Build base image
         $PODMAN build --target base -t $BASE_TAG $ARGS
 
