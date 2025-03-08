@@ -85,8 +85,11 @@ RUN if which dnf5; then \
 WORKDIR /
 CMD /bin/bash
 
-FROM base AS full
+FROM base AS devel
+WORKDIR /srv/build
+RUN cp -pr destdir/. / && ./setup.sh
 
+FROM base AS full
 WORKDIR /srv/rpm
 COPY . .
 

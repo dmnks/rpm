@@ -84,12 +84,10 @@ case $CMD in
         clean
         if [ $NATIVE == yes ]; then
             # Native build
-            id=$($PODMAN create -t $BASE_TAG)
-            trap "$PODMAN kill $id >/dev/null; $PODMAN rm $id > /dev/null" EXIT
-            $PODMAN start $id
-            make_install $($PODMAN mount $id)
-            $PODMAN exec $id /usr/share/mktree/setup.sh
-            $PODMAN commit -q $id --iidfile=$IID_FILE
+            rm -rf $PWD/destdir
+            make_install $PWD/destdir
+            $PODMAN build --target devel -v $PWD:/srv/build:ro,z \
+                          --iidfile=$IID_FILE $ARGS
         else
             # Standalone build
             $PODMAN build --target full --iidfile=$IID_FILE $ARGS
