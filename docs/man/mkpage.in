@@ -1,0 +1,70 @@
+#!/bin/bash
+#
+# Create a Jekyll-ready HTML page from the given scdoc(5) file.
+#
+# Uses scd2html(1) with custom post-processing that does the following:
+#   - Adds the Jekyll front matter
+#   - Adds clickable man page hyperlinks
+#   - Adds an RPM version footer
+#   - Tweaks the stylesheet
+
+SCD_FILE=$1
+OUT_FILE=$2
+SCD_BASE=$(basename $SCD_FILE)
+OUT_BASE=$(basename $OUT_FILE)
+# Conventional name(SECTION) string
+MAN_NAME=$(echo "$SCD_BASE" | sed 's/^\(.\+\)\.\(.\+\)\.scd$/\1(\2)/')
+# Matches all our manual names
+NAME_PAT="rpm[-\.[:alnum:]]*\|gendiff"
+
+get_category() {
+    case $1 in
+        rpm-plugin*)    echo plugin ;;
+        *)              echo tool ;;
+    esac
+}
+
+PREAMBLE="\
+---
+layout: default
+title: rpm.org - $MAN_NAME
+filename: $OUT_BASE
+category: $(get_category $MAN_NAME)
+name: $MAN_NAME
+---
+
+<style type="text/css">
+    h2 {
+        font-size: 21px;
+    }
+    h3 {
+        font-size: 18px;
+    }
+    h2 a, h3 a {
+        font-size: 16px;
+        vertical-align: text-top;
+    }
+    header p {
+        display: none;
+    }
+    footer p {
+        color: #666666;
+        text-align: center;
+    }
+</style>
+"
+
+add_preamble() {
+    cat <(echo "$PREAMBLE") -
+}
+
+add_footer() {
+    cat - <(echo '<footer><p>RPM @CMAKE_PROJECT_VERSION@</p></footer>')
+}
+
+add_links() {
+    sed -e 's#<b>\('$NAME_PAT'\)</b>(\(.\))#<a href="\1.\2.html">\1(\2)</a>#g' \
+        -e 's#<b>\(https\?://[^<]*\)</b>#<a href="\1">\1</a>#g'
+}
+
+@SCD2HTML@ -f < $SCD_FILE | add_preamble | add_footer | add_links > $OUT_FILE
