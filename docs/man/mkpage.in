@@ -1,0 +1,54 @@
+#!/bin/bash
+#
+# Create a Jekyll-compatible HTML page from the given scdoc(5) file.
+# Usage: ./mkpage SCD_FILE HTML_FILE
+
+SCD_FILE=$1
+OUT_FILE=$2
+SCD_BASE=$(basename $SCD_FILE)
+OUT_BASE=$(basename $OUT_FILE)
+
+# Conventional name(SECTION) string
+MAN_NAME=$(echo "$SCD_BASE" | sed 's/^\(.\+\)\.\(.\+\)\.scd$/\1(\2)/')
+
+# Regex pattern matching all our manual names
+NAME_PAT="rpm[-\.[:alnum:]]*\|gendiff"
+
+# Return category of this man page (for index page sections)
+get_category() {
+    case $1 in
+        rpm-plugin*)    echo plugin ;;
+        *)              echo tool ;;
+    esac
+}
+
+# Convert URLs and conventional man page references to hyperlinks
+add_links() {
+    sed -e 's#<b>\('$NAME_PAT'\)</b>(\(.\))#<a href="\1.\2.html">\1(\2)</a>#g' \
+        -e 's#<b>\(https\?://[^<]*\)</b>#<a href="\1">\1</a>#g'
+}
+
+PREAMBLE="\
+---
+layout: default
+title: rpm.org - $MAN_NAME
+filename: $OUT_BASE
+category: $(get_category $MAN_NAME)
+name: $MAN_NAME
+---
+
+<style type="text/css">
+    h2 {
+        font-size: 21px;
+    }
+    h3 {
+        font-size: 18px;
+    }
+    h2 a, h3 a {
+        font-size: 16px;
+        vertical-align: text-top;
+    }
+</style>
+"
+
+@SCD2HTML@ -f < $SCD_FILE | cat <(echo "$PREAMBLE") - | add_links > $OUT_FILE
