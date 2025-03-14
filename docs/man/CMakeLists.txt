@@ -19,6 +19,20 @@ foreach(man ${manuals})
 endforeach()
 add_custom_target(man ALL DEPENDS ${manuals})
 
+# Render HTML pages from the manuals
+configure_file(mkpage.in mkpage @ONLY)
+set(htmldir ${CMAKE_BINARY_DIR}/docs/_man)
+set(htmlfiles "")
+file(MAKE_DIRECTORY ${htmldir})
+foreach(man ${manuals})
+	set(file ${htmldir}/${man}.html)
+	add_custom_command(OUTPUT ${file}
+		COMMAND ./mkpage ${CMAKE_CURRENT_SOURCE_DIR}/${man}.scd ${file}
+		DEPENDS ${man}.scd mkpage)
+	list(APPEND htmlfiles ${file})
+endforeach()
+add_custom_target(man-html DEPENDS ${htmlfiles})
+
 # Install manuals for the enabled features
 set(manuals ${core})
 if (ENABLE_PLUGINS)
