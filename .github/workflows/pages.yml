@@ -4,7 +4,7 @@ name: Deploy Jekyll with GitHub Pages dependencies preinstalled
 on:
   # Runs on pushes targeting the default branch
   push:
-    branches: [$default-branch]
+    branches: [scdoc-pages-pr]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -28,13 +28,27 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Build image
+        run: |
+          podman build --target base --tag rpm -f tests/Dockerfile .
+
+      - name: Build HTML man pages
+        run: |
+          mkdir _build
+          podman run -v $PWD:/srv:z --workdir /srv/_build --rm rpm sh -c \
+            "cmake .. && make man-html"
+          mv _build/docs/_man docs/
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
+
       - name: Build with Jekyll
         uses: actions/jekyll-build-pages@v1
         with:
-          source: ./
+          source: ./docs
           destination: ./_site
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
 
