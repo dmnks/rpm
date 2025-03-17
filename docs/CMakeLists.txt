@@ -68,3 +68,50 @@ foreach(file ${site_files})
 endforeach()
 
 add_custom_target(pages)
+
+if (ENABLE_JEKYLL)
+	set(JEKYLL_BIN "podman" CACHE STRING "Jekyll binary wrapper to use")
+	set_property(CACHE JEKYLL_BIN PROPERTY STRINGS "bundler" "podman")
+	option(JEKYLL_SERVE "Serve site locally when built" ON)
+	set(JEKYLL_SOURCE_DIR
+	    ${CMAKE_CURRENT_BINARY_DIR} CACHE PATH "Directory to build from")
+
+	set(site_deps pages)
+
+	if (JEKYLL_BIN STREQUAL "bundler")
+		find_program(BUNDLE bundle REQUIRED)
+		mark_as_advanced(BUNDLE)
+		execute_process(COMMAND ${BUNDLE} check
+				WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+				RESULT_VARIABLE ret)
+		if (NOT ret STREQUAL "0")
+			message(FATAL_ERROR
+				"Jekyll dependencies in Gemfile not satisfied")
+		endif()
+		set(JEKYLL ${BUNDLE} exec jekyll)
+	else()
+		find_program(PODMAN podman REQUIRED)
+		mark_as_advanced(PODMAN)
+		configure_file(Containerfile Containerfile COPYONLY)
+		set(image rpm/jekyll)
+		add_custom_command(OUTPUT image
+			COMMAND ${PODMAN} build -t ${image} .
+			COMMAND touch image
+			DEPENDS Containerfile
+		)
+		set(JEKYLL ${PODMAN} run -v ${JEKYLL_SOURCE_DIR}:/srv:z
+					 -it --rm -p 4000:4000 ${image})
+		list(APPEND site_deps image)
+	endif()
+
+	if (JEKYLL_SERVE)
+		set(JEKYLL_CMD ${JEKYLL} serve --host 0.0.0.0)
+	else()
+		set(JEKYLL_CMD ${JEKYLL} build)
+	endif()
+
+	add_custom_target(site
+		COMMAND ${JEKYLL_CMD}
+		DEPENDS ${site_deps}
+	)
+endif()

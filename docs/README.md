@@ -28,4 +28,24 @@ The reference manual in the *manual/* dir is an GitHub Pages site. It is rendere
 
 The Reference Manual is currently not shipped in rendered form in the tarball.
 
-To render it locally one can follow [this article](https://docs.github.com/en/pages/setting-up-a-github-pages-site-with-jekyll/testing-your-github-pages-site-locally-with-jekyll) and render it with *Jekyll* with the use of the *github-pages* gem.
+To render the site locally, configure your build with the CMake option
+`ENABLE_JEKYLL=ON` and run `make site`.
+
+By default, this uses Podman to build and serve the site locally at
+`http://0.0.0.0:4000`.  The following options are available to tweak that:
+
+- `JEKYLL_BIN`: Set to `bundler` to run Jekyll through the native Bundler
+  installation instead of spawning a container.  This assumes you have the
+  required gems installed locally (e.g. by running `bundle install` from the
+  `docs/` directory).  Default: `podman`.
+- `JEKYLL_SERVE`: Set to `OFF` to just build the site, not serve it.  Default:
+  `ON`.
+- `JEKYLL_SOURCE_DIR`: The source path to build, useful for building the
+  [rpm-web](https://github.com/rpm-software-management/rpm-web) site locally
+  (e.g. in a dedicated CMake build directory).  Default:
+  `${CMAKE_BINARY_DIR}/docs`.
+
+If you wish to render the site manually with Jekyll directly, prepare the
+source pages by running `make pages` and then follow the steps in [this
+article](https://docs.github.com/en/pages/setting-up-a-github-pages-site-with-jekyll/testing-your-github-pages-site-locally-with-jekyll)
+(the source directory to build is located at `${CMAKE_BINARY_DIR}/docs`).
