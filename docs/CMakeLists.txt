@@ -54,25 +54,27 @@ set(manuals
 )
 install(FILES ${manuals} TYPE DOC)
 
-set(site_files
+set(pagefiles
 	_config.yml
 	_layouts/default.html
 	_layouts/favicon.ico
+	man/index.md
 	Gemfile
 	index.md
 	${manuals}
 )
 
-foreach(file ${site_files})
-	configure_file(${file} ${file} COPYONLY)
-endforeach()
-
-add_custom_target(pages)
+# Build Jekyll-ready pages by combining static and cmake-built content
+set(pagedir ${CMAKE_BINARY_DIR}/pages)
+add_custom_target(pages
+	COMMAND mkdir -p ${pagedir}
+	COMMAND cp -u --parents ${pagefiles} ${pagedir}
+	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+)
 
 if (ENABLE_JEKYLL)
 	option(JEKYLL_SERVE "Serve site locally when built" ON)
-	set(JEKYLL_SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR} CACHE PATH
-	    "Directory to build from")
+	set(JEKYLL_SOURCE_DIR ${pagedir} CACHE PATH "Directory to build from")
 
 	find_program(PODMAN podman REQUIRED)
 	mark_as_advanced(PODMAN)
