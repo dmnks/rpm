@@ -76,7 +76,6 @@ if (ENABLE_JEKYLL)
 
 	find_program(PODMAN podman REQUIRED)
 	mark_as_advanced(PODMAN)
-	configure_file(Containerfile Containerfile COPYONLY)
 
 	set(image rpm/jekyll)
 	set(JEKYLL ${PODMAN} run -v ${JEKYLL_SOURCE_DIR}:/srv:z
@@ -89,8 +88,9 @@ if (ENABLE_JEKYLL)
 
 	add_custom_command(OUTPUT image
 		COMMAND ${PODMAN} build -t ${image} .
-		COMMAND touch image
+		COMMAND touch ${CMAKE_CURRENT_BINARY_DIR}/image
 		DEPENDS Containerfile
+		WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 	)
 	add_custom_target(site COMMAND ${JEKYLL} DEPENDS pages image)
 endif()
