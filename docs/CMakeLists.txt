@@ -72,12 +72,9 @@ add_custom_target(pages
 	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-if (ENABLE_JEKYLL)
+if (PODMAN)
 	option(JEKYLL_SERVE "Serve site locally when built" ON)
 	set(JEKYLL_SOURCE_DIR ${pagedir} CACHE PATH "Directory to build from")
-
-	find_program(PODMAN podman REQUIRED)
-	mark_as_advanced(PODMAN)
 
 	set(image rpm/jekyll)
 	set(JEKYLL ${PODMAN} run -v ${JEKYLL_SOURCE_DIR}:/srv:z
