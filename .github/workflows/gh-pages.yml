@@ -3,7 +3,7 @@ name: GitHub Pages deployment
 
 on:
   push:
-    branches: [master]
+    branches: [scdoc-pages-preview]
     paths:
       - docs/**
 
