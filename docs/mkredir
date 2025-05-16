@@ -1,1 +1,21 @@
 #!/bin/bash
+# Generate redirection pages in given dirname from file list on stdin
+
+DEST_DIR=$1
+DEST_URL=$2
+
+function gen_page() {
+    echo "---"
+    echo "layout: redirected"
+    echo "sitemap: false"
+    echo "redirect_to: $DEST_URL/$1"
+    echo "---"
+}
+
+while read file; do
+    bname=$(basename $file)
+    fname=${bname%.*}
+    dname=$DEST_DIR/$(dirname $file)
+    mkdir -p $dname
+    gen_page $fname > $dname/${fname}.md
+done

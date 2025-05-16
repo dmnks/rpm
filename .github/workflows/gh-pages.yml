@@ -27,15 +27,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Build image
-        run: |
-          podman build --target base --tag rpm -f tests/Dockerfile .
-
       - name: Generate Jekyll pages
+        working-directory: docs
+        env:
+          REDIRECT_TO: https://rpm-software-management.github.io/rpm
         run: |
-          mkdir _build
-          podman run -v $PWD:/srv:z --workdir /srv/_build --rm rpm sh -c \
-            "cmake .. && make pages"
+          mkdir site
+          mv _layouts site/
+          ls manual/*.md | ./mkredir site "$REDIRECT_TO/manual"
+          ls man/index.md man/*.scd | ./mkredir site "$REDIRECT_TO/man"
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
@@ -43,7 +43,7 @@ jobs:
       - name: Build with Jekyll
         uses: actions/jekyll-build-pages@v1
         with:
-          source: ./_build/site
+          source: ./docs/site
           destination: ./_site
 
       - name: Upload artifact
