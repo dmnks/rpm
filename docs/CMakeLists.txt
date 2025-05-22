@@ -55,7 +55,6 @@ install(FILES ${manuals} TYPE DOC)
 # Configure the Jekyll site to build
 set(site_dir ${CMAKE_BINARY_DIR}/site)
 set(site_files
-	_config.yml
 	_layouts/default.html
 	_layouts/favicon.ico
 	assets/css/manpage.css
