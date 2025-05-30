@@ -1,4 +1,6 @@
 # Supported Fedora releases: 41 42
+
+# Base stage with build dependencies and no rpm installation
 FROM registry.fedoraproject.org/fedora:42 AS base
 MAINTAINER rpm-maint@lists.rpm.org
 
@@ -78,10 +80,14 @@ RUN rpm -e --nodeps --nodb \
 WORKDIR /
 CMD /bin/bash
 
+# Development stage with rpm built natively on host
 FROM base AS devel
 WORKDIR /srv/build
-RUN cp -pr destdir/. / && ./setup.sh
+COPY mktree.instdir/ /
+COPY setup.sh .
+RUN ./setup.sh
 
+# Fully isolated stage with rpm built from source
 FROM base AS full
 WORKDIR /srv/rpm
 COPY . .

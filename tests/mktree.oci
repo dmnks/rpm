@@ -26,10 +26,11 @@ else
 fi
 
 CACHE_DIR="mktree.cache"
+INST_DIR="mktree.instdir"
 IID_FILE="$CACHE_DIR/image-id"
 IMAGE_ID=$(cat $IID_FILE 2>/dev/null || echo "")
 BASE_TAG="rpm/base:$(sha256sum Dockerfile | head -c8)"
-ARGS="-f Dockerfile $FROM $CONTEXT"
+ARGS="-f Dockerfile $FROM"
 ROOTLESS=$([ $(id -u) == 0 ] && echo 0 || echo 1)
 CMD=$1; shift
 
@@ -78,19 +79,18 @@ unshared()
 case $CMD in
     build) unshared
         # Build base image
-        $PODMAN build --target base -t $BASE_TAG $ARGS
+        $PODMAN build --target base -t $BASE_TAG $ARGS $CONTEXT
 
         # Add RPM install on top
         clean
         if [ $NATIVE == yes ]; then
             # Native build
-            rm -rf $PWD/destdir
-            make_install $PWD/destdir
-            $PODMAN build --target devel -v $PWD:/srv/build:ro,z \
-                          --iidfile=$IID_FILE $ARGS
+            rm -rf $PWD/$INST_DIR
+            make_install $PWD/$INST_DIR
+            $PODMAN build --target devel --iidfile=$IID_FILE $ARGS $PWD
         else
             # Standalone build
-            $PODMAN build --target full --iidfile=$IID_FILE $ARGS
+            $PODMAN build --target full --iidfile=$IID_FILE $ARGS $CONTEXT
         fi
     ;;
     check)
