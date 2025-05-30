@@ -26,6 +26,7 @@ else
 fi
 
 CACHE_DIR="mktree.cache"
+INST_DIR="mktree.instdir"
 IID_FILE="$CACHE_DIR/image-id"
 IMAGE_ID=$(cat $IID_FILE 2>/dev/null || echo "")
 BASE_TAG="rpm/base:$(sha256sum Dockerfile | head -c8)"
@@ -67,15 +68,8 @@ clean()
     $PODMAN rmi $IMAGE_ID >/dev/null
 }
 
-unshared()
-{
-    [ $(id -u) != 0 ] && [ $NATIVE == yes ] || return 0
-    $PODMAN unshare $0 $CMD "$@"
-    exit
-}
-
 case $CMD in
-    build) unshared
+    build)
         # Build base image
         $PODMAN build --target base -t $BASE_TAG -f Dockerfile $FROM $CONTEXT
 
@@ -83,12 +77,10 @@ case $CMD in
         clean
         if [ $NATIVE == yes ]; then
             # Native build
-            id=$($PODMAN create -t $BASE_TAG)
-            trap "$PODMAN kill $id >/dev/null; $PODMAN rm $id > /dev/null" EXIT
-            $PODMAN start $id
-            make_install $($PODMAN mount $id)
-            $PODMAN exec $id /usr/share/mktree/setup.sh
-            $PODMAN commit -q $id --iidfile=$IID_FILE
+            rm -rf "$PWD/$INST_DIR"
+            make_install $PWD/$INST_DIR
+            $PODMAN build --target devel --iidfile=$IID_FILE \
+                          -f Dockerfile $PWD/$INST_DIR
         else
             # Standalone build
             $PODMAN build --target full --iidfile=$IID_FILE \
