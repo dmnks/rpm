@@ -76,6 +76,11 @@ RUN rpm -e --nodeps --nodb \
 WORKDIR /
 CMD /bin/bash
 
+# Stage with rpm built natively on host
+FROM base AS devel
+COPY . /
+RUN /usr/share/mktree/setup.sh
+
 # Stage with rpm built in container
 FROM base AS full
 WORKDIR /srv/rpm
