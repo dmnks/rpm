@@ -9,7 +9,7 @@ if [ "$PROGRAM" == "mktree" ]; then
     # Running from build directory
     CMAKE=yes
     NATIVE=@MKTREE_NATIVE@
-    PODMAN=@PODMAN@
+    PODMAN="flatpak-spawn --host podman"
     CONTEXT=@CMAKE_SOURCE_DIR@
 else
     # Running from source directory
