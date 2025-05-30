@@ -2,6 +2,13 @@
 #
 # OCI-based mktree backend
 
+# TODO
+# - split install
+# - use podman cp
+# - remove unshared (was only needed for mounting)
+# - add cmake var for base image
+# - configure flatpak-spawn and base image in cmake
+
 set -e
 
 PROGRAM=$(basename $0)
