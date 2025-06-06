@@ -7,19 +7,18 @@ RPM-QUERYFORMAT(7)
 %[_WIDTH_]{_TAG_[:_FORMATTER_]}
 
 TODO:
-- formats table
 - rpm -v --querytags
 - array intro
+- add array syntax to SYNOPSIS
 - keep link to queryformat.md in index
 - refer to rpm-queryformat(7) instead of headerFormat()
-- add array syntax to SYNOPSIS
 - better doctext for headerFormat()
+- latest -> stable
 
 # DESCRIPTION
 
-*rpm* allows for displaying package metadata (tags) in plain text by specifying
-an output template, also called a _query format_, to be used in query
-operations.
+*rpm* allows for displaying package metadata (tags) in plain text, by specifying
+an output template (_query format_) for use in query operations.
 
 The template is a string that consists of literal text and *rpm* header tags
 enclosed in *%{* and *}*, for example *%{NAME}*. Special characters such as
@@ -68,8 +67,8 @@ See the tags documentation in *SEE ALSO* for more details.
 ## Formatters
 
 Tags in a query format are replaced by *rpm* with their textual representation
-by using a tag _formatter_. When you don't specify a formatter, the default
-*:string* will be used which only displays a bare-bones representation of the
+by using a tag _formatter_. If you don't specify one, the default *:string*
+formatter will be used which only displays a bare-bones representation of the
 tag with no extra formatting.
 
 To specify a different formatter, append its name after a colon following the
