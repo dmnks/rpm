@@ -7,7 +7,6 @@ RPM-QUERYFORMAT(7)
 %[_WIDTH_]{_TAG_[:_FORMATTER_]}
 
 TODO:
-- rpm -v --querytags
 - array intro
 - add array syntax to SYNOPSIS
 - keep link to queryformat.md in index
@@ -40,22 +39,23 @@ a package. To obtain a list of all the tags supported by the version of *rpm*
 installed on your system, run the following command:
 
 ```
-rpm --querytags
+rpm -v --querytags
 ```
 
-This will print a list of tag names, one per line, for example:
+This will print a list of tag names along with their internal numbers and types,
+one per line, for example:
 
 ```
-BUILDHOST
-BUILDTIME
-DESCRIPTION
-EPOCH
-INSTALLTIME
-NAME
-RELEASE
-SIZE
-SUMMARY
-VERSION
+BUILDHOST              1007 string
+BUILDTIME              1006 int32
+DESCRIPTION            1005 i18nstring
+EPOCH                  1003 int32
+INSTALLTIME            1008 int32
+NAME                   1000 string
+RELEASE                1002 string
+SIZE                   1009 int32
+SUMMARY                1004 i18nstring
+VERSION                1001 string
 ```
 
 Tags are case-insensitive. Each tag also has an implicit variant with the
