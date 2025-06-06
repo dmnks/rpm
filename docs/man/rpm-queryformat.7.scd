@@ -34,7 +34,7 @@ and in runtime scriptlets using the *-q* option in *rpm-spec*(5) files.
 Every *rpm* package has a set of metadata entries called _tags_ which describe
 various properties of the package, such as its name, version or file list. Tags
 are stored inside the package, in a binary section called the _header_. Each tag
-is either a string, number, binary blob, or an array of one of those types.
+is of type string, number, binary or array.
 
 You can use these tags in a query format to display the individual properties of
 a package. To obtain a list of all the tags supported by the version of *rpm*
@@ -81,7 +81,7 @@ tag, for example:
 
 This is useful for tags that are not stored in human-readable form, such as
 sizes or dates. Some formatters perform a more complex conversion of the tag
-data, such as wrapping it in XML or JSON, which can be useful for further
+data, such as wrapping it in XML or JSON markup, which can be useful for further
 processing.
 
 The following formatters are available:
