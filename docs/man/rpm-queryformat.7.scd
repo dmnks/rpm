@@ -32,7 +32,7 @@ and in runtime scriptlets using the *-q* option in *rpm-spec*(5) files.
 Every *rpm* package has a set of metadata entries called _tags_ which describe
 various properties of the package, such as its name, version or file list. Tags
 are stored inside the package, in a binary section called the _header_. Each tag
-is of type string, number, binary or array.
+is of type *string*, *int*, *blob* or *argv* (array).
 
 You can use these tags in a query format to display the individual properties of
 a package. To obtain a list of all the tags supported by the version of *rpm*
@@ -42,8 +42,8 @@ installed on your system, run the following command:
 rpm -v --querytags
 ```
 
-This will print a list of tag names along with their internal numbers and types,
-one per line, for example:
+This will print a list of available tag names along with their internal numbers
+and types, for example:
 
 ```
 BUILDHOST              1007 string
@@ -63,6 +63,7 @@ Tags are case-insensitive. Each tag also has an implicit variant with the
 format interchangeably.
 
 See the tags documentation in *SEE ALSO* for more details.
+
 
 ## Formatters
 
@@ -144,13 +145,13 @@ Note that some formatters are type specific, which means they can only be used
 with a specific tag type. If you attempt to use them with an incompatible type,
 *rpm* will replace them with a placeholder text, for example "(not a number)".
 
-## Field width
-
-Similarly to *printf*(3), you can specify the minimum width of a given tag when
-printed, by placing a number in between the *%* and *{* characters. Optionally,
-prefix the number with the *-* sign to left justify it.
-
 ## Arrays
+
+Tags that consist of multiple entries of a single type are called _arrays_. To
+iterate over an array, enclose the tag format in square brackets, for example:
+
+
+
 
 *rpm* uses many parallel arrays internally. For example, file sizes and file
 names are kept as an array of numbers and an array of strings, respectively,
@@ -221,6 +222,12 @@ for simple if/then/else branching, and has the following form:
 where _QF-DEFINED_ and _QF-UNDEFINED_ are query formats that should be expanded
 if _TAG_ is defined and undefined, respectively. Thus, query expressions can be
 nested.
+
+## Field width
+
+You can specify the minimum width of a given tag when printed, by placing a
+number in between the *%* and *{* characters, much like with *printf*(3).
+Optionally, prefix the number with the *-* sign to left justify it.
 
 # EXAMPLES
 ## Example 1. Query commands
