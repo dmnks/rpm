@@ -34,10 +34,10 @@ and in runtime scriptlets using the *-q* option in *rpm-spec*(5) files.
 
 ## Tags
 
-Every *rpm* package has a set of metadata records describing its properties,
-such as the name, version or file list. These records are called _tags_ and are
-stored inside the package, in a binary section called the _header_. Each tag has
-a name and data type.
+Every *rpm* package has a set of metadata entries called _tags_ which describe
+various properties of the package, such as its name, version or file list. Tags
+are stored inside the package, in a binary section called the _header_. Each tag
+is either a string, number, binary blob, or an array of one of those types.
 
 You can use these tags in a query format to display the individual properties of
 a package. To obtain a list of all the tags supported by the version of *rpm*
@@ -66,12 +66,14 @@ Tags are case-insensitive. Each tag also has an implicit variant with the
 *RPMTAG_* prefix, such as *RPMTAG_NAME*. Both variants can be used in a query
 format interchangeably.
 
+See the tags documentation in *SEE ALSO* for more details.
+
 ## Formatters
 
 Tags in a query format are replaced by *rpm* with their textual representation
 by using a tag _formatter_. When you don't specify a formatter, the default
-*:string:* will be used which only displays a bare-bones representation of the
-tag.
+*:string* will be used which only displays a bare-bones representation of the
+tag with no extra formatting.
 
 To specify a different formatter, append its name after a colon following the
 tag, for example:
@@ -80,9 +82,10 @@ tag, for example:
 %{INSTALLTIME:date}
 ```
 
-This is useful when displaying a tag that's not stored in human-readable form,
-such as a size or date. Some formatters perform a more complex conversion of the
-tag data, such as wrapping it in XML or JSON.
+This is useful for tags that are not stored in human-readable form, such as
+sizes or dates. Some formatters perform a more complex conversion of the tag
+data, such as wrapping it in XML or JSON, which can be useful for further
+processing.
 
 The following formatters are available:
 
