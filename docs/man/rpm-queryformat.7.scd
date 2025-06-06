@@ -128,7 +128,7 @@ The following formatters are available:
 |  *:shescape*
 :  Escape single quotes for use in a script
 |  *:string*
-:  Display string format. (default)
+:  Display string format (default)
 |  *:tagname*
 :  Display tag name
 |  *:tagnum*
@@ -142,7 +142,7 @@ The following formatters are available:
 
 Note that some formatters are type specific, which means they can only be used
 with a specific tag type. If you attempt to use them with an incompatible type,
-*rpm* will replace them with a placeholder text like "(not a number)".
+*rpm* will replace them with a placeholder text, for example "(not a number)".
 
 ## Field width
 
