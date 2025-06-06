@@ -86,84 +86,60 @@ processing.
 
 The following formatters are available:
 
-*:armor*
-	Wrap a public key in ASCII armor.
-
-*:arraysize*
-	Display number of elements in array tags.
-
-*:base64*
-	Encode binary data using base64.
-
-*:date*
-	Use *strftime*(3) "%c" format.
-
-*:day*
-	Use *strftime*(3) "%a %b %d %Y" format.
-
-*:depflags*
-	Format dependency comparison operator.
-
-*:deptype*
-	Format dependency type.
-
-*:expand*
-	Perform macro expansion.
-
-*:fflags*
-	Format file flags.
-
-*:fstate*
-	Format file state.
-
-*:fstatus*
-	Format file verify status.
-
-*:hashalgo*
-	Display hash algorithm name.
-
-*:hex*
-	Format in hexadecimal.
-
-*:octal*
-	Format in octal.
-
-*:humaniec*
-	Human readable number (in IEC 80000). The suffix K = 1024, M =
-	1048576, ...
-
-*:humansi*
-	Human readable number (in SI). The suffix K = 1000, M = 1000000, ...
-
-*:json*
-	Wrap data in JSON.
-
-*:perms*
-	Format file permissions.
-
-*:pgpsig*
-	Display signature fingerprint and time.
-
-*:shescape*
-	Escape single quotes for use in a script.
-
-*:string*
-	Display string format. (default)
-
-*:tagname*
-	Display tag name.
-
-*:tagnum*
-	Display tag number.
-
-*:triggertype*
-	Display trigger suffix.
-
-*:vflags*
-	File verification flags.
-
-*:xml*
-	Wrap data in simple XML markup.
+|[ *Name*
+:< *Action*
+|  *:armor*
+:  Wrap a public key in ASCII armor
+|  *:arraysize*
+:  Display number of elements in array tags
+|  *:base64*
+:  Encode binary data using base64
+|  *:date*
+:  Use *strftime*(3) "%c" format
+|  *:day*
+:  Use *strftime*(3) "%a %b %d %Y" format
+|  *:depflags*
+:  Format dependency comparison operator
+|  *:deptype*
+:  Format dependency type
+|  *:expand*
+:  Perform macro expansion
+|  *:fflags*
+:  Format file flags
+|  *:fstate*
+:  Format file state
+|  *:fstatus*
+:  Format file verify status
+|  *:hashalgo*
+:  Display hash algorithm name
+|  *:hex*
+:  Format in hexadecimal
+|  *:octal*
+:  Format in octal
+|  *:humaniec*
+:  Human readable number (in IEC 80000) where K = 1024, M = 1048576, ...
+|  *:humansi*
+:  Human readable number (in SI) where K = 1000, M = 1000000, ...
+|  *:json*
+:  Wrap data in JSON
+|  *:perms*
+:  Format file permissions
+|  *:pgpsig*
+:  Display signature fingerprint and time
+|  *:shescape*
+:  Escape single quotes for use in a script
+|  *:string*
+:  Display string format. (default)
+|  *:tagname*
+:  Display tag name
+|  *:tagnum*
+:  Display tag number
+|  *:triggertype*
+:  Display trigger suffix
+|  *:vflags*
+:  File verification flags
+|  *:xml*
+:  Wrap data in simple XML markup
 
 Note that some formatters are type specific, which means they can only be used
 with a specific tag type. If you attempt to use them with an incompatible type,
