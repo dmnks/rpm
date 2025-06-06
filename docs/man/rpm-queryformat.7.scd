@@ -145,10 +145,11 @@ Note that some formatters are type specific, which means they can only be used
 with a specific tag type. If you attempt to use them with an incompatible type,
 *rpm* will replace them with a placeholder text, for example "(not a number)".
 
-## Arrays
+## Loops
 
-Tags that consist of multiple entries of a single type are called _arrays_. To
-iterate over an array, enclose the tag format in square brackets, for example:
+You can cause a specific part of a query format (a _subformat_) to be repeated
+in the output by enclosing the subformat in square brackets and including a tag
+of type *argv* (array) in that subformat. That will cause 
 
 
 
