@@ -7,16 +7,13 @@ RPM-QUERYFORMAT(7)
 %[_WIDTH_]{_TAG_[:_FORMATTER_]}
 
 TODO:
-- binary tag type
-- some formatters are type specific
-- case-insensitive
+- formats table
 - rpm -v --querytags
 - array intro
 - keep link to queryformat.md in index
 - refer to rpm-queryformat(7) instead of headerFormat()
 - add array syntax to SYNOPSIS
 - better doctext for headerFormat()
-- formats table
 
 # DESCRIPTION
 
@@ -167,6 +164,10 @@ The following formatters are available:
 
 *:xml*
 	Wrap data in simple XML markup.
+
+Note that some formatters are type specific, which means they can only be used
+with a specific tag type. If you attempt to use them with an incompatible type,
+*rpm* will replace them with a placeholder text like "(not a number)".
 
 ## Field width
 
