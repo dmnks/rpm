@@ -4,41 +4,50 @@ RPM-QUERYFORMAT(7)
 *rpm-queryformat* - RPM query format
 
 # SYNOPSIS
+%[_WIDTH_]{_TAG_[:_FORMATTER_]}
 
-%[_WIDTH_]{_TAG_[:_FORMAT_]}
+TODO:
+- binary tag type
+- some formatters are type specific
+- case-insensitive
+- rpm -v --querytags
+- array intro
+- keep link to queryformat.md in index
+- refer to rpm-queryformat(7) instead of headerFormat()
+- add array syntax to SYNOPSIS
+- better doctext for headerFormat()
+- formats table
 
 # DESCRIPTION
 
-The *rpm* query format is a static string modeled after the standard *printf*(3)
-format. It uses *rpm* header tags enclosed in curly braces in place of
-conversion specifiers, and allows you to specify what package information should
-be printed in query operations and how it should be formatted.
+*rpm* allows for displaying package metadata (tags) in plain text by specifying
+an output template, also called a _query format_, to be used in query
+operations.
 
-Each _TAG_ in the string may specify an output _FORMAT_ to further customize the
-way it is displayed. Special characters such as newlines or tabs (with the
-exception of *\\0*), as well as the *printf*(3) field _WIDTH_, are also
-supported.
+The template is a string that consists of literal text and *rpm* header tags
+enclosed in *%{* and *}*, for example *%{NAME}*. Special characters such as
+*\\n* (newline) or *\\t* (tab), with the exception of *\\0* (null byte), are
+also supported.
 
-The string is accepted as an argument to the *--queryformat* option in *rpm*(8)
+The string is accepted as an argument to the *--queryformat* option in *rpm*(8),
 and in runtime scriptlets using the *-q* option in *rpm-spec*(5) files.
 
 ## Tags
 
-Every *rpm* package contains a set of meta-data records describing its
-properties, such as the name, version or file list. Each record is either a
-plain string or number, or an array of either type. These records are stored
-inside a package, in a section called the _header_, and are identified by unique
-names called _tags_. The individual records are also referred to as _tag data_.
+Every *rpm* package has a set of metadata records describing its properties,
+such as the name, version or file list. These records are called _tags_ and are
+stored inside the package, in a binary section called the _header_. Each tag has
+a name and data type.
 
-You can use these tags in the query format to display the individual properties
-of a package. To obtain a list of all the tags supported by the version of *rpm*
+You can use these tags in a query format to display the individual properties of
+a package. To obtain a list of all the tags supported by the version of *rpm*
 installed on your system, run the following command:
 
 ```
 rpm --querytags
 ```
 
-This will print a list of tags, one per line, for example:
+This will print a list of tag names, one per line, for example:
 
 ```
 BUILDHOST
@@ -53,26 +62,29 @@ SUMMARY
 VERSION
 ```
 
-Each tag is case-insensitive and also has an implicit variant with the *RPMTAG_*
-prefix, such as *RPMTAG_NAME*, which points to the same record. Both variants
-can be used in the query format interchangeably.
+Tags are case-insensitive. Each tag also has an implicit variant with the
+*RPMTAG_* prefix, such as *RPMTAG_NAME*. Both variants can be used in a query
+format interchangeably.
 
-## Formats
+## Formatters
 
-Each tag is printed in a specific output _format_. When no format is specified,
-the default *:string* format is used which displays a bare-bones representation
-of the tag data. You can specify a different format for a tag by appending a
-colon followed by the format name to the tag name, for example:
+Tags in a query format are replaced by *rpm* with their textual representation
+by using a tag _formatter_. When you don't specify a formatter, the default
+*:string:* will be used which only displays a bare-bones representation of the
+tag.
+
+To specify a different formatter, append its name after a colon following the
+tag, for example:
 
 ```
 %{INSTALLTIME:date}
 ```
 
 This is useful when displaying a tag that's not stored in human-readable form,
-such as a size or date, or when you want to perform a formatting operation on
-the tag data before it's displayed, such as wrapping it in JSON.
+such as a size or date. Some formatters perform a more complex conversion of the
+tag data, such as wrapping it in XML or JSON.
 
-The following formats are available:
+The following formatters are available:
 
 *:armor*
 	Wrap a public key in ASCII armor.
