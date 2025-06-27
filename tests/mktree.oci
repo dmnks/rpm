@@ -32,7 +32,8 @@ else
     FROM=
 fi
 
-CACHE_DIR="mktree.cache"
+DEST_DIR="$PWD/mktree.destdir"
+CACHE_DIR="$PWD/mktree.cache"
 IID_FILE="$CACHE_DIR/image-id"
 IMAGE_ID=$(cat $IID_FILE 2>/dev/null || echo "")
 BASE_TAG="rpm/base:$(sha256sum Dockerfile | head -c8)"
@@ -43,7 +44,7 @@ CMD=$1; shift
 export ROOTLESS
 source mktree.common
 
-mkdir -p $CACHE_DIR
+mkdir -p $BUILD_DIR $CACHE_DIR
 
 rpmtests()
 {
@@ -94,7 +95,9 @@ case $CMD in
             id=$($PODMAN create -t $BASE_TAG)
             trap "$PODMAN kill $id >/dev/null; $PODMAN rm $id > /dev/null" EXIT
             $PODMAN start $id
-            make_install $($PODMAN mount $id)
+            rm -rf "$DEST_DIR"
+            make_install $DEST_DIR
+            $PODMAN cp $DEST_DIR/. $id:/
             $PODMAN exec $id /usr/share/mktree/setup.sh
             $PODMAN commit -q $id --iidfile=$IID_FILE
         else
