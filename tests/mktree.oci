@@ -78,14 +78,10 @@ case $CMD in
         clean
         if [ $NATIVE == yes ]; then
             # Native build
-            id=$($PODMAN create -t $BASE_TAG)
-            trap "$PODMAN kill $id >/dev/null; $PODMAN rm $id > /dev/null" EXIT
-            $PODMAN start $id
             rm -rf "$DEST_DIR"
             make_install $DEST_DIR
-            $PODMAN cp $DEST_DIR/. $id:/
-            $PODMAN exec $id /usr/share/mktree/setup.sh
-            $PODMAN commit -q $id --iidfile=$IID_FILE
+            $PODMAN build --target devel --iidfile=$IID_FILE \
+                          -f Dockerfile $DEST_DIR
         else
             # Standalone build
             $PODMAN build --target full --iidfile=$IID_FILE $ARGS
