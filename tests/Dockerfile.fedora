@@ -1,7 +1,10 @@
 # Supported Fedora releases: 41 42
+
+# Stage with only build dependencies and no rpm installation
 FROM registry.fedoraproject.org/fedora:42 AS base
 MAINTAINER rpm-maint@lists.rpm.org
 
+# Setup repositories
 RUN echo -e "deltarpm=0\ninstall_weak_deps=0\ntsflags=nodocs" >> /etc/dnf/dnf.conf
 RUN rpm --quiet -q fedora-repos-modular && rpm -e fedora-repos-modular ||:
 RUN sed -i -e "s:^enabled=.$:enabled=0:g" /etc/yum.repos.d/*openh264.repo
@@ -9,6 +12,8 @@ RUN sed -i -e "s:^enabled=.$:enabled=0:g" /etc/yum.repos.d/*openh264.repo
 RUN sed -i -e "s:^enabled=.$:enabled=0:g" /etc/yum.repos.d/*updates*.repo
 # dummy for controlling per-repo gpgcheck via Semaphore setup
 RUN sed -i -e "s:^gpgcheck=.$:gpgcheck=1:g" /etc/yum.repos.d/*.repo
+
+# Install build dependencies
 RUN dnf -y install \
   autoconf \
   bubblewrap \
@@ -57,8 +62,10 @@ RUN dnf -y install \
   sequoia-sq \
   libasan \
   libubsan
+
 # Incapacitate IMA, needed until #3234 lands in fedora
 RUN rm -f /usr/lib/rpm/macros.d/macros.transaction_ima
+
 # If updates to specific packages are needed, do it here
 RUN dnf -y --enablerepo=rawhide install "sequoia-sq >= 1.3" "rpm-sequoia >= 1.8" "crypto-policies >= 20250402"
 RUN dnf clean all
@@ -78,6 +85,7 @@ RUN rpm -e --nodeps --nodb \
 WORKDIR /
 CMD /bin/bash
 
+# Stage with rpm built in container
 FROM base AS full
 
 WORKDIR /srv/rpm
