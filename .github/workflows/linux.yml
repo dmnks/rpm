@@ -21,4 +21,4 @@ jobs:
         working-directory: ./tests
 
     env:
-      MKTREE_ENGINE: docker
+      MKTREE_ENGINE: podman

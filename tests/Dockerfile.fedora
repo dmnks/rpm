@@ -73,11 +73,11 @@ RUN dnf -y install \
 RUN dnf clean all
 
 # Install podman shim for use in toolbox containers
-RUN cat <<EOF > /usr/local/bin/podman
-#!/bin/bash
-exec flatpak-spawn --host podman "\$@"
-EOF
-RUN chmod +x /usr/local/bin/podman
+#RUN cat <<EOF > /usr/local/bin/podman
+##!/bin/bash
+#exec flatpak-spawn --host podman "\$@"
+#EOF
+#RUN chmod +x /usr/local/bin/podman
 
 # Workaround for pkgconf(1)'s unlisted dependency on rpm.
 # This is needed for cmake to work without an rpm installation.
