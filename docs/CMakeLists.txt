@@ -77,9 +77,11 @@ execute_process(
 set(data_files
 	_layouts
 	_data
+	_plugins
 	stylesheets
 	images
 )
+file(REMOVE ${CMAKE_BINARY_DIR}/rpm-web/_plugins/release.rb)
 foreach(file ${data_files})
 	file(COPY ${CMAKE_BINARY_DIR}/rpm-web/${file} DESTINATION ${site_dir})
 endforeach()
