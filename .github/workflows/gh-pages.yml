@@ -3,7 +3,7 @@ name: GitHub Pages deployment
 
 on:
   push:
-    branches: [master]
+    branches: [jekyll-unify]
     paths:
       - docs/**
 
@@ -37,15 +37,18 @@ jobs:
           podman run -v $PWD:/srv:z --workdir /srv/_build --rm rpm sh -c \
             "cmake -DWITH_DOXYGEN=ON .. && make pages"
 
+      - name: Install Jekyll
+        run: |
+          sudo apt update
+          sudo apt install jekyll
       - name: Setup Pages
+        id: pages
         uses: actions/configure-pages@v5
-
       - name: Build with Jekyll
-        uses: actions/jekyll-build-pages@v1
-        with:
-          source: ./_build/site
-          destination: ./_site
-
+        # Outputs to the './_site' directory by default
+        run: jekyll build --source _build/site --baseurl "${{ steps.pages.outputs.base_path }}"
+        env:
+          JEKYLL_ENV: production
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
 
