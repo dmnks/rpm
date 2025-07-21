@@ -1,7 +1,5 @@
 set(site_dir ${CMAKE_BINARY_DIR}/site)
-
-# Generates Jekyll source pages
-add_custom_target(pages)
+file(MAKE_DIRECTORY ${site_dir})
 
 if (WITH_DOXYGEN)
     find_package(Doxygen REQUIRED)
@@ -17,7 +15,6 @@ if (DOXYGEN_FOUND)
 	endif()
 	doxygen_add_docs(apidoc librpm/Doxyheader.h ${headers}
 			ALL USE_STAMP_FILE)
-	add_dependencies(pages apidoc)
 	install(DIRECTORY ${DOXYGEN_HTML_OUTPUT}/ DESTINATION ${CMAKE_INSTALL_DOCDIR}/API)
 endif()
 
@@ -58,59 +55,56 @@ set(manuals
 )
 install(FILES ${manuals} TYPE DOC)
 
-# Configure the Jekyll site to build
-set(site_files
-	_layouts/favicon.ico
-	_config.yml
-	man/manpage.css
-	man/index.md
-	${manuals}
-)
-file(MAKE_DIRECTORY ${site_dir})
-configure_file(index.md.in ${site_dir}/index.md @ONLY)
-foreach(file ${site_files})
-	configure_file(${file} ${site_dir}/${file} COPYONLY)
-endforeach()
+add_subdirectory(man)
 
-# Pull common site files from the main website repo
-set(main_git "https://github.com/rpm-software-management/rpm-web.git")
-set(main_dir ${site_dir}/root)
-set(main_files
-	_layouts/default.html
-	_layouts/redirected.html
-	_plugins/jekyll-relative-links.rb
-	_plugins/jekyll-relative-links/context.rb
-	_plugins/jekyll-relative-links/generator.rb
-)
-if(NOT EXISTS ${main_dir})
-	execute_process(COMMAND git clone ${main_git} ${main_dir})
-endif()
-foreach(file ${main_files})
-	configure_file(${main_dir}/${file} ${site_dir}/${file} COPYONLY)
-endforeach()
-
-if (PODMAN)
-	option(JEKYLL_SERVE "Serve site locally when built" ON)
-	set(JEKYLL_SOURCE_DIR ${site_dir} CACHE PATH "Directory to build from")
-
-	find_program(PODMAN podman REQUIRED)
-	mark_as_advanced(PODMAN)
-
-	set(image rpm/jekyll)
-	set(JEKYLL ${PODMAN} run -v ${JEKYLL_SOURCE_DIR}:/srv:z
-				 -it --rm -p 4000:4000 ${image})
-	if (JEKYLL_SERVE)
-		set(JEKYLL ${JEKYLL} serve --host 0.0.0.0)
-	else()
-		set(JEKYLL ${JEKYLL} build)
+if (ENABLE_JEKYLL)
+	# Generates Jekyll source pages
+	add_custom_target(pages)
+	if (TARGET apidoc)
+		add_dependencies(pages apidoc)
+	endif()
+	if (TARGET clidoc)
+		add_dependencies(pages clidoc)
 	endif()
 
-	add_custom_command(OUTPUT image
-		COMMAND ${PODMAN} build -t ${image} ${CMAKE_CURRENT_SOURCE_DIR}
-		COMMAND touch image
-		DEPENDS Containerfile
+	# Configure the Jekyll site to build
+	set(site_files
+		_layouts/favicon.ico
+		_config.yml
+		man/manpage.css
+		man/index.md
+		${manuals}
 	)
-	add_custom_target(site COMMAND ${JEKYLL} DEPENDS pages image)
-endif()
+	configure_file(index.md.in ${site_dir}/index.md @ONLY)
+	foreach(file ${site_files})
+		configure_file(${file} ${site_dir}/${file} COPYONLY)
+	endforeach()
 
-add_subdirectory(man)
+	# Pull common files from the root website repo
+	set(root_git "https://github.com/rpm-software-management/rpm-web.git")
+	set(root_dir ${site_dir}/root)
+	set(root_files
+		_layouts/default.html
+		_layouts/redirected.html
+		_plugins/jekyll-relative-links.rb
+		_plugins/jekyll-relative-links/context.rb
+		_plugins/jekyll-relative-links/generator.rb
+	)
+	if (NOT EXISTS ${root_dir})
+		execute_process(COMMAND git clone ${root_git} ${root_dir})
+	endif()
+	foreach(file ${root_files})
+		configure_file(${root_dir}/${file} ${site_dir}/${file} COPYONLY)
+	endforeach()
+
+	# TODO
+	find_program(JEKYLL jekyll)
+	mark_as_advanced(JEKYLL)
+
+	set(JEKYLL ${JEKYLL} serve --host 0.0.0.0)
+
+	add_custom_target(site
+		COMMAND ${JEKYLL}
+		DEPENDS pages
+		WORKING_DIRECTORY ${site_dir})
+endif()

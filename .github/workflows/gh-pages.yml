@@ -27,6 +27,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Install Jekyll
+        run: |
+          sudo apt update
+          sudo apt install jekyll
+
       - name: Build image
         run: |
           podman build --target base --tag rpm -f tests/Dockerfile .
@@ -35,12 +40,8 @@ jobs:
         run: |
           mkdir _build
           podman run -v $PWD:/srv:z --workdir /srv/_build --rm rpm sh -c \
-            "cmake -DWITH_DOXYGEN=ON .. && make pages"
+            "cmake -DENABLE_JEKYLL=ON -DWITH_DOXYGEN=ON .. && make pages"
 
-      - name: Install Jekyll
-        run: |
-          sudo apt update
-          sudo apt install jekyll
       - name: Setup Pages
         id: pages
         uses: actions/configure-pages@v5

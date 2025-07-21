@@ -26,6 +26,7 @@ add_custom_target(man ALL DEPENDS ${manuals})
 # Render Jekyll-ready HTML pages from the manuals
 if (SCD2HTML)
 	configure_file(mkpage.in mkpage @ONLY)
+	file(MAKE_DIRECTORY ${site_dir}/man)
 	set(manuals_html "")
 	foreach(man ${manuals})
 		set(file ${site_dir}/man/${man}.html)
@@ -35,7 +36,6 @@ if (SCD2HTML)
 				DEPENDS ${man}.scd mkpage)
 	endforeach()
 	add_custom_target(clidoc DEPENDS ${manuals_html})
-	add_dependencies(pages clidoc)
 endif()
 
 # Install manuals for the enabled features
