@@ -72,19 +72,21 @@ foreach(file ${site_files})
 	configure_file(${file} ${site_dir}/${file} COPYONLY)
 endforeach()
 
-execute_process(
-	COMMAND sh -c "[ -d rpm-web ] || git clone https://github.com/rpm-software-management/rpm-web.git"
+# Pull common site files from the main website repo
+set(main_git "https://github.com/rpm-software-management/rpm-web.git")
+set(main_dir ${site_dir}/root)
+set(main_files
+	_layouts/default.html
+	_layouts/redirected.html
+	_plugins/jekyll-relative-links.rb
+	_plugins/jekyll-relative-links/context.rb
+	_plugins/jekyll-relative-links/generator.rb
 )
-set(data_files
-	_layouts
-	_data
-	_plugins
-	stylesheets
-	images
-)
-file(REMOVE ${CMAKE_BINARY_DIR}/rpm-web/_plugins/release.rb)
-foreach(file ${data_files})
-	file(COPY ${CMAKE_BINARY_DIR}/rpm-web/${file} DESTINATION ${site_dir})
+if(NOT EXISTS ${main_dir})
+	execute_process(COMMAND git clone ${main_git} ${main_dir})
+endif()
+foreach(file ${main_files})
+	configure_file(${main_dir}/${file} ${site_dir}/${file} COPYONLY)
 endforeach()
 
 if (PODMAN)

@@ -1,1 +1,2 @@
 homeurl: https://rpm.org
+exclude: ["root"]
