@@ -60,12 +60,10 @@ install(FILES ${manuals} TYPE DOC)
 
 # Configure the Jekyll site to build
 set(site_files
-	_layouts/default.html
-	_layouts/redirected.html
 	_layouts/favicon.ico
-	assets/css/manpage.css
+	_config.yml
+	man/manpage.css
 	man/index.md
-	Gemfile
 	${manuals}
 )
 file(MAKE_DIRECTORY ${site_dir})
@@ -73,6 +71,17 @@ configure_file(index.md.in ${site_dir}/index.md @ONLY)
 foreach(file ${site_files})
 	configure_file(${file} ${site_dir}/${file} COPYONLY)
 endforeach()
+
+if (ENABLE_JEKYLL)
+	execute_process(
+		COMMAND git clone /home/mdomonko/code/website/feature site
+		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+	)
+	execute_process(
+		COMMAND ./blah ${site_dir}
+		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/site
+	)
+endif()
 
 if (PODMAN)
 	find_program(PODMAN podman REQUIRED)
