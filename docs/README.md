@@ -37,15 +37,7 @@ directory (requires Podman):
     make site
 
 This builds the site in a container and then serves it locally at
-`http://0.0.0.0:4000` for preview.  You can further tweak this behavior with
-the following CMake options:
-
-- `JEKYLL_SERVE`: Set to `OFF` to just build the site, not serve it.  Default:
-  `ON`.
-- `JEKYLL_SOURCE_DIR`: The source path to build, useful for building the
-  [rpm-web](https://github.com/rpm-software-management/rpm-web) site locally
-  (e.g. in a dedicated CMake build directory).  Default:
-  `${CMAKE_BINARY_DIR}/site`.
+`http://0.0.0.0:4000` for preview.
 
 If you wish to render the site manually, prepare the source pages by running
 `make pages` and then follow the steps in [this
