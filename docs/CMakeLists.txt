@@ -76,13 +76,12 @@ endforeach()
 
 if (PODMAN)
 	option(JEKYLL_SERVE "Serve site locally when built" ON)
-	set(JEKYLL_SOURCE_DIR ${site_dir} CACHE PATH "Directory to build from")
 
 	find_program(PODMAN podman REQUIRED)
 	mark_as_advanced(PODMAN)
 
 	set(image rpm/jekyll)
-	set(JEKYLL ${PODMAN} run -v ${JEKYLL_SOURCE_DIR}:/srv:z
+	set(JEKYLL ${PODMAN} run -v ${site_dir}:/srv:z
 				 -it --rm -p 4000:4000 ${image})
 	if (JEKYLL_SERVE)
 		set(JEKYLL ${JEKYLL} serve --host 0.0.0.0)
