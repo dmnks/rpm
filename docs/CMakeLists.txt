@@ -75,19 +75,13 @@ foreach(file ${site_files})
 endforeach()
 
 if (PODMAN)
-	option(JEKYLL_SERVE "Serve site locally when built" ON)
-
 	find_program(PODMAN podman REQUIRED)
 	mark_as_advanced(PODMAN)
 
 	set(image rpm/jekyll)
 	set(JEKYLL ${PODMAN} run -v ${site_dir}:/srv:z
 				 -it --rm -p 4000:4000 ${image})
-	if (JEKYLL_SERVE)
-		set(JEKYLL ${JEKYLL} serve --host 0.0.0.0)
-	else()
-		set(JEKYLL ${JEKYLL} build)
-	endif()
+	set(JEKYLL ${JEKYLL} serve --host 0.0.0.0)
 
 	add_custom_command(OUTPUT image
 		COMMAND ${PODMAN} build -t ${image} ${CMAKE_CURRENT_SOURCE_DIR}

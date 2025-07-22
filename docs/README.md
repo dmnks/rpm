@@ -37,11 +37,7 @@ directory (requires Podman):
     make site
 
 This builds the site in a container and then serves it locally at
-`http://0.0.0.0:4000` for preview.  You can further tweak this behavior with
-the following CMake options:
-
-- `JEKYLL_SERVE`: Set to `OFF` to just build the site, not serve it.  Default:
-  `ON`.
+`http://0.0.0.0:4000` for preview.
 
 If you wish to render the site manually, prepare the source pages by running
 `make pages` and then follow the steps in [this
