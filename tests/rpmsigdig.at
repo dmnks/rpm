@@ -1586,6 +1586,45 @@ runroot rpmkeys --import /data/keys/*.pub
 
 RPMTEST_CHECK([
 cp "${RPMTEST}"/data/RPMS/hello-2.0-1.x86_64.rpm "${RPMTEST}"/tmp/
+runroot rpmsign --addsign /tmp/hello-2.0-1.x86_64.rpm &> /dev/null
+runroot rpmsign --addsign --key-id E8A62C0512B06B5D2183BA207F1C21F95F65BBE8 /tmp/hello-2.0-1.x86_64.rpm &> /dev/null
+runroot rpmkeys -Kv /tmp/hello-2.0-1.x86_64.rpm
+runroot rpm --nosignature -qp --qf '%{rsaheader:pgpsig}\n' /tmp/hello-2.0-1.x86_64.rpm | sed 's/, .\+,/,/'
+runroot ${RPM_CONFIGDIR_PATH}/rpmdump /tmp/hello-2.0-1.x86_64.rpm | grep '(Dsa)\|(Rsa)' | xargs -n3
+],
+[0],
+[/tmp/hello-2.0-1.x86_64.rpm:
+    Header OpenPGP V4 RSA/SHA512 signature, key fingerprint: 771b18d3d7baa28734333c424344591e1964c5fc: OK
+    Header SHA256 digest: OK
+    Payload SHA256 digest: OK
+RSA/SHA512, Key ID 4344591e1964c5fc
+tagno: 268 (Rsa)
+],
+[])
+
+RPMTEST_CHECK([
+cp "${RPMTEST}"/data/RPMS/hello-2.0-1.x86_64.rpm "${RPMTEST}"/tmp/
+runroot rpmsign --addsign /tmp/hello-2.0-1.x86_64.rpm &> /dev/null
+runroot rpmsign --addsign --rpmv6 /tmp/hello-2.0-1.x86_64.rpm &> /dev/null
+runroot rpmsign --addsign --rpmv6 --key-id 152BB32FD9CA982797E835CFB0645AEC757BF69E /tmp/hello-2.0-1.x86_64.rpm &> /dev/null
+runroot rpmkeys -Kv /tmp/hello-2.0-1.x86_64.rpm
+runroot rpm --nosignature -qp --qf '%{rsaheader:pgpsig}\n' /tmp/hello-2.0-1.x86_64.rpm | sed 's/, .\+,/,/'
+runroot ${RPM_CONFIGDIR_PATH}/rpmdump /tmp/hello-2.0-1.x86_64.rpm | grep '(Rsa\|Openpgp)' | xargs -n3
+],
+[0],
+[/tmp/hello-2.0-1.x86_64.rpm:
+    Header OpenPGP V4 EdDSA/SHA512 signature, key fingerprint: 152bb32fd9ca982797e835cfb0645aec757bf69e: OK
+    Header OpenPGP V4 RSA/SHA512 signature, key fingerprint: 771b18d3d7baa28734333c424344591e1964c5fc: OK
+    Header SHA256 digest: OK
+    Payload SHA256 digest: OK
+RSA/SHA512, Key ID 4344591e1964c5fc
+tagno: 268 (Rsa)
+tagno: 278 (Openpgp)
+],
+[])
+
+RPMTEST_CHECK([
+cp "${RPMTEST}"/data/RPMS/hello-2.0-1.x86_64.rpm "${RPMTEST}"/tmp/
 runroot rpmsign --addsign --rpmv6 /tmp/hello-2.0-1.x86_64.rpm &> /dev/null
 runroot rpmkeys -Kv /tmp/hello-2.0-1.x86_64.rpm
 ],
