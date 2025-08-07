@@ -397,6 +397,12 @@ static int haveSignature(rpmtd sigtd, Header sigh)
     return rc;
 }
 
+static int haveLegacySig(Header sigh)
+{
+    return headerIsEntry(sigh, RPMSIGTAG_RSA) ||
+	   headerIsEntry(sigh, RPMSIGTAG_DSA);
+}
+
 static int putSignature(Header sigh, rpmtd sigtd, int multisig, int ishdr,
 			rpmSignFlags flags)
 {
@@ -440,7 +446,10 @@ static int putSignature(Header sigh, rpmtd sigtd, int multisig, int ishdr,
 
 	if (sigtag) {
 	    sigtd->tag = sigtag;
-	    if (haveSignature(sigtd, sigh)) {
+	    if (haveLegacySig(sigh)) {
+		/* Only one legacy signature is allowed */
+		rc = 0;
+	    } else if (haveSignature(sigtd, sigh)) {
 		rc = 1;
 	    } else {
 		rc = (headerPut(sigh, sigtd, HEADERPUT_DEFAULT) == 0) ? -1 : 0;
@@ -459,12 +468,6 @@ static int putSignature(Header sigh, rpmtd sigtd, int multisig, int ishdr,
     }
 
     return rc;
-}
-
-static int haveLegacySig(Header sigh)
-{
-    return headerIsEntry(sigh, RPMSIGTAG_RSA) ||
-	   headerIsEntry(sigh, RPMSIGTAG_DSA);
 }
 
 static int addSignature(Header sigh, rpmSignFlags flags,
@@ -706,9 +709,6 @@ static int rpmSign(const char *rpm, int deleting, int flags)
     } else {
 	flags |= RPMSIGN_FLAG_RPMV4;
 	reserveTag = RPMSIGTAG_RESERVEDSPACE;
-	/* Ensure only one legacy signature is added if adding v6 signatures */
-	if ((flags & RPMSIGN_FLAG_RPMV6) && haveLegacySig(sigh))
-	    flags &= ~(RPMSIGN_FLAG_RPMV4|RPMSIGN_FLAG_RPMV3);
     }
 
     if (headerIsSource(h)) {
