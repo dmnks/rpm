@@ -1864,11 +1864,12 @@ runroot rpm -qp --qf '%{dsaheader:pgpsig}\n' test.rpm | sed 's/, .\+,/,/'
 runroot ${RPM_CONFIGDIR_PATH}/rpmdump test.rpm | grep 'Dsa' | xargs -n3
 exit $rc
 ],
-[0],
+[1],
 [EdDSA/SHA512, Key ID b0645aec757bf69e
 tagno: 267 (Dsa)
 ],
-[])
+[error: test.rpm already contains legacy signature
+])
 
 # Add native v3 signatures (EdDSA & ECDSA)
 RPMTEST_CHECK([
@@ -1879,11 +1880,12 @@ runroot rpm -qp --qf '%{siggpg:pgpsig}\n' test.rpm | sed 's/, .\+,/,/'
 runroot ${RPM_CONFIGDIR_PATH}/rpmdump test.rpm | grep 'Gpg' | xargs -n3
 exit $rc
 ],
-[0],
+[1],
 [EdDSA/SHA512, Key ID b0645aec757bf69e
 tagno: 1005 (Gpg)
 ],
-[])
+[error: test.rpm already contains legacy signature
+])
 
 # Add native v4 signatures (RSA & ECDSA)
 RPMTEST_CHECK([
@@ -1894,12 +1896,13 @@ runroot rpm -qp --qf '%{rsaheader:pgpsig}\n%{dsaheader:pgpsig}\n' test.rpm | sed
 runroot ${RPM_CONFIGDIR_PATH}/rpmdump test.rpm | grep '(Rsa\|Dsa)' | xargs -n3
 exit $rc
 ],
-[0],
+[1],
 [RSA/SHA512, Key ID 4344591e1964c5fc
 (none)
 tagno: 268 (Rsa)
 ],
-[])
+[error: test.rpm already contains legacy signature
+])
 
 # Add compat v4 signatures (RSA & ECDSA)
 RPMTEST_CHECK([
@@ -1957,14 +1960,14 @@ runroot rpm -qp --qf '%{rsaheader:pgpsig}\n%{dsaheader:pgpsig}\n%{siggpg:pgpsig}
 runroot ${RPM_CONFIGDIR_PATH}/rpmdump test.rpm | grep '(Rsa\|Dsa\|Gpg)' | xargs -n3
 exit $rc
 ],
-[0],
+[1],
 [RSA/SHA512, Key ID 4344591e1964c5fc
 (none)
-ECDSA/SHA512, Key ID 7f1c21f95f65bbe8
+(none)
 tagno: 268 (Rsa)
-tagno: 1005 (Gpg)
 ],
-[])
+[error: test.rpm already contains legacy signature
+])
 
 # Add compat v4 and v3 signatures (RSA & ECDSA)
 RPMTEST_CHECK([
