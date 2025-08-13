@@ -1855,6 +1855,36 @@ EOF
 runroot sq key import /data/keys/*.secret
 runroot rpmkeys --import /data/keys/*.pub
 
+# Native v4 signature should only be added on first call, fail on next
+# EdDSA & ECDSA
+RPMTEST_CHECK([
+cp "${RPMTEST}"/data/RPMS/hello-2.0-1.x86_64.rpm "${RPMTEST}"/test.rpm
+runroot rpmsign --addsign --key-id 152BB32FD9CA982797E835CFB0645AEC757BF69E test.rpm
+runroot rpmsign --addsign --key-id E8A62C0512B06B5D2183BA207F1C21F95F65BBE8 test.rpm
+runroot rpm -qp --qf '%{dsaheader:pgpsig}\n' test.rpm | sed 's/, .\+,/,/'
+# Check that no duplicate signature tags are present
+runroot ${RPM_CONFIGDIR_PATH}/rpmdump test.rpm | grep 'Dsa' | xargs -n3
+],
+[0],
+[EdDSA/SHA512, Key ID b0645aec757bf69e
+tagno: 267 (Dsa)
+],
+[])
+
+# Native v4 signature should only be added on first call, fail on next
+# RSA & ECDSA
+RPMTEST_CHECK([
+cp "${RPMTEST}"/data/RPMS/hello-2.0-1.x86_64.rpm "${RPMTEST}"/test.rpm
+runroot rpmsign --addsign --key-id 771B18D3D7BAA28734333C424344591E1964C5FC test.rpm
+runroot rpmsign --addsign --key-id E8A62C0512B06B5D2183BA207F1C21F95F65BBE8 test.rpm
+runroot rpm -qp --qf '%{rsaheader:pgpsig}\n%{dsaheader:pgpsig}\n' test.rpm | sed 's/, .\+,/,/'
+],
+[0],
+[RSA/SHA512, Key ID 4344591e1964c5fc
+(none)
+],
+[])
+
 # Compat v4 signature should only be added on first call, skipped on next
 # RSA & ECDSA
 RPMTEST_CHECK([
@@ -1878,6 +1908,46 @@ runroot rpmsign --addsign --rpmv6 --key-id 771B18D3D7BAA28734333C424344591E1964C
 [0],
 [],
 [])
+
+# Preexisting v4 signature should not cause a v3 signature to be skipped
+RPMTEST_CHECK([
+cp "${RPMTEST}"/data/RPMS/hello-2.0-1.x86_64.rpm "${RPMTEST}"/test.rpm
+runroot rpmsign --addsign --key-id 771B18D3D7BAA28734333C424344591E1964C5FC test.rpm
+runroot rpmsign --addsign --rpmv6 --rpmv3 --key-id E8A62C0512B06B5D2183BA207F1C21F95F65BBE8 test.rpm
+runroot rpm -qp --qf '%{rsaheader:pgpsig}\n%{siggpg:pgpsig}\n' test.rpm | sed 's/, .\+,/,/'
+],
+[0],
+[RSA/SHA512, Key ID 4344591e1964c5fc
+ECDSA/SHA512, Key ID 7f1c21f95f65bbe8
+],
+[])
+RPMTEST_CLEANUP
+
+RPMTEST_SETUP_RW([rpmsign --addsign compat v6])
+AT_KEYWORDS([rpmsign signature multisig v6])
+RPMTEST_SKIP_IF([test x$PGP = xdummy])
+
+cat << EOF > ${HOME}/.config/rpm/macros
+%_openpgp_sign sq
+EOF
+runroot sq key import /data/keys/*.secret
+runroot rpmkeys --import /data/keys/*.pub
+runroot rpmbuild -bb --quiet --define "_rpmformat 6" /data/SPECS/attrtest.spec
+
+# Compat v4 signature should only be added on first call, skipped on next
+# RSA & ECDSA
+RPMTEST_CHECK([
+cp "${RPMTEST}"/build/RPMS/noarch/attrtest-1.0-1.noarch.rpm "${RPMTEST}"/test.rpm
+runroot rpmsign --addsign --rpmv4 --key-id 771B18D3D7BAA28734333C424344591E1964C5FC test.rpm
+runroot rpmsign --addsign --rpmv4 --key-id E8A62C0512B06B5D2183BA207F1C21F95F65BBE8 test.rpm
+runroot rpm -qp --qf '%{rsaheader:pgpsig}\n%{dsaheader:pgpsig}\n' test.rpm | sed 's/, .\+,/,/'
+],
+[0],
+[RSA/SHA512, Key ID 4344591e1964c5fc
+(none)
+],
+[])
+RPMTEST_CLEANUP
 
 # ------------------------------
 # Test --delsign
