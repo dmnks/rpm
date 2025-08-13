@@ -397,6 +397,12 @@ static int haveSignature(rpmtd sigtd, Header sigh)
     return rc;
 }
 
+static int haveLegacySig(Header sigh)
+{
+    return headerIsEntry(sigh, RPMSIGTAG_RSA) ||
+	   headerIsEntry(sigh, RPMSIGTAG_DSA);
+}
+
 static int putSignature(Header sigh, rpmtd sigtd, int multisig, int ishdr,
 			rpmSignFlags flags)
 {
@@ -459,12 +465,6 @@ static int putSignature(Header sigh, rpmtd sigtd, int multisig, int ishdr,
     }
 
     return rc;
-}
-
-static int haveLegacySig(Header sigh)
-{
-    return headerIsEntry(sigh, RPMSIGTAG_RSA) ||
-	   headerIsEntry(sigh, RPMSIGTAG_DSA);
 }
 
 static int addSignature(Header sigh, rpmSignFlags flags,
