@@ -1845,6 +1845,40 @@ runroot ${RPM_CONFIGDIR_PATH}/rpmdump /build/RPMS/noarch/attrtest-1.0-1.noarch.r
 [])
 RPMTEST_CLEANUP
 
+RPMTEST_SETUP_RW([rpmsign --addsign compat v4])
+AT_KEYWORDS([rpmsign signature multisig v4])
+RPMTEST_SKIP_IF([test x$PGP = xdummy])
+
+cat << EOF > ${HOME}/.config/rpm/macros
+%_openpgp_sign sq
+EOF
+runroot sq key import /data/keys/*.secret
+runroot rpmkeys --import /data/keys/*.pub
+
+# Compat v4 signature should only be added on first call, skipped on next
+# RSA & ECDSA
+RPMTEST_CHECK([
+cp "${RPMTEST}"/data/RPMS/hello-2.0-1.x86_64.rpm "${RPMTEST}"/test.rpm
+runroot rpmsign --addsign --rpmv6 --key-id 771B18D3D7BAA28734333C424344591E1964C5FC test.rpm
+runroot rpmsign --addsign --rpmv6 --key-id E8A62C0512B06B5D2183BA207F1C21F95F65BBE8 test.rpm
+runroot rpm -qp --qf '%{rsaheader:pgpsig}\n%{dsaheader:pgpsig}\n' test.rpm | sed 's/, .\+,/,/'
+],
+[0],
+[RSA/SHA512, Key ID 4344591e1964c5fc
+(none)
+],
+[])
+
+# Identical v4 signature should not cause a warning
+RPMTEST_CHECK([
+cp "${RPMTEST}"/data/RPMS/hello-2.0-1.x86_64.rpm "${RPMTEST}"/test.rpm
+runroot rpmsign --addsign --key-id 771B18D3D7BAA28734333C424344591E1964C5FC test.rpm
+runroot rpmsign --addsign --rpmv6 --key-id 771B18D3D7BAA28734333C424344591E1964C5FC test.rpm
+],
+[0],
+[],
+[])
+
 # ------------------------------
 # Test --delsign
 RPMTEST_SETUP([rpmsign --delsign])
