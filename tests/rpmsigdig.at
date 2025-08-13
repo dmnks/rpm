@@ -1881,8 +1881,7 @@ runroot ${RPM_CONFIGDIR_PATH}/rpmdump test.rpm | grep 'Dsa' | xargs -n3
 exit $rc
 ],
 [0],
-[ECDSA/SHA512, Key ID 7f1c21f95f65bbe8
-tagno: 267 (Dsa)
+[EdDSA/SHA512, Key ID b0645aec757bf69e
 tagno: 267 (Dsa)
 ],
 [])
@@ -1898,8 +1897,7 @@ exit $rc
 ],
 [0],
 [RSA/SHA512, Key ID 4344591e1964c5fc
-ECDSA/SHA512, Key ID 7f1c21f95f65bbe8
-tagno: 267 (Dsa)
+(none)
 tagno: 268 (Rsa)
 ],
 [])
@@ -1949,8 +1947,8 @@ exit $rc
 [0],
 [RSA/SHA512, Key ID 4344591e1964c5fc
 tagno: 268 (Rsa)
-(none)
-
+ECDSA/SHA512, Key ID 7f1c21f95f65bbe8
+tagno: 267 (Dsa)
 ],
 [])
 RPMTEST_CLEANUP
@@ -1977,8 +1975,7 @@ exit $rc
 ],
 [0],
 [RSA/SHA512, Key ID 4344591e1964c5fc
-ECDSA/SHA512, Key ID 7f1c21f95f65bbe8
-tagno: 267 (Dsa)
+(none)
 tagno: 268 (Rsa)
 ],
 [])
