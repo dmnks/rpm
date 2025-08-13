@@ -1860,30 +1860,34 @@ runroot rpmkeys --import /data/keys/*.pub
 RPMTEST_CHECK([
 cp "${RPMTEST}"/data/RPMS/hello-2.0-1.x86_64.rpm "${RPMTEST}"/test.rpm
 runroot rpmsign --addsign --key-id 152BB32FD9CA982797E835CFB0645AEC757BF69E test.rpm
-runroot rpmsign --addsign --key-id E8A62C0512B06B5D2183BA207F1C21F95F65BBE8 test.rpm
+runroot rpmsign --addsign --key-id E8A62C0512B06B5D2183BA207F1C21F95F65BBE8 test.rpm; rc=$?
 runroot rpm -qp --qf '%{dsaheader:pgpsig}\n' test.rpm | sed 's/, .\+,/,/'
 # Check that no duplicate signature tags are present
 runroot ${RPM_CONFIGDIR_PATH}/rpmdump test.rpm | grep 'Dsa' | xargs -n3
+exit $rc
 ],
-[0],
+[1],
 [EdDSA/SHA512, Key ID b0645aec757bf69e
 tagno: 267 (Dsa)
 ],
-[])
+[error: test.rpm already contains legacy signature
+])
 
 # Native v4 signature should only be added on first call, fail on next
 # RSA & ECDSA
 RPMTEST_CHECK([
 cp "${RPMTEST}"/data/RPMS/hello-2.0-1.x86_64.rpm "${RPMTEST}"/test.rpm
 runroot rpmsign --addsign --key-id 771B18D3D7BAA28734333C424344591E1964C5FC test.rpm
-runroot rpmsign --addsign --key-id E8A62C0512B06B5D2183BA207F1C21F95F65BBE8 test.rpm
+runroot rpmsign --addsign --key-id E8A62C0512B06B5D2183BA207F1C21F95F65BBE8 test.rpm; rc=$?
 runroot rpm -qp --qf '%{rsaheader:pgpsig}\n%{dsaheader:pgpsig}\n' test.rpm | sed 's/, .\+,/,/'
+exit $rc
 ],
-[0],
+[1],
 [RSA/SHA512, Key ID 4344591e1964c5fc
 (none)
 ],
-[])
+[error: test.rpm already contains legacy signature
+])
 
 # Compat v4 signature should only be added on first call, skipped on next
 # RSA & ECDSA
