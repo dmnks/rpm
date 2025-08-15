@@ -706,9 +706,6 @@ static int rpmSign(const char *rpm, int deleting, int flags)
     } else {
 	flags |= RPMSIGN_FLAG_RPMV4;
 	reserveTag = RPMSIGTAG_RESERVEDSPACE;
-	/* Ensure only one legacy signature is added if adding v6 signatures */
-	if ((flags & RPMSIGN_FLAG_RPMV6) && haveLegacySig(sigh))
-	    flags &= ~(RPMSIGN_FLAG_RPMV4|RPMSIGN_FLAG_RPMV3);
     }
 
     if (headerIsSource(h)) {
@@ -752,6 +749,9 @@ static int rpmSign(const char *rpm, int deleting, int flags)
 
 	if (flags & RPMSIGN_FLAG_RESIGN)
 	    deleteSigs(sigh);
+	else if (haveLegacySig(sigh)) {
+	    flags &= ~(RPMSIGN_FLAG_RPMV4 | RPMSIGN_FLAG_RPMV3);
+	}
 
 	res = addSignature(sigh, flags, &sigt_v3, &sigt_v4);
 	if (res != 0) {

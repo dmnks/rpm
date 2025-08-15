@@ -1433,10 +1433,14 @@ RPMTEST_CHECK([
 RPMKEYRING_RESET
 
 cp "${RPMTEST}"/data/RPMS/hello-2.0-1.x86_64-signed.rpm "${RPMTEST}"/tmp/
-runroot rpmsign --key-id 4344591E1964C5FC --digest-algo sha256 --addsign /tmp/hello-2.0-1.x86_64-signed.rpm 2>&1 |grep -q "already contains identical signature, skipping"
+runroot rpmsign --key-id 4344591E1964C5FC --digest-algo sha256 --addsign /tmp/hello-2.0-1.x86_64-signed.rpm
+runroot rpmkeys -Kv /tmp/hello-2.0-1.x86_64-signed.rpm|grep -vE '(digest|signature):'
 ],
 [0],
-[],
+[/tmp/hello-2.0-1.x86_64-signed.rpm:
+    Header OpenPGP V4 RSA/SHA256 signature, key ID 4344591e1964c5fc: NOKEY
+    Legacy OpenPGP V4 RSA/SHA256 signature, key ID 4344591e1964c5fc: NOKEY
+],
 [])
 
 # rpmsign --addsign corrupted md5 hash
@@ -1865,8 +1869,7 @@ runroot ${RPM_CONFIGDIR_PATH}/rpmdump test.rpm | grep 'Dsa' | xargs -n3
 exit $rc
 ],
 [0],
-[ECDSA/SHA512, Key ID 7f1c21f95f65bbe8
-tagno: 267 (Dsa)
+[EdDSA/SHA512, Key ID b0645aec757bf69e
 tagno: 267 (Dsa)
 ],
 [])
@@ -1881,8 +1884,7 @@ runroot ${RPM_CONFIGDIR_PATH}/rpmdump test.rpm | grep 'Gpg' | xargs -n3
 exit $rc
 ],
 [0],
-[ECDSA/SHA512, Key ID 7f1c21f95f65bbe8
-tagno: 1005 (Gpg)
+[EdDSA/SHA512, Key ID b0645aec757bf69e
 tagno: 1005 (Gpg)
 ],
 [])
@@ -1898,8 +1900,7 @@ exit $rc
 ],
 [0],
 [RSA/SHA512, Key ID 4344591e1964c5fc
-ECDSA/SHA512, Key ID 7f1c21f95f65bbe8
-tagno: 267 (Dsa)
+(none)
 tagno: 268 (Rsa)
 ],
 [])
@@ -1933,8 +1934,7 @@ exit $rc
 [RSA/SHA512, Key ID 4344591e1964c5fc
 tagno: 268 (Rsa)
 ],
-[warning: test.rpm already contains identical signature, skipping
-])
+[])
 
 # Add missing v6 signature (RSA)
 RPMTEST_CHECK([
@@ -1962,11 +1962,9 @@ exit $rc
 ],
 [0],
 [RSA/SHA512, Key ID 4344591e1964c5fc
-ECDSA/SHA512, Key ID 7f1c21f95f65bbe8
-ECDSA/SHA512, Key ID 7f1c21f95f65bbe8
-tagno: 267 (Dsa)
+(none)
+(none)
 tagno: 268 (Rsa)
-tagno: 1005 (Gpg)
 ],
 [])
 
@@ -2000,8 +1998,8 @@ exit $rc
 [0],
 [RSA/SHA512, Key ID 4344591e1964c5fc
 tagno: 268 (Rsa)
-(none)
-
+ECDSA/SHA512, Key ID 7f1c21f95f65bbe8
+tagno: 267 (Dsa)
 ],
 [])
 RPMTEST_CLEANUP
@@ -2028,8 +2026,7 @@ exit $rc
 ],
 [0],
 [RSA/SHA512, Key ID 4344591e1964c5fc
-ECDSA/SHA512, Key ID 7f1c21f95f65bbe8
-tagno: 267 (Dsa)
+(none)
 tagno: 268 (Rsa)
 ],
 [])
