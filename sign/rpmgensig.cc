@@ -751,6 +751,13 @@ static int rpmSign(const char *rpm, int deleting, int flags)
 	    deleteSigs(sigh);
 	else if (haveLegacySig(sigh)) {
 	    flags &= ~(RPMSIGN_FLAG_RPMV4 | RPMSIGN_FLAG_RPMV3);
+	    if (!(flags & RPMSIGN_FLAG_RPMV6)) {
+		rpmlog(RPMLOG_ERR,
+		   _("%s already contains legacy signature\n"), rpm);
+		/* Existing signature is an error */
+		res = -1;
+		goto exit;
+	    }
 	}
 
 	res = addSignature(sigh, flags, &sigt_v3, &sigt_v4);
