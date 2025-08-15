@@ -440,11 +440,7 @@ static int putSignature(Header sigh, rpmtd sigtd, int multisig, int ishdr,
 
 	if (sigtag) {
 	    sigtd->tag = sigtag;
-	    if (haveSignature(sigtd, sigh)) {
-		rc = 1;
-	    } else {
-		rc = (headerPut(sigh, sigtd, HEADERPUT_DEFAULT) == 0) ? -1 : 0;
-	    }
+	    rc = (headerPut(sigh, sigtd, HEADERPUT_DEFAULT) == 0) ? -1 : 0;
 	    sigtd->tag = pubkey_algo;
 	} else {
 	    /* If we did a v6 signature, we can ignore the error here */
