@@ -51,7 +51,7 @@ prefix. The magic REs are matched against the result of libmagic classification
 stored in the package (see *--fileclass* in *rpm*(8) for details).
 
 See the *%\_\_NAME\_flags* macro for how to control which of the two inclusion
-rules should be used.
+rules should be used and when.
 
 ## Flags
 
