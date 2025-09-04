@@ -19,8 +19,28 @@ in *rpm-spec*(5) files.
 
 # FILE ATTRIBUTES
 
+File attributes are configurable labels that represent files from a specific
+domain or with a shared purpose, such as ELF binaries, executable scripts or
+system font configuration. RPM uses these labels in order to narrow down the
+list of files that have to be passed to generators and thus improve the package
+build performance.
 
+A file attribute is introduced with a predetermined set of *rpm-macros*(7) that
+start with the prefix *%\_\_NAME*, where *NAME* is the name of the file
+attribute. These macros are stored in an *rpm-macrofile*(5) with the same name,
+followed by the _.attr_ suffix and placed into the directory specified by the
+*%{\_fileattrs}* macro, typically _/usr/lib/rpm/fileattrs/_.
 
+The following file attribute macros are recognized:
+
+```
+%__NAME_path
+%__NAME_magic
+%__NAME_flags
+%__NAME_exclude_path
+%__NAME_exclude_magic
+%__NAME_exclude_flags
+```
 
 # GENERATORS
 ## External Generators (DEPRECATED)
