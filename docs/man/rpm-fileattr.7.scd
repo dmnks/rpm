@@ -8,7 +8,7 @@ RPM-FILEATTR(7)
 # DESCRIPTION
 
 RPM uses a pluggable dependency generation system that automatically detects and
-adds dependency information to packages during the build process. This works by
+adds dependency information to packages during the build process. It works by
 scanning files in the buildroot and assigning them logical labels, called _file
 attributes_. Specialized executables, called _generators_, are then invoked for
 each attribute and its files, in order to produce a list of dependencies for the
@@ -32,20 +32,23 @@ and are described in the subsections below.
 
 ## Rules
 
-Two rule macros are currently supported:
+Rule macros are extended regular expressions (RE) used by RPM to match files
+against. If a file matches either or both of these rules, the file is said to
+_have_ the file attribute in question. The following rule macros are currently
+supported:
 
 ```
 %__NAME_path
 %__NAME_magic
 ```
 
-When RPM scans files to assign them file attributes, it does that by matching
-files against either or both of these macros (see *%\_\_NAME_flags* for how to
-control this), both of which are extended regular expressions (RE). The path RE
-is matched against the packaged path, without the *%{buildroot}* prefix. The
-magic RE is matched against the result of libmagic classification (see *file*(1)
-and *magic*(5) for details) and possibly the *FILECLASS* tag stored in the
-package (see *--fileclass* in *rpm*(8) for details).
+The path RE is matched against the packaged path, without the *%{buildroot}*
+prefix. The magic RE is matched against the result of libmagic classification
+(see *file*(1) and *magic*(5) for details) and possibly the *FILECLASS* tag
+stored in the package (see *--fileclass* in *rpm*(8) for details).
+
+See the *%\_\_NAME\_flags* macro for how to control which of these rules should
+be used when matching.
 
 ## Flags
 
