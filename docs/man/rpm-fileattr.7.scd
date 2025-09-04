@@ -33,22 +33,25 @@ and are described in the subsections below.
 ## Rules
 
 Rule macros are extended regular expressions (RE) used by RPM to match files
-against. If a file matches either or both of these rules, the file is said to
-_have_ the file attribute in question. The following rule macros are currently
-supported:
+against. If a file matches either of the inclusion and none of the exclusion
+rules, then the file is said to _have_ the attribute in question.
+
+The following inclusion and exclusion macros are currently supported:
 
 ```
 %__NAME_path
 %__NAME_magic
+%__NAME_exclude_path
+%__NAME_exclude_magic
 ```
 
-The path RE is matched against the packaged path, without the *%{buildroot}*
-prefix. The magic RE is matched against the result of libmagic classification
+The path REs are matched against the packaged path, without the *%{buildroot}*
+prefix. The magic REs are matched against the result of libmagic classification
 (see *file*(1) and *magic*(5) for details) and possibly the *FILECLASS* tag
 stored in the package (see *--fileclass* in *rpm*(8) for details).
 
-See the *%\_\_NAME\_flags* macro for how to control which of these rules should
-be used when matching.
+See the *%\_\_NAME\_flags* macro for how to control which of the two inclusion
+rules should be used.
 
 ## Flags
 
