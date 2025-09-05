@@ -42,15 +42,30 @@ The following inclusion and exclusion macros are currently supported:
 %__NAME_exclude_magic
 ```
 
-The path REs are matched against the packaged path, without the *%{buildroot}*
-prefix. The magic REs are matched against the result of libmagic classification
-(see *file*(1) and *magic*(5) for details) and possibly the *FILECLASS* tag
-stored in the package (see *--fileclass* in *rpm*(8) for details).
+The path REs are matched against the packaged path, that is, without the
+*%{buildroot}* prefix (for example, */bin/bash*). The magic REs are matched
+against the result of libmagic classification (see *file*(1) and *magic*(5) for
+details) and possibly the *FILECLASS* tag stored in the package (see
+*--fileclass* in *rpm*(8) for details).
 
 See the *%\_\_NAME\_flags* macro for how to control which of the two inclusion
-rules should be used and when.
+and exclusion rules should be used and when.
 
 ## Flags
+
+Flags allow for fine-tuning the inclusion and exclusion rule matching. They are
+specified with the following macros, which take a comma-separated list of flag
+names:
+
+```
+%__NAME_flags
+%__NAME_exclude_flags
+```
+
+The following flags are currently supported:
+
+- *exeonly*: require executable bit set
+- *magic_and_path*: require both magic and pattern to match
 
 ## Options
 
