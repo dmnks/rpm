@@ -17,15 +17,15 @@ information from them, and is intended to complement the explicit *Requires* and
 # FILE ATTRIBUTES
 
 File attributes are logical labels assigned by RPM to files in the buildroot.
-They represent specific file types or domains, such as ELF binaries, executable
-scripts or font configuration. RPM uses these attributes in order to narrow down
-the list of files that have to be passed to generators, improving the package
-build performance.
+They represent specific file types as well as broader domains, such as ELF
+binaries, executable scripts or font configuration. RPM uses these attributes in
+order to narrow down the list of files that have to be passed to generators,
+improving the package build performance.
 
 A file attribute is introduced with a predetermined set of *rpm-macros*(7) that
 start with the prefix *%\_\_NAME*, where *NAME* is the name of the file
-attribute. These macros can be categorized as _rules_, _flags_ and _options_,
-and are described in the subsections below.
+attribute. These macros can be categorized as _rules_ and _flags_, and are
+described in the subsections below.
 
 ## Rules
 
@@ -66,8 +66,6 @@ The following flags are currently supported:
 
 - *exeonly*: require executable bit set
 - *magic_and_path*: require both magic and pattern to match
-
-## Options
 
 
 
