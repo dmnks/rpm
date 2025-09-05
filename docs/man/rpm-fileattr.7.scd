@@ -11,15 +11,15 @@ RPM uses a plug-in dependency generator interface coupled with a file classifier
 to automatically detect dependencies in packages during the build process. This
 system relies on specialized executables called _generators_ which do the heavy
 lifting of inspecting files in their area of expertise and extracting dependency
-information from them, and is designed to complement the explicit *Requires* and
+information from them, and is intended to complement the explicit *Requires* and
 *Provides* tags in *rpm-spec*(5) files.
 
 # FILE ATTRIBUTES
 
-File attributes are configurable labels that represent files from a specific
-domain or with a shared purpose, such as ELF binaries, executable scripts or
-system font configuration. RPM uses these attributes in order to narrow down the
-list of files that have to be passed to generators and thus improve the package
+File attributes are logical labels assigned by RPM to files in the buildroot.
+They represent specific file types or domains, such as ELF binaries, executable
+scripts or font configuration. RPM uses these attributes in order to narrow down
+the list of files that have to be passed to generators, improving the package
 build performance.
 
 A file attribute is introduced with a predetermined set of *rpm-macros*(7) that
