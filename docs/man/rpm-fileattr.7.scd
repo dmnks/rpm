@@ -7,15 +7,12 @@ RPM-FILEATTR(7)
 
 # DESCRIPTION
 
-RPM uses a pluggable dependency generation system that automatically detects and
-adds dependency information to packages during the build process. It works by
-scanning files in the buildroot and assigning them logical labels, called _file
-attributes_. Specialized executables, called _generators_, are then invoked for
-each attribute and its files, in order to produce a list of dependencies for the
-package.
-
-This system is meant to complement the explicit *Requires* and *Provides* tags
-in *rpm-spec*(5) files.
+RPM uses a plug-in dependency generator interface coupled with a file classifier
+to automatically detect dependencies in packages during the build process. This
+system relies on specialized executables called _generators_ which do the heavy
+lifting of inspecting files in their area of expertise and extracting dependency
+information from them, and is designed to complement the explicit *Requires* and
+*Provides* tags in *rpm-spec*(5) files.
 
 # FILE ATTRIBUTES
 
