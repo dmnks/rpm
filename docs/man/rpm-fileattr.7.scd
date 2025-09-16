@@ -7,11 +7,12 @@ RPM-FILEATTR(7)
 
 # DESCRIPTION
 
-RPM allows for registering _file attributes_ (labels assigned to files in the
-buildroot) and the associated _file handlers_ (parametric macros or executables)
-to be used for domain-specific tasks when building packages. This mechanism is
-currently only used for automatic dependency generation, which is described in
-*rpm-autodeps*(7).
+File attributes are simple labels that RPM gives to files in the buildroot based
+on a set of matching rules. These attributes are distinct from the standard file
+metadata on disk and are only kept in memory during package builds. They can be
+defined in a dedicated *rpm-macrofile*(5) or directly in an *rpm-spec*(5) file.
+
+Currently, file attributes can be associated with dependency generators that
 
 # FILE ATTRIBUTES
 
