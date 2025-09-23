@@ -6,277 +6,261 @@ interface
 
 # SYNOPSIS
 
+## File attributes
+*%\_\_*_NAME_*_path* _REGEX_++
+*%\_\_*_NAME_*_magic* _REGEX_++
+*%\_\_*_NAME_*_mime* _REGEX_++
+*%\_\_*_NAME_*_exclude_path* _REGEX_++
+*%\_\_*_NAME_*_exclude_magic* _REGEX_++
+*%\_\_*_NAME_*_exclude_mime* _REGEX_
+
+## File attribute tunables
+*%\_\_*_NAME_*_flags* _FLAG_[*,*_FLAG_...]++
+*%\_\_*_NAME_*_exclude_flags* _FLAG_[*,*_FLAG_...]++
+*%\_local_file_attrs* _NAME_[*:*_NAME_...]
+
+_FLAG_ can be one of *exeonly* and *magic_and_path*.
+
 ## Generators
-*%\_\_*_NAME_*\_conflicts*[*()*] _BODY_++
-*%\_\_*_NAME_*\_enhances*[*()*] _BODY_++
-*%\_\_*_NAME_*\_obsoletes*[*()*] _BODY_++
-*%\_\_*_NAME_*\_orderwithrequires*[*()*] _BODY_++
-*%\_\_*_NAME_*\_provides*[*()*] _BODY_++
-*%\_\_*_NAME_*\_recommends*[*()*] _BODY_++
-*%\_\_*_NAME_*\_requires*[*()*] _BODY_++
-*%\_\_*_NAME_*\_suggests*[*()*] _BODY_++
-*%\_\_*_NAME_*\_supplements*[*()*] _BODY_
+*%\_\_*_NAME_*_*​_TYPE_ _BODY_++
+*%\_\_*_NAME_*_*​_TYPE_*()* _BODY_
 
-## Matching rules
-*%\_\_*_NAME_*\_path* _REGEX_++
-*%\_\_*_NAME_*\_magic* _REGEX_++
-*%\_\_*_NAME_*\_exclude_path* _REGEX_++
-*%\_\_*_NAME_*\_exclude_magic* _REGEX_
+_TYPE_ can be one of *conflicts*, *enhances*, *obsoletes*, *orderwithrequires*,
+*provides*, *recommends*, *requires*, *suggests* and *supplements*.
 
-## Tunables
-*%\_\_*_NAME_*\_conflicts_opts* _BODY_++
-*%\_\_*_NAME_*\_enhances_opts* _BODY_++
-*%\_\_*_NAME_*\_obsoletes_opts* _BODY_++
-*%\_\_*_NAME_*\_orderwithrequires_opts* _BODY_++
-*%\_\_*_NAME_*\_provides_opts* _BODY_++
-*%\_\_*_NAME_*\_recommends_opts* _BODY_++
-*%\_\_*_NAME_*\_requires_opts* _BODY_++
-*%\_\_*_NAME_*\_suggests_opts* _BODY_++
-*%\_\_*_NAME_*\_supplements_opts* _BODY_
-
-*%\_\_requires_exclude* _REGEX_++
-*%\_\_requires_exclude_from* _REGEX_++
-*%\_\_provides_exclude* _REGEX_++
-*%\_\_provides_exclude_from* _REGEX_
+## Generator tunables
+*%\_\_*_NAME_*_protocol* *multifile*++
+*%\_\_*_NAME_*_*​_TYPE_*_opts* _BODY_++
+*%\_\_*_TYPE_*_exclude* _REGEX_++
+*%\_\_*_TYPE_*_exclude_from* _REGEX_
 
 # DESCRIPTION
 
 RPM uses a pluggable interface coupled with a file classifier to add dependency
-information to packages at build time. This system relies on specialized, domain
-specific executables, called _generators_, that do the heavy-lifting of figuring
-out the dependencies from the files present in the buildroot. It complements the
-manual tags, such as *Requires* or *Provides*, in *rpm-spec*(5) files.
-
-Generators are paired with logical labels, called _file attributes_, assigned to
-the packaged files by the file classifier. This ensures that every file is only
-processed by the applicable generator(s), as opposed to all generators, which
-simplifies their implementation and significantly improves the overall build
-performance.
+information to packages at build time. This system relies on specialized
+executables, called _generators_, that do the heavy-lifting of extracting
+dependencies from files that belong to their domains, called _file attributes_.
+It complements the manual tags, such as *Requires* or *Provides*, in
+*rpm-spec*(5) files.
 
 # FILE ATTRIBUTES
 
 A file attribute is a logical label that RPM gives to one or more files in the
-buildroot, based on a set of matching _rules_. It can represent a single file
-type, such as ELF, or a broader domain, such as all source files written in a
-specific programming language.
+buildroot, based on a set of _matching rules_ defined as macros. It can
+represent a single file type, such as ELF, or a broader domain, such as all
+files installed in a specific location or written in a specific programming
+language.
 
 These attributes are distinct from the file attributes in the filesystem and are
 only kept in memory during package builds. A single file may have an arbitrary
 number of attributes, and a single attribute may be assigned to an arbitrary
 number of files.
 
-A valid file attribute called _NAME_ is introduced with an *rpm-macrofile*(5),
-_NAME.attr_, dropped into the *%{\_fileattrsdir}* directory, that defines at
-least one of the following macros:
+## Defining
 
-```
-%__NAME_path
-%__NAME_magic
-%__NAME_exclude_path
-%__NAME_exclude_magic
-```
+To introduce a file attribute called _NAME_ for use during package builds, drop
+an *rpm-macrofile*(5) named _NAME.attr_ into the *%{\_fileattrsdir}* directory.
+The file should define at least one of the matching rules described below.
 
-The values of these macros represent the inclusion and exclusion rules. They are
-macro-expanded on use and then interpreted as extended regular expressions (RE).
-Matching is inclusive unless changed by _flags_ (see below): If the path, magic
-or both match, the file is said to _have_ the attribute in question, unless
-there is a matching exclusion rule (also inclusive by default) or a flag that
-prevents the match.
+## Matching rules
 
-The path REs are matched against the packaged path, that is, without the
-*%buildroot* prefix (for example, _/bin/bash_). The magic REs are matched
-against the result of *magic*(5) classification and possibly the *FILECLASS* tag
-stored in the package (see *--fileclass* in *rpm*(8) for details).
+The following macros determine how a file attribute _NAME_ should be assigned to
+files:
 
-Flags are comma-separated lists specified with the following macros:
+*%\_\_*_NAME_*_path* _REGEX_
+	Match _REGEX_ against filenames without the *%{buildroot}* prefix (for
+	example, _/bin/bash_).
 
-```
-%__NAME_flags
-%__NAME_exclude_flags
-```
+*%\_\_*_NAME_*_magic* _REGEX_
+	Match _REGEX_ against file *magic*(5).
 
-Currently, the following flags are supported (Added: 4.9.1):
+	To determine a compatible _REGEX_, use the command:
+	```
+	file -z -e tokens /some/file
+	```
+
+*%\_\_*_NAME_*_mime* _REGEX_
+	Match _REGEX_ against MIME file types.
+
+	To determine a compatible _REGEX_, use the command:
+	```
+	file --mime /some/file
+	```
+
+_REGEX_ is a string in *regex*(7) format and is macro-expanded on use.
+
+Matching is inclusive unless changed by flags (see below): If the path, magic or
+both match, the file is said to _have_ the attribute in question, unless there
+is a matching exclusion rule (also inclusive by default) or a flag that prevents
+the match. If both the magic and mime rules are defined, the magic rule is
+ignored and a warning is printed.
+
+Exclusion rules can be defined with the following counterparts of the above
+macros:
+
+*%\_\_*_NAME_*_exclude_path* _REGEX_++
+*%\_\_*_NAME_*_exclude_magic* _REGEX_++
+*%\_\_*_NAME_*_exclude_mime* _REGEX_
+
+## Flags
+
+The following macros allow for tweaking some aspects of the inclusion and
+exclusion matching logic, respectively:
+
+*%\_\_*_NAME_*_flags* _FLAGS_++
+*%\_\_*_NAME_*_exclude_flags* _FLAGS_
+
+_FLAGS_ is a comma-separated list of the following possible values:
+
 - *exeonly*: require executable bit set
 - *magic_and_path*: require both magic and path to match
 
 # GENERATORS
 
-A generator is an executable that reads filename(s) from stdin and writes
-dependencies of a single _type_ to stdout, one per line. Unlike the path REs,
-generators receive filenames with the *%buildroot* prefix since they typically
-need to look at the actual file contents on disk. This simple protocol allows
-for the generators to be implemented in any preferred language and enables them
-to use language specific libraries or tools.
+A generator is an executable that reads filenames from stdin and writes
+dependencies of a single _type_ to stdout, according to a _protocol_. It is
+written for a specific file attribute and defined as a macro in the respective
+_NAME.attr_ file. Zero or more generators, one for each supported type, can be
+defined for a single file attribute.
 
-Generators are written _for_ file attributes. Thus, a valid generator for a file
-attribute _NAME_ is introduced with any of the following macros (one for every
-supported type) defined in the respective _NAME.attr_ file:
+## Types
 
-```
-%__NAME_conflicts
-%__NAME_enhances
-%__NAME_obsoletes
-%__NAME_orderwithrequires
-%__NAME_provides
-%__NAME_requires
-%__NAME_recommends
-%__NAME_suggests
-%__NAME_supplements
-```
+The following generator macros are currently supported:
 
-The value of each macro is a command line (the program name and any arguments)
-that should be executed for every file having the _NAME_ attribute.
+*%\_\_*_NAME_*_conflicts* _BODY_++
+*%\_\_*_NAME_*_enhances* _BODY_++
+*%\_\_*_NAME_*_obsoletes* _BODY_++
+*%\_\_*_NAME_*_orderwithrequires* _BODY_ (Added: 4.17.0)++
+*%\_\_*_NAME_*_provides* _BODY_++
+*%\_\_*_NAME_*_recommends* _BODY_++
+*%\_\_*_NAME_*_requires* _BODY_++
+*%\_\_*_NAME_*_suggests* _BODY_++
+*%\_\_*_NAME_*_supplements* _BODY_
 
-Macros can also be passed to generators through the command line. For example,
-to pass the package name and version to the requires generator *foo*, define the
-macro:
+_BODY_ is a command line (the program name and any arguments) that should be
+executed for every file that has the attribute _NAME_, and is macro-expanded on
+use.
 
-```
-%__foo_requires 	/some/script %{NAME} %{VERSION}
-```
+## Protocols
 
-In addition to the globally defined macros, the following macros are exported to
-generators on a sub-package basis (Added: 4.15.0):
+The following generator protocols are currently supported:
 
-```
-%{NAME}
-%{EPOCH}
-%{VERSION}
-%{RELEASE}
-```
+*simple*
+	Receives one filename at a time, outputs dependencies, one per line.
 
-Note that the *OrderWithRequires* tag will only appear in RPM >= 4.17.0.
+*multifile*
+	Receives all filenames having the file attribute, one per line, and
+	outputs dependencies, one per line. The processed filename prepended
+	with *;* must be printed before printing dependencies for that file.
 
-## Parametric macro generators
+	This is the recommended protocol for newly written generators.
 
-If the generator macro is declared as a parametric macro (see *PARAMETRIC
-MACROS* in *rpm-macros*(7) for details), the macro itself is called for
-dependency generation, with the filename as its first argument (*%1*), and the
-macro expansion itself is considered as the generated dependencies, one per
-line. As with traditional generators, the path passed as *%1* has *%buildroot*
-prepended.
+	Added: 4.20.0
 
-While the RPM macro primitives are limited, using *%{lua:...}* enables the
-writing of full-featured, macro-only generators in the Lua language.
+By default, the *simple* protocol is used. To enable the *multifile* protocol
+for all generators of the file attribute _NAME_, define the following macro:
 
-The following trivial example creates provides from path basenames, which is
-enormously faster than the equivalent traditional generator shelling out to
-execute a script that calls *basename*(1):
+	*%\_\_*_NAME_*_protocol multifile*
 
-```
-%__foo_provides()	%{basename:%{1}}
-```
+Unlike the path _REGEX_ in file attributes, generators receive filenames with
+the *%{buildroot}* prefix so that they can access the actual file contents on
+disk.
+
+Due to backwards compatibility, generators must always consume all of stdin and
+not make any assumptions about the number of files passed, regardless of the
+protocol used.
+
+## Exported macros
+
+In addition to globally defined macros, the following macros are automatically
+exported to generators, on a subpackage basis:
+
+*%{name}*++
+*%{epoch}*++
+*%{version}*++
+*%{release}*
+
+Added: 4.15.0
+
+## Parametric macros
+
+If a generator is declared as a parametric macro, the macro itself is called for
+dependency generation, with the filename as its first argument (*%1*). The macro
+expansion itself is considered as the generated dependencies, one per line.
+
+This allows for writing efficient and powerful generators, especially when
+coupled with *%{lua}* as the _BODY_. See *rpm-macros*(7) for details on Lua
+expansion and parametric macros in general.
 
 Added: 4.16.0
 
-## Multifile protocol
+# PER-PACKAGE TUNABLES
 
-Generators may optionally support an enhanced mode where all matching files are
-passed to the generator at once, and the generator is expected to print the
-processed filename prepended with *;* before printing the dependencies of that
-file. Files with no dependencies may be omitted.
+The following macros can be used on a per-package basis, either by defining them
+directly in the *rpm-spec*(5) file or by passing them to *rpmbuild*(1) via the
+*--define* option:
 
-This is several orders of magnitude faster than the traditional behavior where a
-generator is launched separately for each and every file with the matching file
-attribute. To enable multifile mode for a generator, define the following macro:
+*%\_local_file_attrs* _NAMES_
+	Register file attribute _NAMES_ (separated by colons) for the duration
+	of the build. The respective file attribute and generator macros must be
+	defined separately.
 
-```
-%__NAME_protocol multifile
-```
+	This is useful for running generators shipped by the package itself.
 
-Added: 4.20.0
+	Added: 4.20.0
 
-# PACKAGE-LEVEL DEFINITIONS AND TWEAKS
+*%\_\_*_TYPE_*_exclude* _REGEX_
+	Filter out unwanted dependencies of _TYPE_ by matching _REGEX_ against
+	dependency strings.
 
-Sometimes, it may be necessary to tweak an installed generator for a specific
-package, or to use one that's shipped by the package itself also during its own
-build process. This can be done directly in an *rpm-spec*(5) file or by running
-*rpmbuild*(1) with the *--define* option(s). The following subsections apply to
-both methods.
+	Example:
+	```
+	%define __requires_exclude ^lib.*$
+	```
 
-## File attributes and generators
+*%\_\_*_TYPE_*_exclude_from* _REGEX_
+	Filter out unwanted dependencies of _TYPE_ by matching _REGEX_ against
+	filenames without the *%{buildroot}* prefix.
 
-To introduce new file attributes and generators for the duration of the build,
-define them as normal and register them with the following macro (_NAMES_ is a
-colon-separated list of file attribute names):
+	Example:
+	```
+	%define __provides_exclude_from ^%{_libdir}/mypkg/.*.so$
+	```
 
-```
-%_local_file_attrs NAMES
-```
+*%\_\_*_NAME_*_*​_TYPE_*_opts* _BODY_
+	Pass additional command line switches to the _TYPE_ generator.
 
-It may be handy to use an executable in the *%{buildroot}* or a source file with
-these generators. See *EXAMPLES* for a concrete example.
+	Note that this macro should NOT be used when writing a file attribute file.
+	Instead, just pass the required arguments directly on the generator's command
+	line when defining it.
 
-Added: 4.20.0
-
-## Excludes
-
-Unwanted dependencies can be filtered out with the following set of macros:
-
-```
-%__requires_exclude
-%__requires_exclude_from
-%__provides_exclude
-%__provides_exclude_from
-```
-
-The values are macro-expanded on use and then interpreted as extended regular
-expressions.
-
-The *exclude_from* variants operate on paths. For example, the following macro
-will prevent all provides generated from _\*.so_ files in *%{\_libdir}/mypkg/*
-from being added:
-
-```
-%define __provides_exclude_from ^%{_libdir}/mypkg/.*.so$
-```
-
-The *exclude* variants operate on generated dependency strings. For example, the
-following macro will prevent all typical library requires from being added,
-regardless of which files they originate from:
-
-```
-%define __requires_exclude ^lib.*$
-```
-
-Note that, within spec files, any backslashes need to be double-escaped in order
-to prevent the spec parser from consuming them.
-
-## Additional switches
-
-To pass additional command line switches to generators, define the following
-macros:
-
-```
-%__NAME_conflicts_opts
-%__NAME_enhances_opts
-%__NAME_obsoletes_opts
-%__NAME_orderwithrequires_opts
-%__NAME_provides_opts
-%__NAME_requires_opts
-%__NAME_recommends_opts
-%__NAME_suggests_opts
-%__NAME_supplements_opts
-```
-
-Note that these macros should not be used in a _NAME.attr_ file. Instead, just
-pass the required arguments directly on the generator's command line when
-defining it.
+_REGEX_ is an extended *regex*(7) string, macro-expanded on use. Possible _TYPE_
+values are listed in the *GENERATORS* section above, under *Types*.
 
 # COMPATIBILITY NOTES
 
-If compatibility with the RPM 3.x series is desired for a generator, it should
-be written in such a way that it accepts an arbitrary number of filenames on
-stdin. This is not to be confused with the *Multifile protocol* which was only
-added in the RPM 4.x series, however.
+A legacy generator interface is supported up to and including the RPM 4.x
+series. This interface, also called _external_, uses a set of macros in the
+following format:
 
-This will allow the generator to be used as an old-style, "external" generator,
-via the *%\_\_find_requires* and *%\_\_find_provides* macros, which can be
-enabled in modern RPM versions with the *%\_use_internal_dependency_generator*
-macro (see *rpmbuild-config*(5) for details). However, note that this
-functionality has been deprecated in RPM 4.x and therefore should not be used.
+*%\_\_find_*​_TYPE_ _BODY_
+
+_BODY_ is a command line (the program name and any arguments) that should be
+executed to find and print dependencies of the given _TYPE_.
+
+Unlike the modern, _internal_ generators described in this man page, every
+external generator is passed the entire file list of the package, making it very
+inefficient.
+
+To enable this legacy interface, define the following macro:
+
+```
+%_use_internal_dependency_generator 0
+```
 
 # TROUBLESHOOTING
+
+## Displaying debug information
 
 The *rpmbuild*(1) and *rpmdeps*(1) tools have a hidden *--rpmfcdebug* switch
 that enables additional output for the dependency generation stage. The output
@@ -290,6 +274,18 @@ format is currently roughly as follows:
 File attribute matches are the names of the rules that matched for the file, and
 that is where rule troubleshooting typically starts: a file with no attributes
 will not have any dependencies attached.
+
+## Global excludes
+
+Global variants of the per-package exclusion macros may also be defined on the
+system:
+
+*%\_\_global_*​_TYPE_*_exclude* _REGEX_++
+*%\_\_global_*​_TYPE_*_exclude_from* _REGEX_
+
+These apply to all package builds and thus may affect the output of a particular
+generator in unexpected ways. Make sure to inspect the contents of these macros
+if that's the case.
 
 # EXAMPLES
 ## Example 1. A trivial file attribute and two generators
@@ -379,3 +375,12 @@ _%{\_rpmconfigdir}/\*.prov_
 
 *rpm*(8) *rpm-common*(8) *rpmbuild*(1) *rpmbuild-config*(5) *rpmdeps*(1)
 *rpm-spec*(5) *file*(1) *magic*(5)
+
+The following trivial example creates provides from path basenames, which is
+enormously faster than the equivalent traditional generator shelling out to
+execute a script that calls *basename*(1):
+
+```
+%__foo_provides()	%{basename:%{1}}
+```
+
