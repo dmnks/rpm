@@ -15,9 +15,9 @@ interface
 *%\_\_*_NAME_*_exclude_mime* _REGEX_
 
 ## File attribute tunables
-*%\_\_*_NAME_*_flags* _FLAG_[*,*_FLAG_...]++
-*%\_\_*_NAME_*_exclude_flags* _FLAG_[*,*_FLAG_...]++
-*%\_local_file_attrs* _NAME_[*:*_NAME_...]
+*%\_\_*_NAME_*_flags* _FLAG_[*,*_FLAG_ ...]++
+*%\_\_*_NAME_*_exclude_flags* _FLAG_[*,*_FLAG_ ...]++
+*%\_local_file_attrs* _NAME_[*:*_NAME_ ...]
 
 _FLAG_ can be one of *exeonly* and *magic_and_path*.
 
@@ -29,7 +29,7 @@ _TYPE_ can be one of *conflicts*, *enhances*, *obsoletes*, *orderwithrequires*,
 *provides*, *recommends*, *requires*, *suggests* and *supplements*.
 
 ## Generator tunables
-*%\_\_*_NAME_*_protocol* *multifile*++
+*%\_\_*_NAME_*_protocol* {*simple*|*multifile*}++
 *%\_\_*_NAME_*_*​_TYPE_*_opts* _BODY_++
 *%\_\_*_TYPE_*_exclude* _REGEX_++
 *%\_\_*_TYPE_*_exclude_from* _REGEX_
@@ -39,15 +39,15 @@ _TYPE_ can be one of *conflicts*, *enhances*, *obsoletes*, *orderwithrequires*,
 RPM uses a pluggable interface coupled with a file classifier to add dependency
 information to packages at build time. This system relies on specialized
 executables, called _generators_, that do the heavy-lifting of extracting
-dependencies from files that belong to their domains, called _file attributes_.
-It complements the manual tags, such as *Requires* or *Provides*, in
-*rpm-spec*(5) files.
+dependencies from files in their domain, called a _file attribute_. It
+complements the manual tags, such as *Requires* or *Provides*, in *rpm-spec*(5)
+files.
 
 # FILE ATTRIBUTES
 
 A file attribute is a logical label that RPM gives to one or more files in the
-buildroot, based on a set of _matching rules_ defined as macros. It can
-represent a single file type, such as ELF, or a broader domain, such as all
+buildroot, based on a set of _matching rules_ and _flags_ defined as macros. It
+can represent a single file type, such as ELF, or a broader domain, such as all
 files installed in a specific location or written in a specific programming
 language.
 
@@ -55,8 +55,6 @@ These attributes are distinct from the file attributes in the filesystem and are
 only kept in memory during package builds. A single file may have an arbitrary
 number of attributes, and a single attribute may be assigned to an arbitrary
 number of files.
-
-## Defining
 
 To introduce a file attribute called _NAME_ for use during package builds, drop
 an *rpm-macrofile*(5) named _NAME.attr_ into the *%{\_fileattrsdir}* directory.
@@ -111,7 +109,6 @@ exclusion matching logic, respectively:
 *%\_\_*_NAME_*_exclude_flags* _FLAGS_
 
 _FLAGS_ is a comma-separated list of the following possible values:
-
 - *exeonly*: require executable bit set
 - *magic_and_path*: require both magic and path to match
 
@@ -143,32 +140,29 @@ use.
 
 ## Protocols
 
-The following generator protocols are currently supported:
+To specify the protocol to be used by all generators of the file attribute
+_NAME_, define the following macro:
 
-*simple*
-	Receives one filename at a time, outputs dependencies, one per line.
+*%\_\_*_NAME_*_protocol* _PROTOCOL_
 
-*multifile*
-	Receives all filenames having the file attribute, one per line, and
-	outputs dependencies, one per line. The processed filename prepended
-	with *;* must be printed before printing dependencies for that file.
+The following _PROTOCOL_ values are currently supported:
+- *simple*: receives one filename at a time, outputs dependencies, one per line
+- *multifile*: receives all filenames having the file attribute, one per line,
+and outputs dependencies, one per line, where the processed filename prepended
+with *;* must be printed on its own line before the dependencies for that file
+(Added: 4.20.0)
 
-	This is the recommended protocol for newly written generators.
-
-	Added: 4.20.0
-
-By default, the *simple* protocol is used. To enable the *multifile* protocol
-for all generators of the file attribute _NAME_, define the following macro:
-
-	*%\_\_*_NAME_*_protocol multifile*
+If this macro is not defined, the *simple* protocol will be used. For newly
+written generators, the *multifile* protocol is recommended since it's more
+performant.
 
 Unlike the path _REGEX_ in file attributes, generators receive filenames with
 the *%{buildroot}* prefix so that they can access the actual file contents on
 disk.
 
-Due to backwards compatibility, generators must always consume all of stdin and
-not make any assumptions about the number of files passed, regardless of the
-protocol used.
+Generators must always consume all of stdin. For backwards compatibility,
+generators should not make any assumptions about the number of files passed,
+regardless of the protocol used.
 
 ## Exported macros
 
@@ -182,17 +176,50 @@ exported to generators, on a subpackage basis:
 
 Added: 4.15.0
 
-## Parametric macros
+## Parametric generators
 
 If a generator is declared as a parametric macro, the macro itself is called for
 dependency generation, with the filename as its first argument (*%1*). The macro
 expansion itself is considered as the generated dependencies, one per line.
 
-This allows for writing efficient and powerful generators, especially when
-coupled with *%{lua}* as the _BODY_. See *rpm-macros*(7) for details on Lua
-expansion and parametric macros in general.
+The following trivial example creates provides from path basenames, which is
+enormously faster than the equivalent traditional generator shelling out to
+execute a script that calls *basename*(1):
+
+```
+%__foo_provides()	%{basename:%{1}}
+```
+
+While RPM's own macro primitives are limited, using *%{lua}* enables the writing
+of complicated, macro-only generators.
+
+See *PARAMETRIC MACROS* and *Lua expansion* in *rpm-macros*(7) for details.
 
 Added: 4.16.0
+
+## External generators
+
+A legacy generator interface, called _external_, is available for v4 packages.
+It uses a set of macros in the following format:
+
+*%\_\_find_*​_TYPE_ _BODY_
+
+_TYPE_ is a dependency type (see *Types* for a listing), for example *requires*,
+and _BODY_ is a command line (the program name and any arguments) that should be
+executed for all files in the package.
+
+This interface does not use file attributes, every generator is simply passed
+the entire file list of the package at once. Packages built this way contain
+less data about the files, such as no "color" information (which is vital for
+RPM's functionality on multiarch systems), file type information or per-file
+dependency tracking.
+
+The external interface is deprecated and should not be used. To enable it
+globally, define the following macro:
+
+```
+%_use_internal_dependency_generator 0
+```
 
 # PER-PACKAGE TUNABLES
 
@@ -237,27 +264,6 @@ directly in the *rpm-spec*(5) file or by passing them to *rpmbuild*(1) via the
 _REGEX_ is an extended *regex*(7) string, macro-expanded on use. Possible _TYPE_
 values are listed in the *GENERATORS* section above, under *Types*.
 
-# COMPATIBILITY NOTES
-
-A legacy generator interface is available but deprecated in the RPM 4.x series,
-and removed from the RPM 6.x series. This interface, also called _external_,
-uses a set of macros in the following format:
-
-*%\_\_find_*​_TYPE_ _BODY_
-
-_BODY_ is a command line (the program name and any arguments) that should be
-executed to find and print dependencies of the given _TYPE_.
-
-Unlike the modern, _internal_ generators described in this man page, every
-external generator is passed the entire file list of the package, making it very
-inefficient.
-
-To enable this legacy interface, define the following macro:
-
-```
-%_use_internal_dependency_generator 0
-```
-
 # TROUBLESHOOTING
 
 ## Displaying debug information
@@ -288,78 +294,101 @@ generator in unexpected ways. Make sure to inspect the contents of these macros
 if that's the case.
 
 # EXAMPLES
-## Example 1. A trivial file attribute and two generators
+## Example 1. A trivial multifile generator
 
-Assume the following file named _frob.attr_ exists in the *%{\_fileattrsdir}*
-directory:
+Suppose there's a _%{\_fileattrsdir}/frob.attr_ file with the following
+contents:
 
 ```
 %__frob_provides %{_rpmconfigdir}/frobnize --provides
 %__frob_requires %{_rpmconfigdir}/frobnize --requires
+%__frob_protocol multifile
 %__frob_path \\.frob$
 %__frob_magic ^.* a frob file .*$
 ```
 
-This file defines a file attribute named *frob* that matches any files with the
-_.frob_ suffix or a magic string containing "a frob file". It also defines two
-generators for that attribute that use the script _frobnize_ installed in the
-*%{\_rpmconfigdir}* directory, with the following contents:
+This file defines a file attribute called *frob* that has two generators, both
+of which use a _frobnize_ script that implements the *multifile* protocol. It
+matches all files with the _.frob_ suffix as well as those that contain the "a
+frob file" magic string.
+
+The _%{\_rpmconfigdir}/frobnize_ script has the following contents:
 
 ```
 #!/bin/bash
-# Frobnize script
+# Frob dependency extractor
 
+# Type of dependency strings to print
 mode=$1
-file=$(head -n1)
-name=$(basename $file | cut -f1 -d.)
-line=$(head -n1 $file)
 
-case $mode in
-    --provides)
-        echo "frob($name)"
-        echo "frob($line)"
-        ;;
-    --requires)
-        echo "bard($name)"
-        echo "bard($line)"
-        ;;
-esac
+# Process every file on stdin
+while read -r file; do
+    # Print currently processed file as per multifile protocol
+    echo ";$file"
+
+    # Get basename and first line
+    name=$(basename $file | cut -f1 -d.)
+    line=$(head -n1 $file)
+
+    # Print dependency strings
+    case $mode in
+       --provides)
+           echo "frob($name)"
+           echo "frob($line)"
+           ;;
+       --requires)
+           echo "bard($name)"
+           echo "bard($line)"
+           ;;
+    esac
+done
 ```
 
-This script takes an absolute path from stdin, analyzes the respective file on
-disk (reads the first line from it) and prints a list of dependency strings for
-provides or requires (depending on the switch used), one per line.
-
-If a package _frob.rpm_ that ships a file _hello.frob_ containing the text
-"world" at some location in the filesystem is then built with *rpmbuild*(1), it
-will have the following provides and requires:
+Now, suppose there's a _frob.spec_ file that installs the file _hello.frob_ with
+the contents "world" to some location on the filesystem. When the spec is built,
+the resulting package will have the following provides and requires:
 
 ```
-$ rpm -qp --provides --requires frob.rpm
-[...]
+$ rpmbuild -bb /path/to/frob.spec
+...
+$ rpm -qp --provides --requires /path/to/frob.rpm
+...
 frob(hello)
 frob(world)
 bard(hello)
 bard(world)
-[...]
+...
 ```
 
-## Example 2. Package-level file attributes and generators
+If multiple files with the _.frob_ suffix or "a frob file" magic were present in
+the package, the _frobnize_ script would only be executed once, with all the
+matching filenames passed at once.
 
-Define two spec-local file attributes named *frob* and *bard* that match any and
-all files, each with a provides generator that uses the _frobnize_ executable
-shipped with the package and the _bardize.sh_ script included with the sources
-(but not installed), respectively:
+If the generator decided to *break* from the *while* loop, it would have to
+discard any remaining input prior to exiting, as per protocol, which could be
+done with the following command placed after the loop:
 
 ```
-[...]
+cat > /dev/null
+```
+
+## Example 2. Spec-local generators
+
+This spec file snippet introduces two spec-local file attributes, *frob* and
+*bard*, that match any and all files, and their generators that use a _frobnize_
+and _bardize.sh_ script shipped by the package itself and only included with the
+sources, respectively:
+
+```
+...
 Source1: bardize.sh
+...
 %define _local_file_attrs frob:bard
 %define __frob_provides %{buildroot}/%{_rpmconfigdir}/frobnize
 %define __frob_path .*
 %define __bard_provides %{SOURCE1}
 %define __bard_path .*
-[...]
+...
 ```
 
 ## Example 3. Bundled file attributes and generators
@@ -370,16 +399,6 @@ _%{\_rpmconfigdir}/\*.prov_
 	A small, curated set of file attributes and their generators bundled
 	with RPM itself. These cover the core domains on a UNIX/Linux system,
 	such as ELF binaries, executable scripts or *sysusers.d*(5) files.
-
-## TBD
-
-The following trivial example creates provides from path basenames, which is
-enormously faster than the equivalent traditional generator shelling out to
-execute a script that calls *basename*(1):
-
-```
-%__foo_provides()	%{basename:%{1}}
-```
 
 # SEE ALSO
 

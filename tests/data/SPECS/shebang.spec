@@ -11,13 +11,9 @@ BuildArch:	noarch
 
 %install
 mkdir -p %{buildroot}/bin
-cat << EOF > %{buildroot}/bin/shebang
-#!/bin/blabla
-echo shebang
+cat << EOF > %{buildroot}/bin/shebang.frob
+hello
 EOF
 
-chmod a+x %{buildroot}/bin/shebang
-
 %files
-%defattr(-,root,root,-)
-/bin/shebang
+/bin/shebang.frob
