@@ -11,6 +11,7 @@ ccc
 *rpm* {*-V*|*--verify*} [select-options] [verify-options] [_PACKAGE_NAME_ ...]
 
 ## Installing, upgrading and removing packages
+_
 *rpm* {*-i*|*--install*} [transaction-options] [install-options] _PACKAGE_FILE_ ...
 
 *rpm* {*-U*|*--upgrade*} [transaction-options] [install-options] _PACKAGE_FILE_ ...

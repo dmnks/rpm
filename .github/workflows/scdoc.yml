@@ -1,5 +1,4 @@
-# Verifies that all *.scd files are valid scdoc files
-name: scdoc check
+name: Man page linter
 
 on:
   push:
@@ -10,7 +9,7 @@ on:
       - docs/**
 
 jobs:
-  scdoc_check:
+  scdoc_lint:
     runs-on: ubuntu-24.04
 
     steps:
@@ -20,6 +19,7 @@ jobs:
           podman create -t --name fedora fedora:42
           podman start fedora
           podman exec fedora dnf install -y scdoc scd2html
+
       - name: Build man pages
         run: |
           for file in docs/man/*.scd; do
