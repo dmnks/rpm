@@ -2,6 +2,7 @@ RPM(8)
 
 # NAME
 rpm - RPM Package Manager
+Test
 
 # SYNOPSIS
 ## Querying and verifying packages
