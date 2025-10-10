@@ -18,7 +18,7 @@ public:
 
     virtual ~keystore() = default;
 protected:
-    virtual rpmRC delete_key(rpmtxn txn, const std::string & keyid) = 0;
+    virtual rpmRC delete_key(rpmtxn txn, const std::string & keyid, int old) = 0;
 };
 
 class keystore_fs : public keystore {
@@ -27,8 +27,7 @@ public:
     rpmRC import_key(rpmtxn txn, rpmPubkey key, int replace = 1, rpmFlags flags = 0) override;
     rpmRC delete_store(rpmtxn txn) override;
 private:
-    rpmRC delete_key(rpmtxn txn, const std::string & keyid) override;
-    rpmRC delete_key(rpmtxn txn, const std::string & keyid, const std::string & newname = "");
+    rpmRC delete_key(rpmtxn txn, const std::string & keyid, int old) override;
 };
 
 class keystore_rpmdb : public keystore {
@@ -37,8 +36,7 @@ public:
     rpmRC import_key(rpmtxn txn, rpmPubkey key, int replace = 1, rpmFlags flags = 0) override;
     rpmRC delete_store(rpmtxn txn) override;
 private:
-    rpmRC delete_key(rpmtxn txn, const std::string & keyid) override;
-    rpmRC delete_key(rpmtxn txn, const std::string & keyid, unsigned int newinstance = 0);
+    rpmRC delete_key(rpmtxn txn, const std::string & keyid, int old) override;
 };
 
 class keystore_openpgp_cert_d : public keystore {
@@ -47,7 +45,7 @@ public:
     rpmRC import_key(rpmtxn txn, rpmPubkey key, int replace = 1, rpmFlags flags = 0) override;
     rpmRC delete_store(rpmtxn txn) override;
 private:
-    rpmRC delete_key(rpmtxn txn, const std::string & keyid) override;
+    rpmRC delete_key(rpmtxn txn, const std::string & keyid, int old) override;
 };
 
 RPM_GNUC_INTERNAL
