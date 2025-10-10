@@ -127,6 +127,13 @@ static rpmRC delete_file_store(std::string path)
 
 /*****************************************************************************/
 
+rpmRC keystore::delete_key(rpmtxn txn, rpmPubkey key)
+{
+    return delete_key(txn, rpmPubkeyFingerprintAsHex(key));
+}
+
+/*****************************************************************************/
+
 rpmRC keystore_fs::load_keys(rpmtxn txn, rpmKeyring keyring)
 {
     return load_keys_from_glob(txn, keyring, "%{_keyringpath}/*.key");
@@ -151,9 +158,9 @@ rpmRC keystore_fs::delete_key(rpmtxn txn, const string & keyid, const string & n
     return rc;
 }
 
-rpmRC keystore_fs::delete_key(rpmtxn txn, rpmPubkey key)
+rpmRC keystore_fs::delete_key(rpmtxn txn, const string & keyid)
 {
-    return delete_key(txn, rpmPubkeyFingerprintAsHex(key));
+    return delete_key(txn, keyid, "");
 }
 
 rpmRC keystore_fs::import_key(rpmtxn txn, rpmPubkey key, int replace, rpmFlags flags)
@@ -221,7 +228,7 @@ rpmRC keystore_openpgp_cert_d::load_keys(rpmtxn txn, rpmKeyring keyring)
     return load_keys_from_glob(txn, keyring, "%{_keyringpath}/*/*");
 }
 
-rpmRC keystore_openpgp_cert_d::delete_key(rpmtxn txn, rpmPubkey key)
+rpmRC keystore_openpgp_cert_d::delete_key(rpmtxn txn, const string & keyid)
 {
     rpmRC rc = RPMRC_NOTFOUND;
     int lock_fd = -1;
@@ -229,9 +236,8 @@ rpmRC keystore_openpgp_cert_d::delete_key(rpmtxn txn, rpmPubkey key)
     if ((lock_fd = acquire_write_lock(txn)) == -1)
 	return RPMRC_FAIL;
 
-    string fp = rpmPubkeyFingerprintAsHex(key);
-    string dir = fp.substr(0, 2);
-    string filename = fp.substr(2);
+    string dir = keyid.substr(0, 2);
+    string filename = keyid.substr(2);
     char * filepath = rpmGetPath(rpmtxnRootDir(txn), "%{_keyringpath}/", dir.c_str(), "/", filename.c_str(), NULL);
     char * dirpath = rpmGetPath(rpmtxnRootDir(txn), "%{_keyringpath}/", dir.c_str(), NULL);
 
@@ -348,9 +354,9 @@ rpmRC keystore_rpmdb::delete_key(rpmtxn txn, const string & keyid, unsigned int 
     return rc;
 }
 
-rpmRC keystore_rpmdb::delete_key(rpmtxn txn, rpmPubkey key)
+rpmRC keystore_rpmdb::delete_key(rpmtxn txn, const string & keyid)
 {
-    return delete_key(txn, rpmPubkeyFingerprintAsHex(key));
+    return delete_key(txn, keyid, 0);
 }
 
 rpmRC keystore_rpmdb::delete_store(rpmtxn txn)
