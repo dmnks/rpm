@@ -129,7 +129,16 @@ static rpmRC delete_file_store(std::string path)
 
 rpmRC keystore::delete_key(rpmtxn txn, rpmPubkey key)
 {
-    return delete_key(txn, rpmPubkeyFingerprintAsHex(key));
+    rpmRC rc = RPMRC_NOTFOUND;
+    const char *fp = rpmPubkeyFingerprintAsHex(key);
+
+    rc = delete_key(txn, fp);
+    if (rc == RPMRC_NOTFOUND) {
+	/* make sure an old, short keyid version gets removed */
+	rc = delete_key(txn, fp+32);
+    }
+
+    return rc;
 }
 
 /*****************************************************************************/
