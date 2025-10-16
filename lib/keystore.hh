@@ -25,7 +25,7 @@ public:
     rpmRC delete_key(rpmtxn txn, rpmPubkey key) override;
     rpmRC delete_store(rpmtxn txn) override;
 private:
-    rpmRC delete_key(rpmtxn txn, rpmPubkey key, const std::string & newname);
+    friend rpmRC delete_key(auto keystore, rpmtxn txn, rpmPubkey key, auto skip);
     rpmRC delete_key(rpmtxn txn, const std::string & keyid, const std::string & newname);
 };
 
@@ -36,7 +36,7 @@ public:
     rpmRC delete_key(rpmtxn txn, rpmPubkey key) override;
     rpmRC delete_store(rpmtxn txn) override;
 private:
-    rpmRC delete_key(rpmtxn txn, rpmPubkey key, unsigned int newinstance);
+    friend rpmRC delete_key(auto keystore, rpmtxn txn, rpmPubkey key, auto skip);
     rpmRC delete_key(rpmtxn txn, const std::string & keyid, unsigned int newinstance);
 };
 
