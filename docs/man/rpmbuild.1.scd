@@ -192,20 +192,29 @@ See *rpm-common*(8) for the options common to all operations.
 
 # BUILD PROCESS
 
-. Unpack the given source package or tar archive
-. Parse the *rpm-spec*(5) file, once for each specified *BuildArch*
-. Create a package-specific build directory at *%builddir* (*%mkbuilddir*)
-. Create a source-able build environment file at *%builddir*/_rpmbuild.env_
-. Check static *BuildRequires*
+. Unpack the source package or tar archive if given
+. Parse the spec file, once for each build target (or *BuildArch* if none),
+  producing a list of spec variants
+
+For each spec variant:
+
+. Check static build dependencies
+. Create a package-specific build directory (%mkbuilddir)
+. Create a source-able build environment file in the build directory
 . Unpack the sources and apply any patches (*%prep*)
-. Generate and check dynamic *BuildRequires* (*%generate_buildrequires*)
+. Generate dynamic build dependencies and check them (*%generate_buildrequires*)
 . Configure the sources (*%conf*)
 . Compile the sources (*%build*)
-. Install the binaries into the *%buildroot* (*%install*)
+. Install the binaries into the buildroot (*%install*)
 . Read dynamic spec parts
-. Perform tests (*%check*)
-. Create packages
-. Clean up (*%clean*)
+. Perform tests on the binaries (*%check*)
+. Transform file manifests into package metadata (*%files*)
+. Perform file classification for the next step
+. Generate runtime dependencies using *rpm-dependency-generators*(7)
+. Check packaged files against the buildroot
+. Write binary and source packages to disk
+. Perform explicit clean up - OBSOLETE (*%clean*)
+. Perform implicit clean up (rmbuild)
 
 # DYNAMIC BUILD DEPENDENCIES
 When the *%generate_buildrequires* stage runs and some of the newly
