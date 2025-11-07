@@ -193,11 +193,12 @@ See *rpm-common*(8) for the options common to all operations.
 # BUILD PROCESS
 
 . Unpack the source package or tar archive if either is given
-. Parse the spec file, once for each build target (or *BuildArch* if none),
-  producing a list of spec variants
+. Determine the build targets: native unless *BuildArch* is specified TODO
+; BuildArch takes preference
 
-For each spec variant, execute the following steps:
+Then, for each build target, execute the following steps:
 
+. Parse the spec for the given *BuildArch* if any
 . Check static build dependencies
 . Create a package-specific build directory (%mkbuilddir)
 . Create a source-able build environment file in the build directory
