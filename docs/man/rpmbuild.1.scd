@@ -193,12 +193,14 @@ See *rpm-common*(8) for the options common to all operations.
 # BUILD PROCESS
 
 . Unpack the source package or tar archive if either is given
-. Determine the build targets: native unless *BuildArch* is specified TODO
-; BuildArch takes preference
+. Determine the build targets: Use *--target* if given (see *rpm-common*(8) for
+  details), else parse the spec and if *BuildArch* is found and differs from the
+  native arch, use that. Otherwise, use the native arch.
 
 Then, for each build target, execute the following steps:
 
-. Parse the spec for the given *BuildArch* if any
+. Load *rpm* configuration for the target
+. Parse the spec
 . Check static build dependencies
 . Create a package-specific build directory (%mkbuilddir)
 . Create a source-able build environment file in the build directory
