@@ -192,32 +192,45 @@ See *rpm-common*(8) for the options common to all operations.
 
 # BUILD PROCESS
 
-. Unpack the source package or tar archive if either is given
-. Determine the build targets: Use *--target* if given (see *rpm-common*(8) for
-  details), else parse the spec and if *BuildArch* is found and differs from the
-  native arch, use that. Otherwise, use the native arch.
+; TODO
+; - note about repeated spec parsing
+; - clean up OPERATIONS
 
-Then, for each build target, execute the below steps. Where applicable, the
-corresponding implicit or explicit spec section is shown in regular or *bold*
-style, respectively, enclosed in parenthesis.
+Packages are built in a number of logical steps, outlined below. The steps that
+produce (intermediate) artifacts or diagnostic output are called _stages_. Most
+stages can be built individually, by specifying their single-letter identifier
+shown in parentheses below (see *OPERATIONS*).
+
+Some stages are defined as standalone scripts whose contents is logged in the
+*rpmbuild* output for diagnostic purposes. These scripts can either be defined
+internally by *rpmbuild* (_implicit_) or provided in the spec file (_explicit_),
+and are shown in regular or *bold* face, respectively, following the identifier.
+
+. Unpack the source package or tar archive if either is given
+. Determine the build targets: Use the *--target* value(s) if given, otherwise
+  parse the spec, and if *BuildArch* is found and differs from the native arch,
+  use that. Otherwise, use the native arch.
+
+Then, for each build target, execute the following steps:
 
 . Load *rpm* configuration for the target and set *%\_target_cpu*
 . Parse the spec
 . Check static build dependencies
 . Create a build directory and set *%builddir* to its path (%mkbuilddir)
 . Export the build environment to the *%builddir*/_rpmbuild.env_ file
-. Unpack the sources and apply any patches (*%prep*)
-. Generate dynamic build dependencies and check them (*%generate_buildrequires*)
-. Configure the sources (*%conf*)
-. Compile the sources (*%build*)
-. Install the binaries into the buildroot (*%install*)
+. Unpack the sources and apply any patches (*p*, *%prep*)
+. Generate and check dynamic build dependencies (*d*, *%generate_buildrequires*)
+. Configure the sources (*f*, *%conf*)
+. Compile the sources (*c*, *%build*)
+. Install the binaries into the buildroot (*i*, *%install*)
 . Read dynamic spec parts
-. Execute tests on the binaries (*%check*)
+. Execute tests on the binaries (*k*, *%check*)
 . Transform file manifests into package metadata (*%files*)
 . Perform file classification for the next step
 . Generate runtime dependencies using *rpm-dependency-generators*(7)
-. Check packaged files against the buildroot
-. Write binary and source packages to disk
+. Check packaged files against the buildroot (*l*)
+. Write binary packages to disk (*b*)
+. Write source packages to disk (*a*)
 . Perform explicit clean up - OBSOLETE (*%clean*)
 . Perform implicit clean up (rmbuild)
 
