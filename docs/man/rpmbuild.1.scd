@@ -42,14 +42,15 @@ code and recipe necessary to produce binary packages.
 *--recompile*
 	Compatibility aliases for *-ra*.
 
-Packages are built in four phases: parse, build, assembly and cleanup. The
-middle two are further divided into _stages_, listed below, which can be built
-separately. Building a _STAGE_ means executing all the preceding stages up to
-(and including) the one specified, unless stated otherwise.
+_STAGE_ is a single-letter argument that tells *rpmbuild* at which step of the
+build process it should terminate. Thus, building a _STAGE_ means executing all
+stages leading up to, and including, the one specified, unless stated otherwise.
+See *BUILD STAGES* for a complete list of possible values. The most useful ones
+are described in the subsections below.
 
-## Assembly stages
-The assembly stages produce packages and are the primary way of interacting with
-*rpmbuild*. If in doubt, choose one of these.
+## Creating packages
+
+To build binary or source packages, use one of the following _STAGE_ arguments.
 
 *a*
 	Build both source and binary packages.
@@ -71,18 +72,18 @@ The assembly stages produce packages and are the primary way of interacting with
 *s*
 	Build just the source package. No build stages are executed.
 
-## Build stages
-The build stages produce the artifacts to be packaged, typically by patching and
-compiling the sources, and installing the binaries into the buildroot. These
-stages generally correspond to spec sections such as *%prep*, *%build* or
-*%install*, but there are some which are implicit.
+## Building software
 
-Building these stages separately is generally only useful when packaging new
-software in RPM format and/or troubleshooting. They are listed below in the
-order of execution, with the corresponding spec section in parenthesis where
-applicable.
+To patch, compile or install the packaged software without actually producing
+any packages, use one of the following _STAGE_ arguments. Note that building
+these stages is generally only useful when packaging new software in RPM format
+or troubleshooting.
 
-*p* (%prep)
+These stages generally correspond to spec sections such as *%prep* or *%build*,
+also shown in parentheses where applicable, but some are implicit. See *BUILD
+PROCESS* for more details on the individual stages.
+
+- *p* (%prep)
 	Unpack the sources and apply any patches.
 
 *d* (%generate_buildrequires)
@@ -193,14 +194,16 @@ See *rpm-common*(8) for the options common to all operations.
 # BUILD PROCESS
 
 ; TODO
+; - define stage vs. script
 ; - clean up OPERATIONS
 ; - %mkbuilddir -> mkbuilddir ?
 
 Packages are built in a number of logical steps, outlined below. The steps that
 produce (intermediate) artifacts or diagnostic output are called _stages_. Most
 stages can be built individually, by specifying their single-letter identifier
-(see *OPERATIONS*) shown in parentheses below. Building a stage means executing
-all the stages leading up to, and including, the one specified.
+shown in parentheses below. Building a stage means executing all stages leading
+up to, and including, the one specified, unless stated otherwise. See
+*OPERATIONS* for more details.
 
 Some stages are defined as standalone scripts whose contents is logged in the
 *rpmbuild* output for diagnostic purposes. These scripts are defined internally
@@ -210,7 +213,7 @@ shown in regular or *bold* face, respectively, following the identifier.
 Binary packages are produced separately for one or more platforms, called _build
 targets_. By default, the current platform is the only build target. This can be
 overridden with *--target* or by declaring a *BuildArch* in the spec. Currently,
-having a *--target* and *BuildArch* disagree with each other will result in
+using a *--target* and *BuildArch* that disagree with each other will result in
 undefined behavior.
 
 Note that *BuildArch* causes the spec parsing to recurse from the start, causing
