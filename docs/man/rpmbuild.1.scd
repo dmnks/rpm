@@ -193,7 +193,8 @@ See *rpm-common*(8) for the options common to all operations.
 # BUILD PROCESS
 
 ; TODO
-; - note about repeated spec parsing
+; - note about repeated spec parsing (is it parsed twice or more times?)
+; - %mkbuilddir -> mkbuilddir ?
 ; - clean up OPERATIONS
 
 Packages are built in a number of logical steps, outlined below. The steps that
@@ -234,7 +235,11 @@ Then, for each build target, execute the following steps:
 . Perform explicit clean up - OBSOLETE (*%clean*)
 . Perform implicit clean up (rmbuild)
 
-For more information on the above spec terminology, consult *rpm-spec*(5).
+Note that *BuildArch* causes the spec parsing to recurse from the start, causing
+any macros before that line to be expanded twice. This can yield unexpected
+results, in particular with *%global*.
+
+For more information on the spec syntax, consult *rpm-spec*(5).
 
 # DYNAMIC BUILD DEPENDENCIES
 When the *%generate_buildrequires* stage runs and some of the newly
