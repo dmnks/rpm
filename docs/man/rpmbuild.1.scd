@@ -193,28 +193,33 @@ See *rpm-common*(8) for the options common to all operations.
 # BUILD PROCESS
 
 ; TODO
-; - note about repeated spec parsing (is it parsed twice or more times?)
-; - %mkbuilddir -> mkbuilddir ?
 ; - clean up OPERATIONS
+; - %mkbuilddir -> mkbuilddir ?
 
 Packages are built in a number of logical steps, outlined below. The steps that
 produce (intermediate) artifacts or diagnostic output are called _stages_. Most
 stages can be built individually, by specifying their single-letter identifier
-shown in parentheses below (see *OPERATIONS*).
+(see *OPERATIONS*) shown in parentheses below. Building a stage means executing
+all the stages leading up to, and including, the one specified.
 
 Some stages are defined as standalone scripts whose contents is logged in the
-*rpmbuild* output for diagnostic purposes. These scripts can either be defined
-internally by *rpmbuild* (_implicit_) or provided in the spec file (_explicit_),
-and are shown in regular or *bold* face, respectively, following the identifier.
+*rpmbuild* output for diagnostic purposes. These scripts are defined internally
+by *rpmbuild* (_implicit_) or provided in the spec file (_explicit_), and are
+shown in regular or *bold* face, respectively, following the identifier.
+
+Binary packages are produced separately for one or more platforms, called _build
+targets_. By default, the current platform is the only build target. This can be
+overridden with *--target* or by declaring a *BuildArch* in the spec. Currently,
+having a *--target* and *BuildArch* disagree with each other will result in
+undefined behavior.
+
+Note that *BuildArch* causes the spec parsing to recurse from the start, causing
+any macros before that line to be expanded twice. This can yield unexpected
+results, in particular with *%global*.
 
 . Unpack the source package or tar archive if either is given
-. Determine the build targets: Use the *--target* value(s) if given, otherwise
-  parse the spec, and if *BuildArch* is found and differs from the native arch,
-  use that. Otherwise, use the native arch.
-
-Then, for each build target, execute the following steps:
-
-. Load *rpm* configuration for the target and set *%\_target_cpu*
+. Determine the build targets and repeat the following steps for each in turn
+. Load *rpm* configuration for the next build target and set *%\_target_cpu*
 . Parse the spec
 . Check static build dependencies
 . Create a build directory and set *%builddir* to its path (%mkbuilddir)
@@ -234,10 +239,6 @@ Then, for each build target, execute the following steps:
 . Write source packages to disk (*a*)
 . Perform explicit clean up - OBSOLETE (*%clean*)
 . Perform implicit clean up (rmbuild)
-
-Note that *BuildArch* causes the spec parsing to recurse from the start, causing
-any macros before that line to be expanded twice. This can yield unexpected
-results, in particular with *%global*.
 
 For more information on the spec syntax, consult *rpm-spec*(5).
 
