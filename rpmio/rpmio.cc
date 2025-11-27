@@ -7,6 +7,8 @@
 #include <vector>
 
 #include <stdarg.h>
+#include <stdlib.h>
+#include <string.h> /* strrchr */
 #include <errno.h>
 #include <ctype.h>
 #include <dirent.h>
@@ -23,6 +25,13 @@
 #include "rpmio_internal.hh"
 
 #include "debug.h"
+
+#if defined(HAVE_SETPROGNAME) /* BSD'ish systems */
+#elif defined(HAVE___PROGNAME) /* glibc and others */
+extern const char *__progname;
+#else /* Reimplement setprogname and getprogname */
+const char *rprogname = NULL;
+#endif
 
 typedef struct FDSTACK_s * FDSTACK_t;
 
@@ -1823,4 +1832,31 @@ void rpmSetCloseOnExec(void)
     closedir(dir);
 
     return;
+}
+
+const char *rgetprogname(void)
+{
+#if defined(HAVE_SETPROGNAME) /* BSD'ish systems */
+    getprogname(pn);
+#elif defined(HAVE___PROGNAME) /* glibc and others */
+    return __progname;
+#else /* Reimplement setprogname and getprogname */
+    return (rprogname != NULL) ? rprogname : "";
+#endif
+}
+
+void rsetprogname(const char *pn)
+{
+#if defined(HAVE_SETPROGNAME) /* BSD'ish systems */
+    setprogname(pn);
+#elif defined(HAVE___PROGNAME) /* glibc and others */
+#else /* Reimplement setprogname and getprogname */
+    if (pn != NULL && rprogname == NULL /* set the value only once */) {
+	const char *p = strrchr(pn, '/'); /* locate the last occurrence of '/' */
+	if (p != NULL)
+	    rprogname = p + 1 /* strip beginning '/' */;
+	else
+	    rprogname = pn;
+    }
+#endif
 }
