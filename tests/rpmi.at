@@ -1828,3 +1828,20 @@ runroot rpm -U --nodb --test --ignorearch --ignoreos --nodeps --nosignature \
 [	installing package hello-2.0-1.x86_64 needs 36KB more space on the / filesystem
 ])
 RPMTEST_CLEANUP
+
+RPMTEST_SETUP_RW([blah])
+AT_KEYWORDS([])
+RPMTEST_CHECK([
+
+mkdir $RPMTEST/etc/userdb
+cp /data/foobar.user $RPMTEST/etc/userdb/
+runroot getent passwd foobar
+
+runroot rpmbuild --quiet -bb --with blah /data/SPECS/hello.spec
+runroot rpm -U --nodeps /build/RPMS/x86_64/hello-1.0-1.x86_64.rpm
+],
+[0],
+[foobar:x:12345:12345:foobar:/:/usr/sbin/nologin
+],
+[])
+RPMTEST_CLEANUP

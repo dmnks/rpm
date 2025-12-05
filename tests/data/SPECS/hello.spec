@@ -4,6 +4,8 @@
 # inspecting it's output. Everybody else should use a simple noarch
 # package which can be built under runroot in the test-suite.
 
+%bcond blah 0
+
 Summary: hello -- hello, world rpm
  Name: hello
 Version: 1.0
@@ -36,7 +38,11 @@ make DESTDIR=$RPM_BUILD_ROOT install
 %doc	FAQ
 #%readme README
 #%license COPYING
+%if %{with blah}
+%attr(0751,foobar,root)	/usr/local/bin/hello
+%else
 %attr(0751,root,root)	/usr/local/bin/hello
+%endif
 
 %changelog
 * Tue Oct 20 1998 Jeff Johnson <jbj@redhat.com>

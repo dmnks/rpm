@@ -1,0 +1,7 @@
+{
+    "userName" : "foobar",
+    "uid" : 12345,
+    "gid" : 12345,
+    "disposition" : "system",
+    "locked" : true
+}
