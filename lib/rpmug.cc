@@ -4,10 +4,13 @@
 #include <string>
 
 #include <errno.h>
+#include <pwd.h>
+#include <grp.h>
 #include <rpm/argv.h>
 #include <rpm/rpmlog.h>
 #include <rpm/rpmstring.h>
 #include <rpm/rpmmacro.h>
+#include <rpm/rpmcli.h>
 
 #include "misc.hh"
 #include "rpmug.hh"
@@ -168,6 +171,13 @@ int rpmugUid(const char * thisUname, uid_t * uid)
 
     rpmugInit();
 
+    // printf(">>> %s\n", rpmcliRootDir);
+    if (rstreq(rpmcliRootDir, "/")) {
+	struct passwd *pwent = getpwnam(thisUname);
+	*uid = pwent->pw_uid;
+	return 0;
+    }
+
     auto it = rpmug->unameMap.find(thisUname);
     if (it == rpmug->unameMap.end()) {
 	long id;
@@ -190,6 +200,12 @@ int rpmugGid(const char * thisGname, gid_t * gid)
     }
 
     rpmugInit();
+
+    if (rstreq(rpmcliRootDir, "/")) {
+	struct group *grent = getgrnam(thisGname);
+	*gid = grent->gr_gid;
+	return 0;
+    }
 
     auto it = rpmug->gnameMap.find(thisGname);
     if (it == rpmug->gnameMap.end()) {

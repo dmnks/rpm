@@ -1758,7 +1758,6 @@ RPMTEST_CLEANUP
 
 RPMTEST_SETUP_RW([rpm -i user/group resolution])
 AT_KEYWORDS([])
-AT_XFAIL_IF([test $RPM_XFAIL -ne 0])
 
 # Set up nss-altfiles and add new user/group
 
