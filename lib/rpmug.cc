@@ -17,18 +17,17 @@ using std::unordered_map;
 using std::string;
 
 struct rpmug_s {
-    char *pwpath;
-    char *grppath;
-    unordered_map<uid_t,string> uidMap;
-    unordered_map<gid_t,string> gidMap;
-    unordered_map<string,uid_t> unameMap;
-    unordered_map<string,gid_t> gnameMap;
+    char *path;
+    unordered_map<id_t,string> idMap;
+    unordered_map<string,id_t> nameMap;
 };
 
-static __thread struct rpmug_s *rpmug = NULL;
+static __thread struct rpmug_s *rpmug_pw = NULL;
+static __thread struct rpmug_s *rpmug_grp = NULL;
 
-static const char *getpath(const char *bn, const char *dfl, char **dest)
+static const char *getpath(const char *bn, const char *dfl, struct rpmug_s *rs)
 {
+    char **dest = &rs->path;
     if (*dest == NULL) {
 	char *s = rpmExpand("%{_", bn, "_path}", NULL);
 	if (*s == '%' || *s == '\0') {
@@ -42,12 +41,12 @@ static const char *getpath(const char *bn, const char *dfl, char **dest)
 
 static const char *pwfile(void)
 {
-    return getpath("passwd", "/etc/passwd", &rpmug->pwpath);
+    return getpath("passwd", "/etc/passwd", rpmug_pw);
 }
 
 static const char *grpfile(void)
 {
-    return getpath("group", "/etc/group", &rpmug->grppath);
+    return getpath("group", "/etc/group", rpmug_grp);
 }
 
 /*
@@ -155,8 +154,10 @@ static int lookup_str(const char *path, long val, int vcol, int rcol,
 
 static void rpmugInit(void)
 {
-    if (rpmug == NULL)
-	rpmug = new rpmug_s {};
+    if (rpmug_pw == NULL)
+	rpmug_pw = new rpmug_s {};
+    if (rpmug_grp == NULL)
+	rpmug_grp = new rpmug_s {};
 }
 
 int rpmugUid(const char * thisUname, uid_t * uid)
@@ -168,12 +169,12 @@ int rpmugUid(const char * thisUname, uid_t * uid)
 
     rpmugInit();
 
-    auto it = rpmug->unameMap.find(thisUname);
-    if (it == rpmug->unameMap.end()) {
+    auto it = rpmug_pw->nameMap.find(thisUname);
+    if (it == rpmug_pw->nameMap.end()) {
 	long id;
 	if (lookup_num(pwfile(), thisUname, 0, 2, &id))
 	    return -1;
-	rpmug->unameMap.insert({thisUname, id});
+	rpmug_pw->nameMap.insert({thisUname, id});
 	*uid = id;
     } else {
 	*uid = it->second;
@@ -191,12 +192,12 @@ int rpmugGid(const char * thisGname, gid_t * gid)
 
     rpmugInit();
 
-    auto it = rpmug->gnameMap.find(thisGname);
-    if (it == rpmug->gnameMap.end()) {
+    auto it = rpmug_grp->nameMap.find(thisGname);
+    if (it == rpmug_grp->nameMap.end()) {
 	long id;
 	if (lookup_num(grpfile(), thisGname, 0, 2, &id))
 	    return -1;
-	rpmug->gnameMap.insert({thisGname, id});
+	rpmug_grp->nameMap.insert({thisGname, id});
 	*gid = id;
     } else {
 	*gid = it->second;
@@ -213,14 +214,14 @@ const char * rpmugUname(uid_t uid)
     rpmugInit();
 
     const char *retname = NULL;
-    auto it = rpmug->uidMap.find(uid);
-    if (it == rpmug->uidMap.end()) {
+    auto it = rpmug_pw->idMap.find(uid);
+    if (it == rpmug_pw->idMap.end()) {
 	char *uname = NULL;
 
 	if (lookup_str(pwfile(), uid, 2, 0, &uname))
 	    return NULL;
 
-	auto res = rpmug->uidMap.insert({uid, uname}).first;
+	auto res = rpmug_pw->idMap.insert({uid, uname}).first;
 	retname = res->second.c_str();
     } else {
 	retname = it->second.c_str();
@@ -236,14 +237,14 @@ const char * rpmugGname(gid_t gid)
     rpmugInit();
 
     const char *retname = NULL;
-    auto it = rpmug->gidMap.find(gid);
-    if (it == rpmug->gidMap.end()) {
+    auto it = rpmug_grp->idMap.find(gid);
+    if (it == rpmug_grp->idMap.end()) {
 	char *gname = NULL;
 
 	if (lookup_str(pwfile(), gid, 2, 0, &gname))
 	    return NULL;
 
-	auto res = rpmug->gidMap.insert({gid, gname}).first;
+	auto res = rpmug_grp->idMap.insert({gid, gname}).first;
 	retname = res->second.c_str();
     } else {
 	retname = it->second.c_str();
@@ -253,10 +254,14 @@ const char * rpmugGname(gid_t gid)
 
 void rpmugFree(void)
 {
-    if (rpmug) {
-	free(rpmug->pwpath);
-	free(rpmug->grppath);
-	delete rpmug;
-	rpmug = NULL;
+    if (rpmug_pw) {
+	free(rpmug_pw->path);
+	delete rpmug_pw;
+	rpmug_pw = NULL;
+    }
+    if (rpmug_grp) {
+	free(rpmug_grp->path);
+	delete rpmug_grp;
+	rpmug_grp = NULL;
     }
 }
