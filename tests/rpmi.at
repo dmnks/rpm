@@ -1783,7 +1783,6 @@ RPMTEST_CLEANUP
 
 RPMTEST_SETUP_RW([rpm -i user/group lookup])
 AT_KEYWORDS([])
-AT_XFAIL_IF([test $RPM_XFAIL -ne 0])
 
 # Symlink to read-only file /etc/authselect/nsswitch.conf
 rm $RPMTEST/etc/nsswitch.conf

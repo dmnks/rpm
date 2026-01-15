@@ -3,6 +3,8 @@
 #include <unordered_map>
 #include <string>
 
+#include <pwd.h>
+#include <grp.h>
 #include <errno.h>
 #include <rpm/argv.h>
 #include <rpm/rpmlog.h>
@@ -10,6 +12,7 @@
 #include <rpm/rpmmacro.h>
 
 #include "misc.hh"
+#include "rpmchroot.hh"
 #include "rpmug.hh"
 #include "debug.h"
 
@@ -32,11 +35,12 @@ static const char *getpath(const char *bn, const char *dfl, struct rpmug_s *rs)
 	char *s = rpmExpand("%{_", bn, "_path}", NULL);
 	if (*s == '%' || *s == '\0') {
 	    free(s);
-	    s = xstrdup(dfl);
+	    // Use system lookup unless chrooted
+	    s = rpmChrootDone() ? xstrdup(dfl) : NULL;
 	}
 	*dest = s;
     }
-    return *dest;
+    return rs->path;
 }
 
 static const char *pwfile(void)
@@ -171,9 +175,17 @@ int rpmugUid(const char * thisUname, uid_t * uid)
 
     auto it = rpmug_pw->nameMap.find(thisUname);
     if (it == rpmug_pw->nameMap.end()) {
+	const char *path = pwfile();
 	long id;
-	if (lookup_num(pwfile(), thisUname, 0, 2, &id))
-	    return -1;
+	if (path) {
+	    if (lookup_num(path, thisUname, 0, 2, &id))
+		return -1;
+	} else {
+	    struct passwd *pwent = getpwnam(thisUname);
+	    if (pwent == NULL)
+		return -1;
+	    id = pwent->pw_uid;
+	}
 	rpmug_pw->nameMap.insert({thisUname, id});
 	*uid = id;
     } else {
@@ -194,9 +206,17 @@ int rpmugGid(const char * thisGname, gid_t * gid)
 
     auto it = rpmug_grp->nameMap.find(thisGname);
     if (it == rpmug_grp->nameMap.end()) {
+	const char *path = grpfile();
 	long id;
-	if (lookup_num(grpfile(), thisGname, 0, 2, &id))
-	    return -1;
+	if (path) {
+	    if (lookup_num(path, thisGname, 0, 2, &id))
+		return -1;
+	} else {
+	    struct group *grent = getgrnam(thisGname);
+	    if (grent == NULL)
+		return -1;
+	    id = grent->gr_gid;
+	}
 	rpmug_grp->nameMap.insert({thisGname, id});
 	*gid = id;
     } else {
@@ -216,10 +236,18 @@ const char * rpmugUname(uid_t uid)
     const char *retname = NULL;
     auto it = rpmug_pw->idMap.find(uid);
     if (it == rpmug_pw->idMap.end()) {
+	const char *path = pwfile();
 	char *uname = NULL;
 
-	if (lookup_str(pwfile(), uid, 2, 0, &uname))
-	    return NULL;
+	if (path) {
+	    if (lookup_str(path, uid, 2, 0, &uname))
+		return NULL;
+	} else {
+	    struct passwd *pwent = getpwuid(uid);
+	    if (pwent == NULL)
+		return NULL;
+	    uname = pwent->pw_name;
+	}
 
 	auto res = rpmug_pw->idMap.insert({uid, uname}).first;
 	retname = res->second.c_str();
@@ -239,10 +267,18 @@ const char * rpmugGname(gid_t gid)
     const char *retname = NULL;
     auto it = rpmug_grp->idMap.find(gid);
     if (it == rpmug_grp->idMap.end()) {
+	const char *path = grpfile();
 	char *gname = NULL;
 
-	if (lookup_str(pwfile(), gid, 2, 0, &gname))
-	    return NULL;
+	if (path) {
+	    if (lookup_str(path, gid, 2, 0, &gname))
+		return NULL;
+	} else {
+	    struct group *grent = getgrgid(gid);
+	    if (grent == NULL)
+		return NULL;
+	    gname = grent->gr_name;
+	}
 
 	auto res = rpmug_grp->idMap.insert({gid, gname}).first;
 	retname = res->second.c_str();
