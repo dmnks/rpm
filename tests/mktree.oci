@@ -88,7 +88,13 @@ case $CMD in
             $PODMAN commit -q $id --iidfile=$IID_FILE
         else
             # Standalone build
-            $PODMAN build --target full --iidfile=$IID_FILE $ARGS
+            opts=
+            case "$1" in
+                --preset)
+                    opts="--build-arg CMAKE_PRESET=$2"
+                ;;
+            esac
+            $PODMAN build --target full --iidfile=$IID_FILE $opts $ARGS
         fi
     ;;
     check)

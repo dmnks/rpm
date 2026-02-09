@@ -93,12 +93,13 @@ WORKDIR /
 CMD /bin/bash
 
 FROM base AS full
+ARG CMAKE_PRESET=dev
 
 WORKDIR /srv/rpm
 COPY . .
 
 WORKDIR /srv/build
-RUN cmake --preset dev -DMKTREE_BACKEND=rootfs ../rpm
+RUN cmake --preset ${CMAKE_PRESET} -DMKTREE_BACKEND=rootfs ../rpm
 RUN make -j$(nproc) tree
 
 RUN rm -rf /srv/{rpm,build}
