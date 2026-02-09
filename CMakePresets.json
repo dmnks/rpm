@@ -27,6 +27,18 @@
                 "CMAKE_C_COMPILER": "gcc",
                 "CMAKE_CXX_COMPILER": "g++"
             }
+        },
+        {
+            "name": "dev-clang",
+            "inherits": "dev",
+            "displayName": "Clang based development",
+            "cacheVariables": {
+                "CMAKE_C_COMPILER": "clang",
+                "CMAKE_CXX_COMPILER": "clang++",
+                "ENABLE_WERROR": "OFF",
+                "ENABLE_ASAN": "OFF",
+                "ENABLE_UBSAN": "OFF"
+            }
         }
     ]
 }
