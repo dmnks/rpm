@@ -93,7 +93,7 @@ WORKDIR /
 CMD /bin/bash
 
 FROM base AS full
-ARG CMAKE_PRESET=dev
+ARG CMAKE_PRESET=dev-gcc
 
 WORKDIR /srv/rpm
 COPY . .

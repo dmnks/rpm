@@ -18,6 +18,15 @@
                 "CFLAGS": "-Og -g",
                 "CXXFLAGS": "-Og -g"
             }
+        },
+        {
+            "name": "dev-gcc",
+            "inherits": "dev",
+            "displayName": "GNU C based development",
+            "cacheVariables": {
+                "CMAKE_C_COMPILER": "gcc",
+                "CMAKE_CXX_COMPILER": "g++"
+            }
         }
     ]
 }
