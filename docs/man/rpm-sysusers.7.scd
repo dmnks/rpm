@@ -9,17 +9,21 @@ RPM-SYSUSERS(7)
 ## Declaration
 
 *%{\_sysusersdir}*_/\*.conf_++
-*%{add_sysuser *_LINE_*}*
+*%{add_sysuser *_ENTRY_*}*
 
-## Line format
+## File format
 
-*u* _UNAME_ _UID_ _GECOS_ _HOMEDIR_ _SHELL_++
-*u* _UNAME_ _UID_*:*_GID_ _GECOS_ _HOMEDIR_ _SHELL_++
-*u* _UNAME_ _FILE_ _GECOS_ _HOMEDIR_ _SHELL_++
-*g* _GNAME_ _GID_++
-*g* _GNAME_ _FILE_++
-*m* _UNAME_ _GNAME_++
+_ENTRY_++
 *#* _COMMENT_
+
+## Entry format
+
+*u* _USERNAME_ _UID_ _GECOS_ _HOMEDIR_ _SHELL_++
+*u* _USERNAME_ _UID_*:*_GID_ _GECOS_ _HOMEDIR_ _SHELL_++
+*u* _USERNAME_ _FILE_ _GECOS_ _HOMEDIR_ _SHELL_++
+*g* _GROUPNAME_ _GID_++
+*g* _GROUPNAME_ _FILE_++
+*m* _USERNAME_ _GROUPNAME_
 
 ## Notes
 
@@ -27,7 +31,6 @@ RPM-SYSUSERS(7)
   (recommended)
 - Use a dash (*-*) as _UID_/_GID_ for automatic number allocation (recommended)
 - _FILE_ is an absolute path to a file whose UID/GID should be used
-- _LINE_ uses *Line format* with the fields passed as macro arguments
 
 # DESCRIPTION
 
@@ -74,10 +77,10 @@ to call *systemd-sysusers*(8) with the correct arguments manually.
 
 # PORTABILITY
 
-RPM provides a number of tunables to enable vendors and packagers to implement
-the declarative user and group integration on platforms that do not ship with
-the default systemd tooling. Note, however, that some tunables may need tweaking
-even on platforms with systemd.
+RPM provides a number of macros to enable vendors and packagers to implement the
+declarative user and group integration on platforms that do not ship with the
+default systemd tooling. Note, however, that some of these tunables may need
+tweaking even on platforms with systemd.
 
 ## Vendors
 
@@ -110,13 +113,22 @@ even on platforms with systemd.
 
 ## Packagers
 
-*%add_sysusers* _LINE_
-	Interpret _LINE_ as if written in a *sysusers.d*(5) file. _LINE_ denotes
-	the individual fields passed as macro arguments.
+*%add_sysusers* [*-b*] _LINE_
+	Interpret _LINE_ as if written in a *sysusers.d*(5) file and expand to a
+	(bare) dependency string as described in *ENCODING*. _LINE_ denotes the
+	individual fields passed as macro arguments.
 
-	This macro can be defined in an *rpm-spec*(5) file, in the context of a
-	(sub)package. Its purpose is to allow declaring users and groups without
-	having to ship any *sysusers.d*(5) files on non-systemd platforms.
+	When used with *-b*, expand to a bare dependency string. This form can
+	be used to implement *rpm-dependency-generators*(7) for *sysusers.d*(5)
+	files. RPM ships with such a generator (_sysusers.attr_) installed by
+	default.
+
+	When used without *-b*, expand to a dependency string and prefix it with
+	"Provides: " or "Requires: ". This form can be used in *rpm-spec*(5)
+	files to declare users and/or groups directly, without having to package
+	any *sysusers.d*(5) files. It is mainly intended for development and/or
+	debugging purposes and is discouraged otherwise since it conflicts with
+	the original *sysusers.d*(5) scheme (see also *TECHNICAL DETAILS*).
 
 # COMPATIBILITY
 
@@ -193,6 +205,13 @@ groups on the system, according to those lines.
 
 Since the above process happens before the payload is unpacked to disk, packages
 can ship files owned by their own users and groups.
+
+Any virtual provides generated with the *%add_sysuser* macro in an *rpm-spec*(5)
+file are package-level and thus do not have an originating file to group by. In
+such cases, RPM does not use *--replace* when calling *systemd-sysusers*(8) for
+the given sysusers.d line. That may cause unintended behavior since the program
+will treat that line with a higher priority than any *sysusers.d*(5) overrides
+made by the system administrator.
 
 Note that the packaged *sysusers.d*(5) files, if any, are installed as normal,
 but do not participate in the user/group creation itself. They simply serve as
