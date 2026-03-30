@@ -7,7 +7,7 @@ rpmplugindir=@RPM_PLUGINDIR@
 
 Name: @CMAKE_PROJECT_NAME@
 Description: @CMAKE_PROJECT_DESCRIPTION@
-Version: @CMAKE_PROJECT_VERSION@
+Version: @RPM_VERSION@
 URL: @CMAKE_PROJECT_HOMEPAGE_URL@
 Requires: popt
 Requires.private: @ZSTD_REQUIRES@

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.18)
 
 project(rpm
-	VERSION 6.0.90
+	VERSION 6.1.0
 	DESCRIPTION "The RPM Package Manager"
 	HOMEPAGE_URL "http://rpm.org"
 	LANGUAGES C CXX
@@ -45,6 +45,42 @@ set(RPM_CONFIGDIR "${CMAKE_INSTALL_PREFIX}/lib/rpm" CACHE PATH "rpm home")
 set(RPM_MACROSDIR "${RPM_CONFIGDIR}/macros.d")
 set(RPM_VENDOR "vendor" CACHE STRING "rpm vendor string")
 
+# Construct RPM version strings
+if (RPM_VERSION_TAG STREQUAL release)
+	# Final release
+	set(RPM_VERSION ${PROJECT_VERSION})
+	set(RPM_PYTHON_VERSION ${PROJECT_VERSION})
+	set(RPM_TARBALL_VERSION ${PROJECT_VERSION})
+elseif (RPM_VERSION_TAG)
+	# Pre-release snapshot
+	# Use rpm-version(7)
+	set(RPM_VERSION ${PROJECT_VERSION}~${RPM_VERSION_TAG})
+	# Use PEP 440
+	set(RPM_PYTHON_VERSION ${PROJECT_VERSION}${RPM_VERSION_TAG})
+	# Tilde is not valid in CMake target name
+	set(RPM_TARBALL_VERSION ${PROJECT_VERSION}-${RPM_VERSION_TAG})
+else()
+	# Development snapshot
+	if (EXISTS ${CMAKE_SOURCE_DIR}/.git)
+		execute_process(COMMAND git rev-list --no-merges --count HEAD
+				WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+				OUTPUT_VARIABLE suffix
+				OUTPUT_STRIP_TRAILING_WHITESPACE)
+	elseif (EXISTS ${CMAKE_SOURCE_DIR}/ChangeLog)
+		execute_process(COMMAND sh -c "grep ^commit \
+					${CMAKE_SOURCE_DIR}/ChangeLog | wc -l"
+				WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+				OUTPUT_VARIABLE suffix
+				OUTPUT_STRIP_TRAILING_WHITESPACE)
+	else()
+		string(TIMESTAMP suffix "%Y%m%d")
+	endif()
+	# Use rpm-version(7)
+	set(RPM_VERSION ${PROJECT_VERSION}~${suffix})
+	# Use PEP 440
+	set(RPM_PYTHON_VERSION ${PROJECT_VERSION}.dev${suffix})
+	set(RPM_TARBALL_VERSION ${PROJECT_VERSION}-git${suffix})
+endif()
 # Emulate libtool versioning. Before a public release:
 # - increment micro version whenever there are code changes
 # - increment minor version whenever there are added interfaces
@@ -171,7 +207,7 @@ function(makemacros)
 	configure_file(platform.in platform @ONLY)
 	configure_file(rpmrc.in rpmrc @ONLY)
 	configure_file(macros.in macros @ONLY)
-	configure_file(rpmpopt.in rpmpopt-${PROJECT_VERSION} @ONLY)
+	configure_file(rpmpopt.in rpmpopt-${RPM_VERSION} @ONLY)
 	configure_file(rpm.pc.in rpm.pc @ONLY)
 
 	install(CODE "execute_process(COMMAND
@@ -476,7 +512,7 @@ add_subdirectory(fileattrs)
 add_subdirectory(scripts)
 
 makemacros()
-foreach(f macros rpmrc rpmpopt-${PROJECT_VERSION})
+foreach(f macros rpmrc rpmpopt-${RPM_VERSION})
 	install(FILES ${CMAKE_BINARY_DIR}/${f} DESTINATION ${RPM_CONFIGDIR})
 endforeach()
 
@@ -526,16 +562,7 @@ function(add_tarball targetname namever treeish)
 	add_custom_target(${targetname} DEPENDS ${distname})
 endfunction()
 
-add_tarball(dist ${PROJECT_NAME}-${PROJECT_VERSION} HEAD)
-
-if (EXISTS ${CMAKE_SOURCE_DIR}/.git)
-	execute_process(COMMAND git rev-list --count HEAD
-			WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-			OUTPUT_VARIABLE gitcount
-			OUTPUT_STRIP_TRAILING_WHITESPACE)
-	add_tarball(snapshot
-		    ${PROJECT_NAME}-${PROJECT_VERSION}-git${gitcount} HEAD)
-endif()
+add_tarball(dist ${PROJECT_NAME}-${RPM_TARBALL_VERSION} HEAD)
 
 # Voodoo rites to make our libraries cmake find_package() importable
 include(CMakePackageConfigHelpers)
