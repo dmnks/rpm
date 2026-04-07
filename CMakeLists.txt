@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.18)
 
 project(rpm
-	VERSION 6.0.90
+	VERSION 6.1.0
 	DESCRIPTION "The RPM Package Manager"
 	HOMEPAGE_URL "http://rpm.org"
 	LANGUAGES C CXX
@@ -40,10 +40,17 @@ option(WITH_LIBELF "Build with libelf support" ON)
 option(WITH_LIBLZMA "Build with liblzma support" ON)
 option(WITH_DOXYGEN "Build API docs with doxygen" OFF)
 option(WITH_WEBSITE "Build standalone website" OFF)
+option(WITH_REVISION "Extend RPM version strings with git revision" OFF)
 
 set(RPM_CONFIGDIR "${CMAKE_INSTALL_PREFIX}/lib/rpm" CACHE PATH "rpm home")
 set(RPM_MACROSDIR "${RPM_CONFIGDIR}/macros.d")
 set(RPM_VENDOR "vendor" CACHE STRING "rpm vendor string")
+
+# RPM version tag (optional). Use one of the following:
+# - alphaN: N-th alpha pre-release
+# - betaN: N-th beta pre-release
+# - rcN: N-th rc pre-release
+set(RPM_VERSION_TAG "")
 
 # Emulate libtool versioning. Before a public release:
 # - increment micro version whenever there are code changes
@@ -54,8 +61,35 @@ set(RPM_VENDOR "vendor" CACHE STRING "rpm vendor string")
 set(RPM_SOVERSION 10)
 set(RPM_LIBVERSION ${RPM_SOVERSION}.6.0)
 
+# Generate RPM version strings (follow rpm-version(7) and PEP 440)
 set(RPM_VERSION ${PROJECT_VERSION})
 set(RPM_PYTHON_VERSION ${PROJECT_VERSION})
+if (RPM_VERSION_TAG)
+	string(APPEND RPM_VERSION ~${RPM_VERSION_TAG})
+	string(APPEND RPM_PYTHON_VERSION ${RPM_VERSION_TAG})
+endif()
+
+if (WITH_REVISION)
+	if (EXISTS ${CMAKE_SOURCE_DIR}/.git)
+		execute_process(COMMAND git log --no-merges --no-decorate
+					--output=${CMAKE_BINARY_DIR}/ChangeLog
+				WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+	elseif (EXISTS ${CMAKE_SOURCE_DIR}/ChangeLog)
+		file(COPY ${CMAKE_SOURCE_DIR}/ChangeLog ${CMAKE_BINARY_DIR}/)
+	endif()
+
+	execute_process(COMMAND grep -c ^commit ${CMAKE_BINARY_DIR}/ChangeLog
+			OUTPUT_VARIABLE RPM_VERSION_GIT
+			OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+	if (RPM_VERSION_TAG)
+		string(APPEND RPM_VERSION ^)
+	else()
+		string(APPEND RPM_VERSION ~)
+	endif()
+	string(APPEND RPM_VERSION Git${RPM_VERSION_GIT})
+	string(APPEND RPM_PYTHON_VERSION .dev${RPM_VERSION_GIT})
+endif()
 
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -506,12 +540,12 @@ add_custom_command(OUTPUT po/rpm.pot
 function(add_tarball targetname namever treeish)
 	set(distfmt tar)
 	set(tarname ${namever}.${distfmt})
-	set(distname ${tarname}.bz2)
 
-	add_custom_target(${distname}
+	add_custom_target(${targetname}
 		WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 		VERBATIM
 		DEPENDS ChangeLog po/rpm.pot
+		COMMENT "Creating tarball: ${tarname}"
 		COMMAND git archive
 			--format=${distfmt}
 			--output=${CMAKE_BINARY_DIR}/${tarname}
@@ -527,18 +561,10 @@ function(add_tarball targetname namever treeish)
 			 && rm -f ${CMAKE_BINARY_DIR}/$sha1.tar"
 		COMMAND bzip2 -f ${CMAKE_BINARY_DIR}/${tarname}
 	)
-	add_custom_target(${targetname} DEPENDS ${distname})
 endfunction()
 
-add_tarball(dist ${PROJECT_NAME}-${PROJECT_VERSION} HEAD)
-
 if (EXISTS ${CMAKE_SOURCE_DIR}/.git)
-	execute_process(COMMAND git rev-list --count HEAD
-			WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-			OUTPUT_VARIABLE gitcount
-			OUTPUT_STRIP_TRAILING_WHITESPACE)
-	add_tarball(snapshot
-		    ${PROJECT_NAME}-${PROJECT_VERSION}-git${gitcount} HEAD)
+	add_tarball(dist ${PROJECT_NAME}-${RPM_VERSION} HEAD)
 endif()
 
 # Voodoo rites to make our libraries cmake find_package() importable
