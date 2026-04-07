@@ -54,6 +54,9 @@ set(RPM_VENDOR "vendor" CACHE STRING "rpm vendor string")
 set(RPM_SOVERSION 10)
 set(RPM_LIBVERSION ${RPM_SOVERSION}.6.0)
 
+set(RPM_VERSION ${PROJECT_VERSION})
+set(RPM_PYTHON_VERSION ${PROJECT_VERSION})
+
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS ON)
@@ -172,7 +175,7 @@ function(makemacros)
 	configure_file(platform.in platform @ONLY)
 	configure_file(rpmrc.in rpmrc @ONLY)
 	configure_file(macros.in macros @ONLY)
-	configure_file(rpmpopt.in rpmpopt-${PROJECT_VERSION} @ONLY)
+	configure_file(rpmpopt.in rpmpopt-${RPM_VERSION} @ONLY)
 	configure_file(rpm.pc.in rpm.pc @ONLY)
 
 	install(CODE "execute_process(COMMAND
@@ -477,7 +480,7 @@ add_subdirectory(fileattrs)
 add_subdirectory(scripts)
 
 makemacros()
-foreach(f macros rpmrc rpmpopt-${PROJECT_VERSION})
+foreach(f macros rpmrc rpmpopt-${RPM_VERSION})
 	install(FILES ${CMAKE_BINARY_DIR}/${f} DESTINATION ${RPM_CONFIGDIR})
 endforeach()
 
