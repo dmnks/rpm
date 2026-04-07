@@ -54,6 +54,13 @@ set(RPM_VENDOR "vendor" CACHE STRING "rpm vendor string")
 set(RPM_SOVERSION 10)
 set(RPM_LIBVERSION ${RPM_SOVERSION}.6.0)
 
+#
+# Generate RPM version strings
+#
+set(RPM_VERSION ${PROJECT_VERSION})
+set(RPM_PYTHON_VERSION ${PROJECT_VERSION})
+message(STATUS "RPM version ${RPM_VERSION}")
+
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS ON)
@@ -172,7 +179,7 @@ function(makemacros)
 	configure_file(platform.in platform @ONLY)
 	configure_file(rpmrc.in rpmrc @ONLY)
 	configure_file(macros.in macros @ONLY)
-	configure_file(rpmpopt.in rpmpopt-${PROJECT_VERSION} @ONLY)
+	configure_file(rpmpopt.in rpmpopt-${RPM_VERSION} @ONLY)
 	configure_file(rpm.pc.in rpm.pc @ONLY)
 
 	install(CODE "execute_process(COMMAND
@@ -477,7 +484,7 @@ add_subdirectory(fileattrs)
 add_subdirectory(scripts)
 
 makemacros()
-foreach(f macros rpmrc rpmpopt-${PROJECT_VERSION})
+foreach(f macros rpmrc rpmpopt-${RPM_VERSION})
 	install(FILES ${CMAKE_BINARY_DIR}/${f} DESTINATION ${RPM_CONFIGDIR})
 endforeach()
 
@@ -527,7 +534,7 @@ function(add_tarball targetname namever treeish)
 	add_custom_target(${targetname} DEPENDS ${distname})
 endfunction()
 
-add_tarball(dist ${PROJECT_NAME}-${PROJECT_VERSION} HEAD)
+add_tarball(dist ${PROJECT_NAME}-${RPM_VERSION} HEAD)
 
 if (EXISTS ${CMAKE_SOURCE_DIR}/.git)
 	execute_process(COMMAND git rev-list --count HEAD
@@ -535,7 +542,7 @@ if (EXISTS ${CMAKE_SOURCE_DIR}/.git)
 			OUTPUT_VARIABLE gitcount
 			OUTPUT_STRIP_TRAILING_WHITESPACE)
 	add_tarball(snapshot
-		    ${PROJECT_NAME}-${PROJECT_VERSION}-git${gitcount} HEAD)
+		    ${PROJECT_NAME}-${RPM_VERSION}-git${gitcount} HEAD)
 endif()
 
 # Voodoo rites to make our libraries cmake find_package() importable
@@ -547,6 +554,7 @@ configure_package_config_file(
 )
 write_basic_package_version_file(
 	${CMAKE_CURRENT_BINARY_DIR}/rpm-config-version.cmake
+	VERSION ${RPM_VERSION}
 	COMPATIBILITY SameMinorVersion
 )
 install(FILES
