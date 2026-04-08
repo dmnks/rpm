@@ -55,6 +55,14 @@
                 "ENABLE_ASAN": "OFF",
                 "ENABLE_UBSAN": "OFF"
             }
+        },
+        {
+            "name": "dist",
+            "displayName": "Making a tarball (dist)",
+            "cacheVariables": {
+                "WITH_DOXYGEN": "ON",
+                "WITH_REVISION": "OFF"
+            }
         }
     ]
 }

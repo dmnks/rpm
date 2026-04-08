@@ -69,6 +69,32 @@ if (RPM_VERSION_TAG)
 	string(APPEND RPM_VERSION ~${RPM_VERSION_TAG})
 	string(APPEND RPM_PYTHON_VERSION ${RPM_VERSION_TAG})
 endif()
+# Generate ChangeLog file for tarballs and/or revision number
+if (EXISTS ${CMAKE_SOURCE_DIR}/.git)
+	set(WITH_REVISION ON CACHE BOOL
+	    "Extend RPM version strings with revision number")
+	execute_process(COMMAND git log --no-merges --no-decorate
+				--output=${CMAKE_BINARY_DIR}/ChangeLog
+			WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+elseif (EXISTS ${CMAKE_SOURCE_DIR}/ChangeLog)
+	file(COPY ${CMAKE_SOURCE_DIR}/ChangeLog
+	     DESTINATION ${CMAKE_BINARY_DIR})
+endif()
+# Extend RPM version strings with revision number (if configured)
+if (WITH_REVISION)
+	execute_process(COMMAND grep -c ^commit ${CMAKE_BINARY_DIR}/ChangeLog
+			OUTPUT_VARIABLE RPM_VERSION_GIT
+			OUTPUT_STRIP_TRAILING_WHITESPACE)
+	if (RPM_VERSION_TAG)
+		# Pre-release or candidate revision
+		string(APPEND RPM_VERSION ^)
+	else()
+		# Development snapshot of next version
+		string(APPEND RPM_VERSION ~)
+	endif()
+	string(APPEND RPM_VERSION Git${RPM_VERSION_GIT})
+	string(APPEND RPM_PYTHON_VERSION .dev${RPM_VERSION_GIT})
+endif()
 message(STATUS "RPM version ${RPM_VERSION}")
 
 set(CMAKE_C_STANDARD 99)
@@ -508,12 +534,6 @@ install(DIRECTORY DESTINATION ${RPM_CONFIGDIR}/macros.d)
 install(DIRECTORY DESTINATION ${CMAKE_INSTALL_FULL_SYSCONFDIR}/rpm)
 install(FILES CONTRIBUTING.md COPYING CREDITS INSTALL README TYPE DOC)
 
-add_custom_target(ChangeLog
-		   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-		   COMMAND git log --no-merges --no-decorate
-				--output=${CMAKE_BINARY_DIR}/ChangeLog
-)
-
 add_custom_command(OUTPUT po/rpm.pot
 		   COMMAND git submodule update --init)
 
@@ -525,7 +545,7 @@ function(add_tarball targetname namever treeish)
 	add_custom_target(${targetname}
 		WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 		VERBATIM
-		DEPENDS ChangeLog po/rpm.pot
+		DEPENDS po/rpm.pot
 		COMMENT "Creating tarball: ${distname}"
 		COMMAND git archive
 			--format=${distfmt}
@@ -545,13 +565,7 @@ function(add_tarball targetname namever treeish)
 endfunction()
 
 if (EXISTS ${CMAKE_SOURCE_DIR}/.git)
-	execute_process(COMMAND git rev-list --count HEAD
-			WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-			OUTPUT_VARIABLE gitcount
-			OUTPUT_STRIP_TRAILING_WHITESPACE)
 	add_tarball(dist ${PROJECT_NAME}-${RPM_VERSION} HEAD)
-	add_tarball(snapshot
-		    ${PROJECT_NAME}-${RPM_VERSION}-git${gitcount} HEAD)
 endif()
 
 # Voodoo rites to make our libraries cmake find_package() importable
