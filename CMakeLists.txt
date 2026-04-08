@@ -45,6 +45,12 @@ set(RPM_CONFIGDIR "${CMAKE_INSTALL_PREFIX}/lib/rpm" CACHE PATH "rpm home")
 set(RPM_MACROSDIR "${RPM_CONFIGDIR}/macros.d")
 set(RPM_VENDOR "vendor" CACHE STRING "rpm vendor string")
 
+# RPM version tag (optional). Use one of the following:
+# - alphaN: N-th alpha pre-release
+# - betaN: N-th beta pre-release
+# - rcN: N-th release candidate
+set(RPM_VERSION_TAG "")
+
 # Emulate libtool versioning. Before a public release:
 # - increment micro version whenever there are code changes
 # - increment minor version whenever there are added interfaces
@@ -55,10 +61,14 @@ set(RPM_SOVERSION 10)
 set(RPM_LIBVERSION ${RPM_SOVERSION}.6.0)
 
 #
-# Generate RPM version strings
+# Generate RPM version strings (follow rpm-version(7) and PEP 440)
 #
 set(RPM_VERSION ${PROJECT_VERSION})
 set(RPM_PYTHON_VERSION ${PROJECT_VERSION})
+if (RPM_VERSION_TAG)
+	string(APPEND RPM_VERSION ~${RPM_VERSION_TAG})
+	string(APPEND RPM_PYTHON_VERSION ${RPM_VERSION_TAG})
+endif()
 message(STATUS "RPM version ${RPM_VERSION}")
 
 set(CMAKE_C_STANDARD 99)
