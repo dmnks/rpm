@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.18)
 
 project(rpm
-	VERSION 6.0.90
+	VERSION 6.1.0
 	DESCRIPTION "The RPM Package Manager"
 	HOMEPAGE_URL "http://rpm.org"
 	LANGUAGES C CXX
@@ -45,6 +45,8 @@ set(RPM_CONFIGDIR "${CMAKE_INSTALL_PREFIX}/lib/rpm" CACHE PATH "rpm home")
 set(RPM_MACROSDIR "${RPM_CONFIGDIR}/macros.d")
 set(RPM_VENDOR "vendor" CACHE STRING "rpm vendor string")
 
+set(RPM_VERSION_STABLE FALSE)
+
 # Emulate libtool versioning. Before a public release:
 # - increment micro version whenever there are code changes
 # - increment minor version whenever there are added interfaces
@@ -57,8 +59,26 @@ set(RPM_LIBVERSION ${RPM_SOVERSION}.6.0)
 #
 # Generate RPM version strings
 #
-set(RPM_VERSION ${PROJECT_VERSION})
-set(RPM_PYTHON_VERSION ${PROJECT_VERSION})
+set(RPM_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
+set(RPM_VERSION_MINOR ${PROJECT_VERSION_MINOR})
+set(RPM_VERSION_PATCH ${PROJECT_VERSION_PATCH})
+set(RPM_VERSION_TWEAK ${PROJECT_VERSION_TWEAK})
+if (NOT RPM_VERSION_STABLE AND NOT PROJECT_VERSION_TWEAK)
+	if (${PROJECT_VERSION_PATCH} GREATER 0)
+		math(EXPR RPM_VERSION_PATCH "${PROJECT_VERSION_PATCH} - 1")
+		math(EXPR RPM_VERSION_TWEAK 90)
+	elseif (${PROJECT_VERSION_MINOR} GREATER 0)
+		math(EXPR RPM_VERSION_MINOR "${PROJECT_VERSION_MINOR} - 1")
+		math(EXPR RPM_VERSION_PATCH 90)
+	else()
+		math(EXPR RPM_VERSION_MAJOR "${PROJECT_VERSION_MAJOR} - 1")
+		math(EXPR RPM_VERSION_MINOR 90)
+	endif()
+endif()
+string(JOIN "." RPM_VERSION ${RPM_VERSION_MAJOR} ${RPM_VERSION_MINOR}
+			    ${RPM_VERSION_PATCH} ${RPM_VERSION_TWEAK})
+set(RPM_PYTHON_VERSION ${RPM_VERSION})
+
 message(STATUS "RPM version ${RPM_VERSION}")
 
 set(CMAKE_C_STANDARD 99)
