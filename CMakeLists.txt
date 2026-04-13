@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.18)
 
 project(rpm
-	VERSION 6.0.90
+	VERSION 6.1.0
 	DESCRIPTION "The RPM Package Manager"
 	HOMEPAGE_URL "http://rpm.org"
 	LANGUAGES C CXX
@@ -41,6 +41,36 @@ option(WITH_LIBLZMA "Build with liblzma support" ON)
 option(WITH_DOXYGEN "Build API docs with doxygen" OFF)
 option(WITH_WEBSITE "Build standalone website" OFF)
 
+# Human-friendly version strings
+set(RPM_VERSION ${PROJECT_VERSION})  	# Follows rpm-version(7) scheme
+set(RPM_VERSION_PY ${PROJECT_VERSION})  # Follows PEP 440 scheme
+
+# Append snapshot name from current git tag (or VERSION file)
+if (EXISTS ${CMAKE_SOURCE_DIR}/.git)
+	# Git checkout
+	execute_process(COMMAND git describe --exact-match HEAD
+			OUTPUT_VARIABLE RPM_VERSION_TAG
+			OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET)
+	execute_process(COMMAND git rev-list --no-merges --count HEAD
+			OUTPUT_VARIABLE RPM_VERSION_REV
+			OUTPUT_STRIP_TRAILING_WHITESPACE)
+	string(REGEX REPLACE "^rpm-${PROJECT_VERSION}-([a-z]+[0-9]*)$"
+			     "\\1" RPM_VERSION_TAG "${RPM_VERSION_TAG}")
+	if (RPM_VERSION_TAG AND NOT RPM_VERSION_TAG STREQUAL release)
+		# Pre-release snapshot
+		string(APPEND RPM_VERSION ~${RPM_VERSION_TAG})
+		string(APPEND RPM_VERSION_PY ${RPM_VERSION_TAG})
+	elseif (NOT RPM_VERSION_TAG)
+		# Development snapshot
+		string(APPEND RPM_VERSION ~git${RPM_VERSION_REV})
+		string(APPEND RPM_VERSION_PY .dev${RPM_VERSION_REV})
+	endif()
+elseif (EXISTS ${CMAKE_SOURCE_DIR}/VERSION)
+	# Pre-release tarball
+	file(READ ${CMAKE_SOURCE_DIR}/VERSION RPM_VERSION)
+endif()
+message(STATUS "RPM version ${RPM_VERSION}")
+
 set(RPM_CONFIGDIR "${CMAKE_INSTALL_PREFIX}/lib/rpm" CACHE PATH "rpm home")
 set(RPM_MACROSDIR "${RPM_CONFIGDIR}/macros.d")
 set(RPM_VENDOR "vendor" CACHE STRING "rpm vendor string")
@@ -53,10 +83,6 @@ set(RPM_VENDOR "vendor" CACHE STRING "rpm vendor string")
 #   any less significant segments
 set(RPM_SOVERSION 10)
 set(RPM_LIBVERSION ${RPM_SOVERSION}.6.0)
-
-set(RPM_VERSION ${PROJECT_VERSION})
-set(RPM_VERSION_PY ${PROJECT_VERSION})
-message(STATUS "RPM version ${RPM_VERSION}")
 
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -509,6 +535,9 @@ function(add_tarball targetname namever treeish)
 	set(tarname ${namever}.${distfmt})
 	set(distname ${tarname}.bz2)
 
+	# TODO (don't do in snapshot tarballs)
+	file(WRITE ${CMAKE_BINARY_DIR}/VERSION "${RPM_VERSION}")
+
 	add_custom_target(${targetname}
 		WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 		VERBATIM
@@ -519,6 +548,7 @@ function(add_tarball targetname namever treeish)
 			--output=${CMAKE_BINARY_DIR}/${tarname}
 			--prefix=${namever}/
 			--add-file=${CMAKE_BINARY_DIR}/ChangeLog
+			--add-file=${CMAKE_BINARY_DIR}/VERSION
 			${treeish}
 		COMMAND git submodule foreach --quiet
 			"git archive --prefix=${namever}/$sm_path/ \
@@ -532,13 +562,7 @@ function(add_tarball targetname namever treeish)
 endfunction()
 
 if (EXISTS ${CMAKE_SOURCE_DIR}/.git)
-	execute_process(COMMAND git rev-list --count HEAD
-			WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-			OUTPUT_VARIABLE gitcount
-			OUTPUT_STRIP_TRAILING_WHITESPACE)
 	add_tarball(dist ${PROJECT_NAME}-${RPM_VERSION} HEAD)
-	add_tarball(snapshot
-		    ${PROJECT_NAME}-${RPM_VERSION}-git${gitcount} HEAD)
 endif()
 
 # Voodoo rites to make our libraries cmake find_package() importable
