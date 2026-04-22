@@ -6,6 +6,8 @@ project(rpm
 	HOMEPAGE_URL "http://rpm.org"
 	LANGUAGES C CXX
 )
+# Human-friendly version for display/packaging
+set(RPM_VERSION_STRING "6.1.0~dev")
 
 # user configurable stuff
 option(ENABLE_CUTF8 "Enable C.UTF-8 as default locale" ON)
@@ -53,6 +55,8 @@ set(RPM_VENDOR "vendor" CACHE STRING "rpm vendor string")
 #   any less significant segments
 set(RPM_SOVERSION 10)
 set(RPM_LIBVERSION ${RPM_SOVERSION}.6.0)
+
+message(STATUS "RPM version ${RPM_VERSION_STRING}")
 
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
