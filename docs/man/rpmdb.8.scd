@@ -29,6 +29,23 @@ The *rpmdb* tool is used for low-level *rpm* database operations.
 
 	Can also be used to convert between different *rpmdb* formats.
 
+	When the database is parked, this operation fails with an error.
+
+*--parkdb*
+	Park the database. Prepares and optimizes the database for burning its
+	disk image onto read-only media. This includes rebuilding the database
+	and making sure that no backend-specific files, such as the write-ahead
+	log or shared memory index, are present on disk when no transaction is
+	running.
+
+	If successful, the *%\_dbpath* directory has its write mode bits removed
+	to mark the database as parked. To unpark, restore the write mode bits.
+	Note that unparking takes effect only when RPM next opens the database.
+
+	Useful when building an immutable, reproducible OS image with the RPM
+	database included. Currently only supported with the *sqlite* backend,
+	and ineffective with other backends.
+
 ## Diagnostics
 *--verifydb*
 	Perform a low-level integrity check on the database.
@@ -63,6 +80,9 @@ On success, 0 is returned, a nonzero failure code otherwise.
 
 *rpmdb --rebuilddb*
 	Rebuild the system rpmdb.
+
+*rpmdb --parkdb*
+	Park the database before burning it onto read-only media.
 
 *rpmdb --verifydb --root /mnt*
 	Verify the system database of a system image mounted

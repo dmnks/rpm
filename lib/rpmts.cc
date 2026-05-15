@@ -124,6 +124,26 @@ int rpmtsInitDB(rpmts ts, int perms)
     return rc;
 }
 
+int rpmtsParkDB(rpmts ts)
+{
+    int rc = -1;
+    rpmtxn txn = NULL;
+
+    rpmtsRebuildDB(ts);
+
+    /* Cannot do this on a populated transaction set */
+    if (rpmtsNElements(ts) > 0)
+	return -1;
+
+    txn = rpmtxnBegin(ts, RPMTXN_WRITE);
+    if (txn) {
+	rc = rpmdbPark(ts->rootDir);
+	rpmtxnEnd(txn);
+    }
+
+    return rc;
+}
+
 int rpmtsGetDBMode(rpmts ts)
 {
     assert(ts != NULL);

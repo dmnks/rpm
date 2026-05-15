@@ -121,9 +121,16 @@ static rpmRC dbiCursorBindIdx(sqlite_cursor *dbc, const char *key, int keylen,
     return dbiCursorResult(dbc);
 }
 
-static void sqlite_wal_init(sqlite3 *sdb)
+static void sqlite_wal_init(sqlite3 *sdb, int flags)
 {
     int one = 1;
+
+    if ((flags & RPMDB_FLAG_PARK) != 0) {
+	/* Checkpoint in case we are converting from WAL (no-op otherwise) */
+	sqlexec(sdb, "PRAGMA wal_checkpoint = TRUNCATE");
+	sqlexec(sdb, "PRAGMA journal_mode = DELETE");
+	return;
+    }
 
     if (sqlexec(sdb, "PRAGMA journal_mode = WAL") != 0)
 	return;
@@ -181,7 +188,7 @@ static int sqlite_init(rpmdb rdb, const char * dbhome)
 	sqlexec(sdb, "PRAGMA secure_delete = OFF");
 
 	if (sqlite3_db_readonly(sdb, NULL) == 0)
-	    sqlite_wal_init(sdb);
+	    sqlite_wal_init(sdb, rdb->db_flags);
 
 	rdb->db_dbenv = sdb;
     }

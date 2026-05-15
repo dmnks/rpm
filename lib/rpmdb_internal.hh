@@ -44,6 +44,14 @@ RPM_GNUC_INTERNAL
 int rpmdbInit(const char * prefix, int perms);
 
 /** \ingroup rpmdb
+ * Park database.
+ * @param prefix	path to top of install tree
+ * @return		0 on success
+ */
+RPM_GNUC_INTERNAL
+int rpmdbPark(const char * prefix);
+
+/** \ingroup rpmdb
  * Close all database indices and free rpmdb.
  * @param db		rpm database
  * @return		0 on success

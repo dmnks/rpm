@@ -303,6 +303,13 @@ int rpmtsOpenDB(rpmts ts, int dbmode);
 int rpmtsInitDB(rpmts ts, int perms);
 
 /** \ingroup rpmts
+ * Park the database used by the transaction.
+ * @param ts		transaction set
+ * @return		0 on success
+ */
+int rpmtsParkDB(rpmts ts);
+
+/** \ingroup rpmts
  * Return the transaction database mode
  * @param ts		transaction set
  * @return		O_RDONLY, O_RDWR or -1 (lazy opens disabled)

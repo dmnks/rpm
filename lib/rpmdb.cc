@@ -425,6 +425,7 @@ static int openDatabase(const char * prefix,
     rpmdb db;
     int rc;
     int justCheck = flags & RPMDB_FLAG_JUSTCHECK;
+    const char *dbhome = NULL;
 
     if (dbp)
 	*dbp = NULL;
@@ -435,12 +436,35 @@ static int openDatabase(const char * prefix,
     if (db == NULL)
 	return 1;
 
+    dbhome = rpmdbHome(db);
+
     /* Try to ensure db home exists, error out if we can't even create */
-    rc = rpmioMkpath(rpmdbHome(db), 0755, getuid(), getgid());
+    rc = rpmioMkpath(dbhome, 0755, getuid(), getgid());
     if (rc == 0) {
+	struct stat st;
+
+	/* Handle parking */
+	if (stat(dbhome, &st) == 0) {
+	    int parking = db->db_flags & RPMDB_FLAG_PARK;
+	    int rebuild = db->db_flags & RPMDB_FLAG_REBUILD;
+
+	    if ((st.st_mode & S_IWUSR) == 0)
+		db->db_flags |= RPMDB_FLAG_PARK;
+
+	    if (rebuild && (db->db_flags & RPMDB_FLAG_PARK) != 0) {
+		rpmlog(RPMLOG_ERR, _("database parked\n"));
+		rpmdbClose(db);
+		return 1;
+	    }
+
+	    if (parking)
+		chmod(dbhome, st.st_mode & ~S_IWUSR);
+	}
+
 	/* Open just bare minimum when rebuilding a potentially damaged db */
 	int justPkgs = (db->db_flags & RPMDB_FLAG_REBUILD) &&
 		       ((db->db_mode & O_ACCMODE) == O_RDONLY);
+
 	rc = doOpen(db, justPkgs);
 
 	if (!db->db_descr)
@@ -479,6 +503,20 @@ int rpmdbInit (const char * prefix, int perms)
 	if (xx && rc == 0) rc = xx;
 	db = NULL;
     }
+    return rc;
+}
+
+int rpmdbPark(const char * prefix)
+{
+    rpmdb db = NULL;
+    int rc = 0;
+
+    rc = openDatabase(prefix, NULL, &db, O_RDWR, 0644, RPMDB_FLAG_PARK);
+    if (db != NULL) {
+	int xx = rpmdbClose(db);
+	if (xx && rc == 0) rc = xx;
+    }
+
     return rc;
 }
 

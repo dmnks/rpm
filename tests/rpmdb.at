@@ -780,3 +780,105 @@ D: rpmdb sqlite backend VACUUM maxfree: 1kB, free: 8kB -> 0kB
 ],
 [])
 RPMTEST_CLEANUP
+
+# ------------------------------
+RPMTEST_SETUP_RW([rpmdb --parkdb])
+RPMTEST_USER
+AT_KEYWORDS([install rpmdb sqlite])
+# this is only relevant with sqlite db, make sure we get one
+echo "%_db_backend sqlite" >> $RPMTEST/root/.config/rpm/macros
+RPMDB_RESET
+
+runroot rpm -U --nodeps --ignorearch --ignoreos --nosignature \
+	/data/RPMS/capstest-1.0-1.noarch.rpm
+DBPATH=$RPMTEST/$(rpm --eval '%_dbpath')
+
+# Assert the database presence
+RPMTEST_CHECK([
+cd $DBPATH; stat -c "%a %n" . *
+],
+[0],
+[755 .
+644 rpmdb.sqlite
+644 rpmdb.sqlite-shm
+644 rpmdb.sqlite-wal
+],
+[])
+
+# Park the database
+RPMTEST_CHECK([
+runroot rpmdb --parkdb
+],
+[0],
+[],
+[])
+
+# Verify parked
+RPMTEST_CHECK([
+cd $DBPATH; stat -c "%a %n" . *
+],
+[0],
+[555 .
+644 rpmdb.sqlite
+],
+[])
+
+# Verify still parked after transactions
+RPMTEST_CHECK([
+runroot rpm -e capstest
+runroot rpm -U --nodeps --ignorearch --ignoreos --nosignature \
+	/data/RPMS/capstest-1.0-1.noarch.rpm
+cd $DBPATH; stat -c "%a %n" . *
+],
+[0],
+[555 .
+644 rpmdb.sqlite
+],
+[])
+
+# Verify no attempt to write to a read-only location
+RPMTEST_CHECK([
+runroot_user rpm -qa
+],
+[0],
+[capstest-1.0-1.noarch
+],
+[])
+
+# Unpark the database
+RPMTEST_CHECK([
+chmod u+w $DBPATH
+],
+[0],
+[],
+[])
+
+# Verify unparked after transactions
+RPMTEST_CHECK([
+runroot rpm -e capstest
+runroot rpm -U --nodeps --ignorearch --ignoreos --nosignature \
+	/data/RPMS/capstest-1.0-1.noarch.rpm
+cd $DBPATH; stat -c "%a %n" . *
+],
+[0],
+[755 .
+644 rpmdb.sqlite
+644 rpmdb.sqlite-shm
+644 rpmdb.sqlite-wal
+],
+[])
+
+# TBD
+RPMTEST_CHECK([
+runroot rpmdb --parkdb
+runroot rpmdb --rebuilddb
+cd $DBPATH; stat -c "%a %n" . *
+],
+[0],
+[555 .
+644 rpmdb.sqlite
+],
+[error: database parked
+])
+
+RPMTEST_CLEANUP
