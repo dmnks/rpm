@@ -4,16 +4,20 @@ RPMDB(8)
 rpmdb - RPM Database Tool
 
 # SYNOPSIS
-*rpmdb* [options] {*--initdb*|*--rebuilddb*}
+## Maintenance
+*rpmdb* [options] {*--initdb*|*--rebuilddb*|*--parkdb*}
 
+## Diagnostics
 *rpmdb* [options] {*--verifydb*}
 
+## Migration
 *rpmdb* [options] {*--exportdb*|*--importdb*}
 
 # DESCRIPTION
-The *rpmdb* is used for *rpm* database maintenance operations.
+The *rpmdb* tool is used for low-level *rpm* database operations.
 
 # OPERATIONS
+## Maintenance
 *--initdb*
 	Create a new database if one doesn't already exist. An
 	existing database is not overwritten.
@@ -27,11 +31,13 @@ The *rpmdb* is used for *rpm* database maintenance operations.
 	Can also be used to convert between different *rpmdb*
 	formats.
 
+## Diagnostics
 *--verifydb*
 	Perform a low-level integrity check on the database.
 	Rarely useful, for system health *rpm --verify -a* is a far more
 	meaningful operation.
 
+## Migration
 *--exportdb*
 	Export the database in header-list format, suitable
 	for transporting to another host or database type.
