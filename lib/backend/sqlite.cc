@@ -121,6 +121,19 @@ static rpmRC dbiCursorBindIdx(sqlite_cursor *dbc, const char *key, int keylen,
     return dbiCursorResult(dbc);
 }
 
+static void sqlite_wal_init(sqlite3 *sdb)
+{
+    int one = 1;
+
+    if (sqlexec(sdb, "PRAGMA journal_mode = WAL") != 0)
+	return;
+
+    /* Annoying but necessary to support non-privileged readers */
+    sqlite3_file_control(sdb, NULL, SQLITE_FCNTL_PERSIST_WAL, &one);
+    /* Sqlite default threshold is way too low for rpmdb */
+    sqlexec(sdb, "PRAGMA wal_autocheckpoint = 10000");
+}
+
 static int sqlite_init(rpmdb rdb, const char * dbhome)
 {
     int rc = 0;
@@ -167,15 +180,8 @@ static int sqlite_init(rpmdb rdb, const char * dbhome)
 
 	sqlexec(sdb, "PRAGMA secure_delete = OFF");
 
-	if (sqlite3_db_readonly(sdb, NULL) == 0) {
-	    if (sqlexec(sdb, "PRAGMA journal_mode = WAL") == 0) {
-		int one = 1;
-		/* Annoying but necessary to support non-privileged readers */
-		sqlite3_file_control(sdb, NULL, SQLITE_FCNTL_PERSIST_WAL, &one);
-		/* Sqlite default threshold is way too low for rpmdb */
-		sqlexec(sdb, "PRAGMA wal_autocheckpoint = 10000");
-	    }
-	}
+	if (sqlite3_db_readonly(sdb, NULL) == 0)
+	    sqlite_wal_init(sdb);
 
 	rdb->db_dbenv = sdb;
     }
