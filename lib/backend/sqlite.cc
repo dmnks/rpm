@@ -134,6 +134,34 @@ static void sqlite_wal(sqlite3 *sdb)
     sqlexec(sdb, "PRAGMA wal_autocheckpoint = 10000");
 }
 
+static int sqlite_park(sqlite3 *sdb, rpmdb rdb)
+{
+    int rc = 0;
+    int fd = 0;
+    char *flagpath = NULL;
+
+    flagpath = rpmGetPath(rdb->db_root, rdb->db_home, "/", ".parked", NULL);
+    if (access(flagpath, F_OK) == 0) {
+	rc = 1;
+	goto exit;
+    }
+
+    if ((rdb->db_flags & RPMDB_FLAG_PARK) == 0)
+	goto exit;
+
+    sqlexec(sdb, "PRAGMA wal_checkpoint = TRUNCATE");
+    sqlexec(sdb, "PRAGMA journal_mode = DELETE");
+
+    if ((fd = open(flagpath, O_CREAT | O_WRONLY, 0644)) >= 0) {
+	close(fd);
+	rc = 1;
+    }
+
+exit:
+    free(flagpath);
+    return rc;
+}
+
 static int sqlite_init(rpmdb rdb, const char * dbhome)
 {
     int rc = 0;
@@ -181,7 +209,8 @@ static int sqlite_init(rpmdb rdb, const char * dbhome)
 	sqlexec(sdb, "PRAGMA secure_delete = OFF");
 
 	if (sqlite3_db_readonly(sdb, NULL) == 0) {
-	    sqlite_wal(sdb);
+	    if (sqlite_park(sdb, rdb) == 0)
+		sqlite_wal(sdb);
 	}
 
 	rdb->db_dbenv = sdb;

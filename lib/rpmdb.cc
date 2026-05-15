@@ -482,6 +482,20 @@ int rpmdbInit (const char * prefix, int perms)
     return rc;
 }
 
+int rpmdbPark(const char * prefix)
+{
+    rpmdb db = NULL;
+    int rc = 0;
+
+    rc = openDatabase(prefix, NULL, &db, O_RDWR, 0644, RPMDB_FLAG_PARK);
+    if (db != NULL) {
+	int xx = rpmdbClose(db);
+	if (xx && rc == 0) rc = xx;
+    }
+
+    return rc;
+}
+
 int rpmdbVerify(const char * prefix)
 {
     rpmdb db = NULL;
