@@ -814,11 +814,10 @@ runroot rpmdb --parkdb
 
 # Verify parked
 RPMTEST_CHECK([
-cd $DBPATH && ls rpmdb.sqlite* .parked
+stat -c %a $DBPATH/rpmdb.sqlite
 ],
 [0],
-[.parked
-rpmdb.sqlite
+[444
 ],
 [])
 
@@ -827,15 +826,14 @@ RPMTEST_CHECK([
 runroot rpm -e capstest
 runroot rpm -U --nodeps --ignorearch --ignoreos --nosignature \
 	/data/RPMS/capstest-1.0-1.noarch.rpm
-cd $DBPATH && ls rpmdb.sqlite* .parked
+stat -c %a $DBPATH/rpmdb.sqlite
 ],
 [0],
-[.parked
-rpmdb.sqlite
+[444
 ],
 [])
 
-# Verify no attempt to write to a read-only medium
+# Verify no attempt to write to a read-only location
 RPMTEST_CHECK([
 runroot_user rpm -qa
 ],
@@ -846,7 +844,7 @@ runroot_user rpm -qa
 
 # Unpark the database
 RPMTEST_CHECK([
-rm $DBPATH/.parked
+chmod +w $DBPATH/rpmdb.sqlite
 ],
 [0],
 [],
@@ -857,13 +855,10 @@ RPMTEST_CHECK([
 runroot rpm -e capstest
 runroot rpm -U --nodeps --ignorearch --ignoreos --nosignature \
 	/data/RPMS/capstest-1.0-1.noarch.rpm
-cd $DBPATH && ls rpmdb.sqlite*
-ls .parked 2>/dev/null || true
+stat -c %a $DBPATH/rpmdb.sqlite
 ],
 [0],
-[rpmdb.sqlite
-rpmdb.sqlite-shm
-rpmdb.sqlite-wal
+[644
 ],
 [])
 
