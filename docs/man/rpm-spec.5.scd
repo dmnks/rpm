@@ -34,13 +34,12 @@ An RPM _spec_ file is a plain-text recipe for building one or more software
 packages in the RPM format, in an automated, non-interactive and repeateable
 manner, by using *rpmbuild*(1). See also *rpm-design*(7) for some background.
 
-Each spec defines at least one package, known as the _main_package_,
-whose name and versioning information both the source and binary packages
-share. The source package contains all the spec file itself, and all
-the sources and patches declared in it. Binary packages are
-produced by building the source package, as instructed by the spec.
-The binary content is commonly split into further _sub-packages_ to make
-packages easier to consume both size and dependency-wise.
+Each spec defines one logical package, known as the _main package_, and zero or
+more binary _subpackages_. The main package describes the common properties of
+both the source and binary (sub-)packages along with the instructions on how to
+build the packaged software from source. Subpackages are commonly used to split
+the binary content further to make it easier to consume, both size and
+dependency wise.
 
 The spec consists of multiple different, named blocks. The first block is
 called the *PREAMBLE*, followed by one or more *SECTIONS*.
