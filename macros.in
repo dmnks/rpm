@@ -169,6 +169,7 @@
     %{?_find_debuginfo_opts} \\\
     %{?_find_debuginfo_vendor_opts} \\\
     %{?_debugsource_packages:-S debugsourcefiles.list} \\\
+    %["%{_debug_output_dir}" != "" ? "--output-dir '%{_debug_output_dir}'" : ""] \\\
     "%{builddir}/%{?buildsubdir}"\
 %{nil}
 
@@ -183,7 +184,7 @@ AutoProv: 1\
 This package provides debug information for package %{name}.\
 Debug information is useful when developing applications that use this\
 package or when debugging this package.\
-%files debuginfo -f debugfiles.list\
+%files debuginfo -f %{_debug_output_dir}debugfiles.list\
 %{nil}
 
 %_debugsource_template \
@@ -195,7 +196,7 @@ AutoReqProv: 0\
 This package provides debug sources for package %{name}.\
 Debug sources are useful when developing applications that use this\
 package or when debugging this package.\
-%files debugsource -f debugsourcefiles.list\
+%files debugsource -f %{_debug_output_dir}debugsourcefiles.list\
 %{nil}
 
 # The duplicate __debug_package definition is needed to ensure matching
@@ -552,6 +553,8 @@ Supplements:   (%{name} = %{version}-%{release} and langpacks-%{1})\
 
 # Whether rpm should create extra debuginfo packages for each subpackage
 #%_debuginfo_subpackages 1
+
+%_debug_output_dir @DEBUG_OUTPUT_DIR@
 
 #
 # Use internal dependency generator rather than external helpers?
