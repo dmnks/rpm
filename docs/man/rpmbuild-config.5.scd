@@ -43,6 +43,12 @@ typically invoked through the *rpmbuild* command.
 	The toplevel directory under which the package build directories
 	reside by default.
 
+*%\_\_readindir* _PATHS_
+	A colon separated list of directories where read-in files for spec
+	sections provided with the *-f* option, such as *%files* manifests or
+	scriptlet bodies, should be looked up. See also *rpm-spec*(5) and
+	*rpm-scriptlets*(7).
+
 ## Informational tags
 These are a special group of macros that if defined, behave as if the
 corresponding tag had been used in a specfile. This allows changing

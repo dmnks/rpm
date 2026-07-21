@@ -863,6 +863,7 @@ RPM-specific environment variables are set:
 - *RPM_PACKAGE_RELEASE*: Rpm release of the source package
 - *RPM_SOURCE_DIR*: The source directory of the package
 - *RPM_SPECPARTS_DIR*: The directory of dynamically generated spec parts
+- *RPM_READIN_DIR*: The directory of read-in files
 
 Note: many of these have macro counterparts which may seem more convenient
 and consistent with the rest of the spec, but one should always use the

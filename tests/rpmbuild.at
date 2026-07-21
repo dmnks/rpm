@@ -4186,3 +4186,13 @@ runroot rpmbuild -bb --quiet --target x86_64 --with hello32 \
     /usr/local/bin/hello (ELF 32-bit)
 ])
 RPMTEST_CLEANUP
+
+RPMTEST_SETUP_RW([rpmbuild read-in files])
+AT_KEYWORDS([build])
+RPMTEST_CHECK([
+rpmbuild -bb --quiet ${RPMDATA}/SPECS/readin.spec
+],
+[0],
+[],
+[ignore])
+RPMTEST_CLEANUP

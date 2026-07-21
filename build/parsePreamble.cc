@@ -1323,6 +1323,15 @@ int parsePreamble(rpmSpec spec, int initialPackage, enum parseStages stage)
 	    rpmPushMacroFlags(spec->macros, "specpartsdir", NULL, specparts,
 				RMIL_SPEC, RPMMACRO_LITERAL);
 	    free(specparts);
+
+	    char *readindir = rpmExpand("%{__readindir}", NULL);
+	    for (char *d = readindir; *d; d++) {
+		if (*d == ':')
+		    *d = '\0';
+	    }
+	    rpmPushMacroFlags(spec->macros, "readindir", NULL, readindir,
+				RMIL_SPEC, RPMMACRO_LITERAL);
+	    free(readindir);
 	}
 
 	if (!spec->buildRoot) {
