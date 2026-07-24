@@ -626,12 +626,21 @@ hello-2.0/COPYING
 hello-2.0/FAQ
 hello-2.0/Makefile
 hello-2.0/README
-hello-2.0/debugfiles.list
-hello-2.0/debuglinks.list
-hello-2.0/debugsources.list
-hello-2.0/elfbins.list
 hello-2.0/hello
 hello-2.0/hello.c
+],
+[])
+
+# check that read-in files are in the expected location
+RPMTEST_CHECK([
+cd $RPMTEST/build/BUILD/hello-2.0-build/READINS
+ls | sort
+],
+[0],
+[debugfiles.list
+debuglinks.list
+debugsources.list
+elfbins.list
 ],
 [])
 RPMTEST_CLEANUP
