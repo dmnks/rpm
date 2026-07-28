@@ -1369,11 +1369,8 @@ end
         type = 'user'
     elseif arg[1] == 'm' and #arg >=3 then
         type = 'groupmember'
-    elseif arg[1] == 'r' then
-        macros.warn({'ignoring unsupported sysuser type: '..arg[1]})
-        return
     else
-        macros.error({'invalid sysuser type: '..arg[1]})
+        type = 'foobar'
     end
     line = table.concat(arg, ' ')
     -- \0-pad source string to avoid '=' in the output

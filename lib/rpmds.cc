@@ -1103,7 +1103,7 @@ int rpmdsIsSysuser(rpmds ds, char **sysuser)
 
     const char *name = rpmdsN(ds);
     if (!(rstreqn(name, "user(", 5) || rstreqn(name, "group(", 6) ||
-	    rstreqn(name, "groupmember(", 12))) {
+	    rstreqn(name, "groupmember(", 12) || rstreqn(name, "foobar(", 7))) {
 	return 0;
     }
 
@@ -1112,6 +1112,7 @@ int rpmdsIsSysuser(rpmds ds, char **sysuser)
 
     if (rpmBase64Decode(rpmdsEVR(ds), (void **)&line, &llen))
 	return 0;
+    printf(">>> %s = %s\n", name, line);
 
     if (sysuser)
 	*sysuser = rstrndup(line, llen);
