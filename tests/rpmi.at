@@ -1915,7 +1915,7 @@ runroot rpm -V ${VERIFYOPTS} klang-client klang-common
 
 RPMTEST_CHECK([
 runroot rpm -U /build/RPMS/noarch/klang-server-1.0-1.noarch.rpm
-runroot grep ^klangd /etc/passwd | cut -f1 -d:
+runroot grep ^klangd /etc/passwd
 runroot chage -l klangd | grep "Account expires" | cut -f2 -d:
 runroot grep ^klangd /etc/group | cut -f1 -d:
 runroot grep ^plong /etc/passwd | cut -f1 -d:
@@ -1924,7 +1924,7 @@ runroot grep ^klong /etc/group | cut -f4 -d:
 runroot rpm -V ${VERIFYOPTS} klang-server
 ],
 [0],
-[klangd
+[klangd:x:123:123::/:/usr/sbin/nologin
  never
 klangd
 plong

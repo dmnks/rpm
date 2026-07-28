@@ -60,7 +60,7 @@ u! plong - "Plong fu" /var/lib/plong /sbin/nologin
 # and comments comments
 g klong -
 m klangd klong
-r - 123-321
+r - 123-123
 EOF
 
 %files common
