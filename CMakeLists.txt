@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.18)
+# Test
 
 project(rpm
 	VERSION 6.1.90
