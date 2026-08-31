@@ -727,6 +727,7 @@ rpmbuild \
 [ignore])
 
 RPMTEST_CHECK([
+/data/misc/CVE-2026-44604.py $RPMTEST/data/SOURCES/source-singleroot-evil.zip
 rpmbuild \
   -bp --quiet ${RPMDATA}/SPECS/autosetup-singleroot-evil.spec
 test -f $RPMTEST/build/BUILD/*/beenhere
