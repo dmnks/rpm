@@ -906,6 +906,40 @@ test -f $RPMTEST/tmp/gotcha
 [])
 RPMTEST_CLEANUP
 
+RPMTEST_SETUP_RW([rpmbuild -ts <spec> (evil 2)])
+AT_KEYWORDS([build])
+
+RPMTEST_CHECK([
+runroot rpmbuild --quiet -ts \
+    "/data/SOURCES/hello-2.0.tar.gz}%(touch gotcha1)%{nil"
+],
+[ignore],
+[ignore],
+[ignore])
+
+RPMTEST_CHECK([
+test -f $RPMTEST/gotcha1
+],
+[1],
+[],
+[])
+
+RPMTEST_CHECK([
+runroot rpmbuild --quiet -ts \
+    "}; touch gotcha2; echo %{nil"
+],
+[ignore],
+[ignore],
+[ignore])
+
+RPMTEST_CHECK([
+test -f $RPMTEST/gotcha2
+],
+[1],
+[],
+[])
+RPMTEST_CLEANUP
+
 # weird filename survival test
 RPMTEST_SETUP_RW([rpmbuild package with weird filenames])
 AT_KEYWORDS([build])
