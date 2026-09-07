@@ -8,6 +8,7 @@
 
 #include <stdio.h>
 #include <popt.h>
+#include <rpm/rpmtypes.h>
 #include <rpm/rpmutil.h>
 
 /* "normalized" exit: avoid overflowing and xargs special value 255 */
@@ -21,5 +22,7 @@ void printUsage(poptContext con, FILE * fp, int flags);
 int initPipe(void);
 
 int finishPipe(void);
+
+int execProgram(const char *cmd, const char *arg, FD_t outfd);
 
 #endif /* _CLIUTIL_H */

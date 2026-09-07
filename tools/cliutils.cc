@@ -1,5 +1,6 @@
 #include "system.h"
 #include <errno.h>
+#include <fcntl.h>
 #include <sys/wait.h>
 
 #include <rpm/rpmlog.h>
@@ -81,5 +82,45 @@ int finishPipe(void)
 	if (reaped == -1 || !WIFEXITED(status) || WEXITSTATUS(status))
 	    rc = 1;
     }
+    return rc;
+}
+
+int execProgram(const char *cmd, const char *arg, FD_t outfd)
+{
+    pid_t pid;
+    int status;
+    int rc = 1;
+    ARGV_t argv = NULL;
+
+    argvSplit(&argv, cmd, " ");
+    argvAdd(&argv, arg);
+
+    if ((pid = fork()) == 0) {
+	if (outfd != NULL)
+	    dup2(Fileno(outfd), STDOUT_FILENO);
+	execv(argv[0], argv);
+	_exit(EXIT_FAILURE);
+    } else if (pid == -1) {
+	rpmlog(RPMLOG_ERR, _("Couldn't fork \"%s\": %s\n"),
+	       cmd, strerror(errno));
+	goto exit;
+    }
+
+    if (waitpid(pid, &status, 0) == -1) {
+	rpmlog(RPMLOG_ERR, _("Failed to wait for exit status of %s: %s\n"),
+	       cmd, strerror(errno));
+	goto exit;
+    } else if (!WIFEXITED(status)) {
+	rpmlog(RPMLOG_ERR, _("Program %s terminated abnormally\n"), cmd);
+	goto exit;
+    } else if (WEXITSTATUS(status)) {
+	rpmlog(RPMLOG_ERR, _("Program %s failed with status %i\n"),
+	       cmd, WEXITSTATUS(status));
+	goto exit;
+    }
+    rc = 0;
+
+exit:
+    argvFree(argv);
     return rc;
 }

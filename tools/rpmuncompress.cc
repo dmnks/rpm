@@ -16,6 +16,7 @@
 #include <rpm/rpmlog.h>
 #include <rpm/rpmstring.h>
 
+#include "cliutils.hh"
 #include "debug.h"
 
 namespace fs = std::filesystem;
@@ -86,14 +87,11 @@ static const struct archiveType_s *getArchiver(const char *fn)
     return archiver;
 }
 
-static char *doUncompress(const char *fn, const struct archiveType_s *at)
+static char *doUncompress(const struct archiveType_s *at)
 {
     char *cmd = NULL;
     if (at) {
-	cmd = rpmExpand(at->setTZ ? "TZ=UTC " : "",
-			at->cmd, " ", at->unpack, NULL);
-	/* path must not be expanded */
-	cmd = rstrscat(&cmd, " '", fn, "'", NULL);
+	cmd = rpmExpand(at->cmd, " ", at->unpack, NULL);
     }
     return cmd;
 }
@@ -257,15 +255,30 @@ int main(int argc, char *argv[])
 
     at = getArchiver(arg);
 
-    cmd = extract ? doUntar(arg, at) : doUncompress(arg, at);
+    cmd = extract ? doUntar(arg, at) : doUncompress(at);
     if (cmd) {
 	FILE *inp = NULL;
 
-	if (rpmIsVerbose() || dryrun)
-	    fprintf(stderr, "%s\n", cmd);
+	if (rpmIsVerbose() || dryrun) {
+	    if (extract)
+		fprintf(stderr, "%s\n", cmd);
+	    else
+		fprintf(stderr, "%s%s '%s'\n",
+			(at->setTZ ? "TZ=UTC " : ""), cmd, arg);
+	}
 
 	if (dryrun) {
 	    ec = EXIT_SUCCESS;
+	    goto exit;
+	}
+
+	if (extract == 0) {
+	    if (at->setTZ)
+		setenv("TZ", "UTC", 1);
+	    if (execProgram(cmd, arg, NULL) == 0)
+		ec = EXIT_SUCCESS;
+	    if (at->setTZ)
+		unsetenv("TZ");
 	    goto exit;
 	}
 
