@@ -17,6 +17,7 @@
 #include <rpm/rpmstring.h>
 
 #include "debug.h"
+#include "cliutils.hh"
 
 namespace fs = std::filesystem;
 
@@ -265,6 +266,12 @@ int main(int argc, char *argv[])
 
 	if (dryrun) {
 	    ec = EXIT_SUCCESS;
+	    goto exit;
+	}
+
+	if (extract == 0) {
+	    if (printOutput(cmd, NULL, NULL) == 0)
+		ec = EXIT_SUCCESS;
 	    goto exit;
 	}
 

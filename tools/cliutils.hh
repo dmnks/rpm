@@ -22,4 +22,6 @@ int initPipe(void);
 
 int finishPipe(void);
 
+int printOutput(const char *cmd, const char *arg, const char *file);
+
 #endif /* _CLIUTIL_H */
