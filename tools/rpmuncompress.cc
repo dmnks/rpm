@@ -249,6 +249,8 @@ int main(int argc, char *argv[])
     poptContext optCon = NULL;
     const char *arg = NULL;
     char *cmd = NULL;
+    char *tarFile = NULL;
+    FD_t fd = NULL;
 
     optCon = rpmcliInit(argc, argv, optionsTable);
 
@@ -257,7 +259,17 @@ int main(int argc, char *argv[])
 	goto exit;
     }
 
-    cmd = extract ? doUntar(arg) : doUncompress(arg);
+    tarFile = rpmGetPath("rpm-tar.XXXXXX", NULL);
+    fd = rpmMkTemp(tarFile);
+
+    cmd = doUncompress(arg);
+    printOutput(cmd, NULL, tarFile);
+
+    if (extract) {
+	free(cmd);
+	cmd = doUntar(tarFile);
+    }
+
     if (cmd) {
 	FILE *inp = NULL;
 
@@ -269,11 +281,11 @@ int main(int argc, char *argv[])
 	    goto exit;
 	}
 
-	if (extract == 0) {
-	    if (printOutput(cmd, NULL, NULL) == 0)
-		ec = EXIT_SUCCESS;
-	    goto exit;
-	}
+// 	if (extract == 0) {
+// 	    if (printOutput(cmd, NULL, NULL) == 0)
+// 		ec = EXIT_SUCCESS;
+// 	    goto exit;
+// 	}
 
 	inp = popen(cmd, "r");
 	if (inp) {
@@ -289,5 +301,6 @@ int main(int argc, char *argv[])
 exit:
     free(cmd);
     rpmcliFini(optCon);
+    Fclose(fd);
     return ec;
 }
