@@ -74,6 +74,9 @@ FD_t rpmMkTemp(char *templ);
 RPM_PUBLIC_API
 FD_t rpmMkTempFile(const char * prefix, char **fn);
 
+RPM_PUBLIC_API
+void rpmMkTempDir(char *templ);
+
 /** \ingroup rpmfileutil
  * Insure that directories in path exist, creating as needed.
  * @param path		directory path

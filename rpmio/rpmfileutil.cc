@@ -75,6 +75,23 @@ exit:
     return tfd;
 }
 
+void rpmMkTempDir(char *templ)
+{
+    mode_t mode;
+    char *path = NULL;
+
+    mode = umask(0077);
+    path = mkdtemp(templ);
+    umask(mode);
+
+    if (path == NULL) {
+	goto exit;
+    }
+
+exit:
+    return;
+}
+
 FD_t rpmMkTempFile(const char * prefix, char **fn)
 {
     const char *tpmacro = "%{_tmppath}"; /* always set from rpmrc */

@@ -171,6 +171,7 @@ LIBRPMIO_6.2 {
 	rpmMkdirs;
 	rpmMkTemp;
 	rpmMkTempFile;
+	rpmMkTempDir;
 	rpmPopMacro;
 	rpmPubkeyArmorWrap;
 	rpmPubkeyBase64;

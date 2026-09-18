@@ -87,14 +87,14 @@ static const struct archiveType_s *getArchiver(const char *fn)
     return archiver;
 }
 
-static char *doUncompress(const struct archiveType_s *at)
+static char *doUncompress(const struct archiveType_s *at, const char *dest)
 {
     char *cmd = NULL;
     if (at) {
 	char *zipper = rpmExpand(at->cmd, " ", at->unpack,
 				 rpmIsVerbose() ? "": at->quiet, NULL);
 	if (dstpath && at->extractable) {
-	    rasprintf(&cmd, "%s %s%s", zipper, at->dest, dstpath);
+	    rasprintf(&cmd, "%s %s%s", zipper, at->dest, (dest ? dest : ""));
 	    free(zipper);
 	} else {
 	    cmd = zipper;
@@ -241,6 +241,14 @@ static char *doUntar(const char *fn, const struct archiveType_s *at)
     return buf;
 }
 
+static char *doMoveup(const char *srcdir, const char *dstdir)
+{
+    char *cmd = NULL;
+    rasprintf(&cmd, "(shopt -s dotglob; mv \"%s\"/*/* '%s') && "
+		    "rmdir \"%s\"/* \"%s\"", srcdir, dstdir, srcdir, srcdir);
+    return cmd;
+}
+
 int main(int argc, char *argv[])
 {
     int ec = EXIT_FAILURE;
@@ -248,8 +256,11 @@ int main(int argc, char *argv[])
     const char *arg = NULL;
     char *cmdUncompress = NULL;
     char *cmdUntar = NULL;
-    char *tarFile = NULL;
+    char *cmdMoveup = NULL;
+    char *tarfile = NULL;
+    char *tmppath = NULL;
     int needtar = 0;
+    int sroot = 0;
     const struct archiveType_s *at = NULL;
     FD_t fd = NULL;
 
@@ -265,11 +276,21 @@ int main(int argc, char *argv[])
 	goto exit;
     needtar = (extract && at->extractable == 0);
 
-    cmdUncompress = doUncompress(at);
+    if (dstpath) {
+	rpmioMkpath(dstpath, 0755, -1, -1);
+	sroot = singleRoot(arg);
+	if (sroot) {
+	    tmppath = rpmGetPath("%{_tmppath}/", "rpm-dest.XXXXXX", NULL);
+	    rpmMkTempDir(tmppath);
+	    cmdMoveup = doMoveup(tmppath, dstpath);
+	}
+    }
+
+    cmdUncompress = doUncompress(at, (sroot ? tmppath : dstpath));
     if (needtar) {
-	if (!(fd = rpmMkTempFile(NULL, &tarFile)))
+	if (!(fd = rpmMkTempFile(NULL, &tarfile)))
 	    goto exit;
-	cmdUntar = doUntar(tarFile, &archiveTypes[0]);
+	cmdUntar = doUntar(tarfile, &archiveTypes[0]);
     }
 
     if (cmdUncompress) {
@@ -288,15 +309,17 @@ int main(int argc, char *argv[])
 	    goto exit;
 	}
 
-	if (dstpath)
-	    rpmioMkpath(dstpath, 0755, -1, -1);
-
 	if (at->setTZ)
 	    setenv("TZ", "UTC", 1);
-	if (printOutput(tarFile, cmdUncompress, arg, 1) == 0)
+	if (printOutput(tarfile, cmdUncompress, arg, 1) == 0)
 	    ec = EXIT_SUCCESS;
 	if (at->setTZ)
 	    unsetenv("TZ");
+
+	if (sroot && printOutput(NULL, "sh -c", cmdMoveup, 1) != 0) {
+	    ec = EXIT_FAILURE;
+	    goto exit;
+	}
 
 	if (!needtar)
 	    goto exit;
@@ -315,9 +338,10 @@ int main(int argc, char *argv[])
 exit:
     free(cmdUncompress);
     free(cmdUntar);
-    if (tarFile) {
-	unlink(tarFile);
-	free(tarFile);
+    free(cmdMoveup);
+    if (tarfile) {
+	unlink(tarfile);
+	free(tarfile);
     }
     Fclose(fd);
     rpmcliFini(optCon);
