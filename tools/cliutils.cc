@@ -107,6 +107,10 @@ int printOutput(const char *file, const char *cmd, const char *arg, int split)
 	    argvAdd(&argv, cmd);
 	argvAdd(&argv, arg);
 
+	// for (ARGV_const_t arg = argv; arg && *arg; arg++) {
+	//     printf("*** %s\n", *arg);
+	// }
+
 	execvp(argv[0], argv);
 	_exit(EXIT_FAILURE);
     } else if (pid == -1) {

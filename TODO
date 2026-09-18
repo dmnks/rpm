@@ -1,0 +1,5 @@
+* singleroot
+* rubygem
+* rpmioMkpath() args
+* --dry-run
+* use pipe instead of temp file?

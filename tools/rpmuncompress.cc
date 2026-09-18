@@ -87,11 +87,18 @@ static const struct archiveType_s *getArchiver(const char *fn)
     return archiver;
 }
 
-static char *doUncompress(const char *fn, const struct archiveType_s *at)
+static char *doUncompress(const struct archiveType_s *at)
 {
     char *cmd = NULL;
     if (at) {
-	cmd = rpmExpand(at->cmd, " ", at->unpack, NULL);
+	char *zipper = rpmExpand(at->cmd, " ", at->unpack,
+				 rpmIsVerbose() ? "": at->quiet, NULL);
+	if (dstpath && at->extractable) {
+	    rasprintf(&cmd, "%s %s%s", zipper, at->dest, dstpath);
+	    free(zipper);
+	} else {
+	    cmd = zipper;
+	}
     }
     return cmd;
 }
@@ -168,9 +175,6 @@ static char *doUntar(const char *fn, const struct archiveType_s *at)
     char *stripcd = NULL;
     int needtar = 0;
 
-    if (at == NULL)
-	goto exit;
-
     needtar = (at->extractable == 0);
 
     if (dstpath) {
@@ -231,7 +235,6 @@ static char *doUntar(const char *fn, const struct archiveType_s *at)
 	rasprintf(&buf, "%s %s %s '%s' %s", mkdir, tar, taropts, fn, stripcd);
     }
 
-exit:
     free(tar);
     free(mkdir);
     free(stripcd);
@@ -243,8 +246,12 @@ int main(int argc, char *argv[])
     int ec = EXIT_FAILURE;
     poptContext optCon = NULL;
     const char *arg = NULL;
-    char *cmd = NULL;
+    char *cmdUncompress = NULL;
+    char *cmdUntar = NULL;
+    char *tarFile = NULL;
+    int needtar = 0;
     const struct archiveType_s *at = NULL;
+    FD_t fd = NULL;
 
     optCon = rpmcliInit(argc, argv, optionsTable);
 
@@ -254,17 +261,26 @@ int main(int argc, char *argv[])
     }
 
     at = getArchiver(arg);
+    if (at == NULL)
+	goto exit;
+    needtar = (extract && at->extractable == 0);
 
-    cmd = extract ? doUntar(arg, at) : doUncompress(arg, at);
-    if (cmd) {
+    cmdUncompress = doUncompress(at);
+    if (needtar) {
+	if (!(fd = rpmMkTempFile(NULL, &tarFile)))
+	    goto exit;
+	cmdUntar = doUntar(tarFile, &archiveTypes[0]);
+    }
+
+    if (cmdUncompress) {
 	FILE *inp = NULL;
 
 	if (rpmIsVerbose() || dryrun) {
-	    if (extract)
-		fprintf(stderr, "%s\n", cmd);
+	    if (needtar)
+		fprintf(stderr, "%s; %s\n", cmdUncompress, cmdUntar);
 	    else
 		fprintf(stderr, "%s%s '%s'\n",
-			(at->setTZ ? "TZ=UTC " : ""), cmd, arg);
+			(at->setTZ ? "TZ=UTC " : ""), cmdUncompress, arg);
 	}
 
 	if (dryrun) {
@@ -272,17 +288,20 @@ int main(int argc, char *argv[])
 	    goto exit;
 	}
 
-	if (extract == 0) {
-	    if (at->setTZ)
-		setenv("TZ", "UTC", 1);
-	    if (printOutput(NULL, cmd, arg, 1) == 0)
-		ec = EXIT_SUCCESS;
-	    if (at->setTZ)
-		unsetenv("TZ");
-	    goto exit;
-	}
+	if (dstpath)
+	    rpmioMkpath(dstpath, 0755, -1, -1);
 
-	inp = popen(cmd, "r");
+	if (at->setTZ)
+	    setenv("TZ", "UTC", 1);
+	if (printOutput(tarFile, cmdUncompress, arg, 1) == 0)
+	    ec = EXIT_SUCCESS;
+	if (at->setTZ)
+	    unsetenv("TZ");
+
+	if (!needtar)
+	    goto exit;
+
+	inp = popen(cmdUntar, "r");
 	if (inp) {
 	    int status, c;
 	    while ((c = fgetc(inp)) != EOF)
@@ -294,7 +313,13 @@ int main(int argc, char *argv[])
     }
 
 exit:
-    free(cmd);
+    free(cmdUncompress);
+    free(cmdUntar);
+    if (tarFile) {
+	unlink(tarFile);
+	free(tarFile);
+    }
+    Fclose(fd);
     rpmcliFini(optCon);
     return ec;
 }
