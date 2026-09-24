@@ -85,42 +85,49 @@ int finishPipe(void)
     return rc;
 }
 
-int execProgram(const char *cmd, const char *arg, FD_t outfd)
+int execProgramArgv(ARGV_const_t argv, FD_t outfd)
 {
     pid_t pid;
     int status;
+    const char *pathname = argv[0];
+
+    if ((pid = fork()) == 0) {
+	if (outfd != NULL)
+	    dup2(Fileno(outfd), STDOUT_FILENO);
+	execv(pathname, argv);
+	_exit(EXIT_FAILURE);
+    } else if (pid == -1) {
+	rpmlog(RPMLOG_ERR, _("Couldn't fork \"%s\": %s\n"),
+	       pathname, strerror(errno));
+	return 1;
+    }
+
+    if (waitpid(pid, &status, 0) == -1) {
+	rpmlog(RPMLOG_ERR, _("Failed to wait for exit status of %s: %s\n"),
+	       pathname, strerror(errno));
+	return 1;
+    } else if (!WIFEXITED(status)) {
+	rpmlog(RPMLOG_ERR, _("Program %s terminated abnormally\n"), pathname);
+	return 1;
+    } else if (WEXITSTATUS(status)) {
+	rpmlog(RPMLOG_ERR, _("Program %s failed with status %i\n"),
+	       pathname, WEXITSTATUS(status));
+	return 1;
+    }
+
+    return 0;
+}
+
+int execProgram(const char *cmd, const char *arg, FD_t outfd)
+{
     int rc = 1;
     ARGV_t argv = NULL;
 
     argvSplit(&argv, cmd, " ");
     argvAdd(&argv, arg);
 
-    if ((pid = fork()) == 0) {
-	if (outfd != NULL)
-	    dup2(Fileno(outfd), STDOUT_FILENO);
-	execv(argv[0], argv);
-	_exit(EXIT_FAILURE);
-    } else if (pid == -1) {
-	rpmlog(RPMLOG_ERR, _("Couldn't fork \"%s\": %s\n"),
-	       cmd, strerror(errno));
-	goto exit;
-    }
+    rc = execProgramArgv(argv, outfd);
 
-    if (waitpid(pid, &status, 0) == -1) {
-	rpmlog(RPMLOG_ERR, _("Failed to wait for exit status of %s: %s\n"),
-	       cmd, strerror(errno));
-	goto exit;
-    } else if (!WIFEXITED(status)) {
-	rpmlog(RPMLOG_ERR, _("Program %s terminated abnormally\n"), cmd);
-	goto exit;
-    } else if (WEXITSTATUS(status)) {
-	rpmlog(RPMLOG_ERR, _("Program %s failed with status %i\n"),
-	       cmd, WEXITSTATUS(status));
-	goto exit;
-    }
-    rc = 0;
-
-exit:
     argvFree(argv);
     return rc;
 }
