@@ -118,6 +118,21 @@ int execProgramArgv(ARGV_const_t argv, FD_t outfd)
     return 0;
 }
 
+int execProgramList(const char *cmd, ...)
+{
+    ARGV_t argv = NULL;
+    va_list ap;
+
+    va_start(ap, cmd);
+    for (const char *s = cmd; s != NULL; s = va_arg(ap, const char *))
+	argvAdd(&argv, s);
+    va_end(ap);
+
+    // for (ARGV_const_t arg = argv; arg && *arg; arg++)
+	// printf(">>> %s\n", *arg);
+    return execProgramArgv(argv, NULL);
+}
+
 int execProgram(const char *cmd, const char *arg, FD_t outfd)
 {
     int rc = 1;

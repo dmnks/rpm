@@ -164,6 +164,7 @@ static char *doUntar(const char *fn, const struct archiveType_s *at)
     char *buf = NULL;
     char *tar = NULL;
     const char *taropts = rpmIsVerbose() ? "-xvvof" : "-xof";
+    const char *fnarg = "\"$1\"";
     char *mkdir = NULL;
     char *stripcd = NULL;
     int needtar = 0;
@@ -214,21 +215,21 @@ static char *doUntar(const char *fn, const struct archiveType_s *at)
 			   at->cmd, " ", at->unpack, " ",
 			   rpmIsVerbose() ? "" : at->quiet, NULL);
 	if (needtar) {
-	    rasprintf(&buf, "%s %s '%s' | %s %s - %s", mkdir, zipper, fn, tar, taropts, stripcd);
+	    rasprintf(&buf, "%s %s %s | %s %s - %s", mkdir, zipper, fnarg, tar, taropts, stripcd);
 	} else if (at->compressed == COMPRESSED_GEM) {
 	    auto bn = fs::path(fn).stem();
 	    char *gem = rpmGetPath("%{__gem}", NULL);
 
-	    rasprintf(&buf, "%s '%s' && %s spec '%s' --ruby > '%s.gemspec'",
-			zipper, fn, gem, fn, bn.c_str());
+	    rasprintf(&buf, "%s %s && %s spec %s --ruby > '%s.gemspec'",
+			zipper, fnarg, gem, fnarg, bn.c_str());
 
 	    free(gem);
 	} else {
-	    rasprintf(&buf, "%s%s '%s' %s", mkdir, zipper, fn, stripcd);
+	    rasprintf(&buf, "%s%s %s %s", mkdir, zipper, fnarg, stripcd);
 	}
 	free(zipper);
     } else {
-	rasprintf(&buf, "%s %s %s '%s' %s", mkdir, tar, taropts, fn, stripcd);
+	rasprintf(&buf, "%s %s %s %s %s", mkdir, tar, taropts, fnarg, stripcd);
     }
 
 exit:
@@ -257,8 +258,6 @@ int main(int argc, char *argv[])
 
     cmd = extract ? doUntar(arg, at) : doUncompress(at);
     if (cmd) {
-	FILE *inp = NULL;
-
 	if (rpmIsVerbose() || dryrun) {
 	    if (extract)
 		fprintf(stderr, "%s\n", cmd);
@@ -282,15 +281,8 @@ int main(int argc, char *argv[])
 	    goto exit;
 	}
 
-	inp = popen(cmd, "r");
-	if (inp) {
-	    int status, c;
-	    while ((c = fgetc(inp)) != EOF)
-		fputc(c, stdout);
-	    status = pclose(inp);
-	    if (WIFEXITED(status) && WEXITSTATUS(status) == 0)
-		ec = EXIT_SUCCESS;
-	}
+	if (execProgramList("/usr/bin/sh", "-c", cmd, "sh", arg, NULL) == 0)
+	    ec = EXIT_SUCCESS;
     }
 
 exit:

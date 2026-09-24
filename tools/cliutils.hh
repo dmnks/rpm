@@ -24,5 +24,7 @@ int initPipe(void);
 int finishPipe(void);
 
 int execProgram(const char *cmd, const char *arg, FD_t outfd);
+int execProgramArgv(ARGV_const_t argv, FD_t outfd);
+int execProgramList(const char *cmd, ...);
 
 #endif /* _CLIUTIL_H */
