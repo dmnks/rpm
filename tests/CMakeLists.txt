@@ -103,18 +103,19 @@ if (MKTREE_BACKEND STREQUAL oci)
 	if (CONTAINERFILE_FOUND)
 		set(MKTREE_NATIVE yes)
 		configure_file(${CONTAINERFILE} Containerfile COPYONLY)
-		add_custom_target(ci
-			COMMAND ./mktree.oci build --toolchain clang
-			COMMAND ./mktree.oci clean
-			COMMAND ./mktree.oci build --toolchain gcc
-			COMMAND ./mktree.oci check ${JOBS} $(TESTOPTS)
-			COMMAND ./mktree.oci clean
-			WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-		)
 	else()
 		set(MKTREE_NATIVE no)
 		configure_file(Containerfile Containerfile COPYONLY)
 	endif()
+
+	add_custom_target(ci
+		COMMAND ./mktree.oci build --toolchain clang
+		COMMAND ./mktree.oci clean
+		COMMAND ./mktree.oci build --toolchain gcc
+		COMMAND ./mktree.oci check ${JOBS} $(TESTOPTS)
+		COMMAND ./mktree.oci clean
+		WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+	)
 elseif (MKTREE_BACKEND STREQUAL rootfs)
 	set(MKTREE_NATIVE yes)
 	find_program(BWRAP bwrap REQUIRED)
