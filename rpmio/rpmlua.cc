@@ -962,14 +962,16 @@ static int rpm_glob(lua_State *L)
 	flags |= RPMGLOB_NOCHECK;
 
     rc = rpmGlobPath(pat, flags, &argc, &argv);
-    if (rc == 0) {
+    if (1) {
 	lua_createtable(L, 0, argc);
 	for (int i = 0; i < argc; i++) {
 	    lua_pushstring(L, argv[i]);
 	    lua_rawseti(L, -2, i + 1);
 	}
 	argvFree(argv);
-    } else if (rc != GLOB_NOMATCH) {
+    }
+
+    if (rc != 0 && rc != GLOB_NOMATCH) {
 	luaL_error(L, "glob %s failed: %s", pat, strerror(errno));
     }
 

@@ -1173,12 +1173,11 @@ aaa/b*
 [])
 
 RPMTEST_CHECK([[
-# Wrong behavior: should return an empty table
 rpm --eval "%{lua:t = rpm.glob('aaa/b*'); print(type(t)..' '..#t)}"
 rpm --eval "%{lua:t = rpm.glob('aaa/b*', 'c'); print(type(t)..' '..#t..' '..t[1])}"
 ]],
 [0],
-[string 6
+[table 0
 table 1 aaa/b*
 ],
 [])
